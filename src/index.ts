@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import express, { Application, NextFunction, Request, Response } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 
 import logger from './utils/logger';
 import router from './routes';
 
 const app: Application = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
 app.use(cors());
+app.use(helmet());
 
 const port = 3001;
 
