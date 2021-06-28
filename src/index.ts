@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import express, { Application, NextFunction, Request, Response } from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import helmet from 'helmet';
 
 import logger from './utils/logger';
 import router from './routes';
+
+dotenv.config();
 
 const app: Application = express();
 app.use(express.json());
@@ -13,9 +16,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(helmet());
 
-const port = 3001;
+const port = process.env.USER_GATEWAY_PORT;
 
-app.use('/v1', router);
+app.use('/api', router);
 
 app.get('/toto', (req: Request, res: Response) => {
   res.json({ greeting: `Hello, Good Morning ${port} !` });

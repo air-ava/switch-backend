@@ -10,3 +10,9 @@ export interface theResponse {
   error?: any;
   data?: any;
 }
+
+export interface ControllerResponse {
+  success: boolean;
+  error?: string;
+  message?: string;
+}
