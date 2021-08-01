@@ -1,0 +1,17 @@
+{
+    "type": "postgres",
+    "host": "localhost",
+    "port": 5432,
+    "username": "postgres",
+    "password": "",
+    "database": "carbon_test",
+    "logging": false,
+    "entities": ["build/database/models/**/*.js"],
+    "migrations": ["build/database/migrations/**/*.js"],
+    "subscribers": ["build/database/subscriber/**/*.js"],
+    "cli": {
+      "entitiesDir": "src/database/models",
+      "migrationsDir": "src/database/migrations",
+      "subscribersDir": "src/database/subscriber"
+    }
+  }
