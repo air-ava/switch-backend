@@ -18,17 +18,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAddress = exports.createUser = void 0;
 const bcrypt = __importStar(require("bcrypt"));
@@ -78,11 +67,10 @@ const createUser = async (data) => {
         const address = await queryRunner.manager.save(Addresses_1.Addresses, addressData);
         await queryRunner.manager.update(Users_1.Users, { id: user.id }, { address });
         await queryRunner.commitTransaction();
-        const _a = address.user, { password } = _a, newUser = __rest(_a, ["password"]);
         return {
             success: true,
             message: 'Account created successfully',
-            data: Object.assign({}, newUser),
+            data: { address },
         };
     }
     catch (e) {

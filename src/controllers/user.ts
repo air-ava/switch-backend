@@ -58,12 +58,11 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     await queryRunner.manager.update(Users, { id: user.id }, { address });
 
     await queryRunner.commitTransaction();
-    const { password, ...newUser } = address.user;
 
     return {
       success: true,
       message: 'Account created successfully',
-      data: { ...newUser },
+      data: { address },
     };
   } catch (e) {
     await queryRunner.rollbackTransaction();
