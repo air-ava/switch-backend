@@ -17,35 +17,35 @@ const Order_1 = require("./Order");
 let Tracking = class Tracking {
 };
 __decorate([
-    typeorm_1.PrimaryGeneratedColumn(),
+    (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
 ], Tracking.prototype, "id", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Tracking.prototype, "reference", void 0);
 __decorate([
-    typeorm_1.ManyToOne(() => Order_1.Orders),
+    (0, typeorm_1.ManyToOne)(() => Order_1.Orders),
     __metadata("design:type", Order_1.Orders)
 ], Tracking.prototype, "order", void 0);
 __decorate([
-    typeorm_1.OneToMany(() => Addresses_1.Addresses, (address) => address.tracking),
+    (0, typeorm_1.OneToMany)(() => Addresses_1.Addresses, (address) => address.tracking),
     __metadata("design:type", Array)
 ], Tracking.prototype, "address", void 0);
 __decorate([
-    typeorm_1.Column('int'),
+    (0, typeorm_1.Column)('int'),
     __metadata("design:type", Number)
 ], Tracking.prototype, "location_address_id", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Tracking.prototype, "created_at", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Tracking.prototype, "updated_at", void 0);
 Tracking = __decorate([
-    typeorm_1.Entity()
+    (0, typeorm_1.Entity)()
 ], Tracking);
 exports.Tracking = Tracking;
 //# sourceMappingURL=Tracking.js.map

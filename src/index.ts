@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import express, { Application, NextFunction, Request, Response } from 'express';
 import { createConnection } from 'typeorm';
@@ -7,9 +8,10 @@ import helmet from 'helmet';
 
 import logger from './utils/logger';
 import router from './routes';
+import { PORT } from './utils/secrets';
 
 dotenv.config();
-const port = process.env.USER_GATEWAY_PORT;
+const port = PORT || '3000';
 
 async function startServer(): Promise<void> {
   const app: Application = express();

@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -29,8 +33,8 @@ const Addresses_1 = require("../database/models/Addresses");
 const createUser = async (data) => {
     const validation = userSchema_1.userSchema.validate(data);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     await queryRunner.startTransaction();
     try {
         const userAlreadyExist = await queryRunner.manager.findOne(Users_1.Users, {
@@ -89,8 +93,8 @@ exports.createUser = createUser;
 const createAddress = async (data) => {
     const validation = userSchema_1.addressSchema.validate(data);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     await queryRunner.startTransaction();
     try {
         const addressData = {

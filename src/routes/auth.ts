@@ -1,6 +1,9 @@
+// eslint-disable-next-line prettier/prettier
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
+// eslint-disable-next-line prettier/prettier
 import { ControllerResponse } from '../utils/interface'
+// eslint-disable-next-line prettier/prettier
 import { JWT_KEY } from '../utils/secrets';
 
 const decodeToken = (token: string): ControllerResponse & { data?: { id: string } } => {

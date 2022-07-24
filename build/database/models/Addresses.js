@@ -17,64 +17,64 @@ const Users_1 = require("./Users");
 let Addresses = class Addresses {
 };
 __decorate([
-    typeorm_1.PrimaryGeneratedColumn(),
+    (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
 ], Addresses.prototype, "id", void 0);
 __decorate([
-    typeorm_1.OneToOne(() => Users_1.Users),
-    typeorm_1.JoinColumn(),
+    (0, typeorm_1.OneToOne)(() => Users_1.Users),
+    (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", Users_1.Users)
 ], Addresses.prototype, "user", void 0);
 __decorate([
-    typeorm_1.ManyToOne(() => Tracking_1.Tracking),
+    (0, typeorm_1.ManyToOne)(() => Tracking_1.Tracking),
     __metadata("design:type", Tracking_1.Tracking)
 ], Addresses.prototype, "tracking", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Addresses.prototype, "address", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Addresses.prototype, "country", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Addresses.prototype, "state", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Addresses.prototype, "city", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Addresses.prototype, "business_mobile", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Addresses.prototype, "type", void 0);
 __decorate([
-    typeorm_1.Column('boolean'),
+    (0, typeorm_1.Column)('boolean'),
     __metadata("design:type", Boolean)
 ], Addresses.prototype, "default", void 0);
 __decorate([
-    typeorm_1.Column('boolean'),
+    (0, typeorm_1.Column)('boolean'),
     __metadata("design:type", Boolean)
 ], Addresses.prototype, "deleted", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Addresses.prototype, "deleted_at", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Addresses.prototype, "created_at", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Addresses.prototype, "updated_at", void 0);
 Addresses = __decorate([
-    typeorm_1.Entity()
+    (0, typeorm_1.Entity)()
 ], Addresses);
 exports.Addresses = Addresses;
 //# sourceMappingURL=Addresses.js.map

@@ -4,7 +4,7 @@ exports.AddressCreator = exports.userResource = void 0;
 const user_1 = require("../controllers/user");
 const userResource = async (req, res) => {
     try {
-        const response = await user_1.createUser(req.body);
+        const response = await (0, user_1.createUser)(req.body);
         const responseCode = response.success === true ? 200 : 400;
         return res.status(responseCode).json(response);
     }
@@ -15,7 +15,7 @@ const userResource = async (req, res) => {
 exports.userResource = userResource;
 const AddressCreator = async (req, res) => {
     try {
-        const response = await user_1.createAddress(req.body);
+        const response = await (0, user_1.createAddress)(req.body);
         const responseCode = response.success === true ? 200 : 400;
         return res.status(responseCode).json(response);
     }

@@ -13,11 +13,11 @@ const errors_1 = require("../utils/errors");
 const makeOrderRequest = async (data) => {
     const validation = orderSchema_1.makeOrderSchema.validate(data);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     await queryRunner.startTransaction();
-    const reference = `${randomstring_1.generate({ length: 5, capitalization: 'uppercase', charset: 'alphabetic' })}-${randomstring_1.generate({ length: 6, charset: 'numeric' })}`;
-    const trackreference = `${randomstring_1.generate({ length: 5, capitalization: 'uppercase', charset: 'alphabetic' })}-${randomstring_1.generate({
+    const reference = `${(0, randomstring_1.generate)({ length: 5, capitalization: 'uppercase', charset: 'alphabetic' })}-${(0, randomstring_1.generate)({ length: 6, charset: 'numeric' })}`;
+    const trackreference = `${(0, randomstring_1.generate)({ length: 5, capitalization: 'uppercase', charset: 'alphabetic' })}-${(0, randomstring_1.generate)({
         length: 6,
         charset: 'numeric',
     })}`;
@@ -74,11 +74,11 @@ exports.makeOrderRequest = makeOrderRequest;
 const pickUpOrder = async (data) => {
     const validation = orderSchema_1.updateOrderSchema.validate(data);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     await queryRunner.startTransaction();
     try {
-        const reference = `${randomstring_1.generate({ length: 5, capitalization: 'uppercase', charset: 'alphabetic' })}-${randomstring_1.generate({ length: 6, charset: 'numeric' })}`;
+        const reference = `${(0, randomstring_1.generate)({ length: 5, capitalization: 'uppercase', charset: 'alphabetic' })}-${(0, randomstring_1.generate)({ length: 6, charset: 'numeric' })}`;
         const order = await queryRunner.manager.findOne(Order_1.Orders, {
             where: [{ reference: data.reference }],
             relations: ['pickup'],
@@ -121,8 +121,8 @@ exports.pickUpOrder = pickUpOrder;
 const deliverOrder = async (data) => {
     const validation = orderSchema_1.updateOrderSchema.validate(data);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     await queryRunner.startTransaction();
     try {
         const order = await queryRunner.manager.findOne(Order_1.Orders, {
@@ -180,8 +180,8 @@ exports.deliverOrder = deliverOrder;
 const updateTracker = async (data) => {
     const validation = orderSchema_1.trackerSchema.validate(data);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     await queryRunner.startTransaction();
     try {
         const order = await queryRunner.manager.findOne(Order_1.Orders, {
@@ -194,9 +194,9 @@ const updateTracker = async (data) => {
                 message: `Order does not exists`,
             };
         if (data.address_id === order.delivery.id)
-            return await exports.deliverOrder({ reference: data.order_ref });
+            return await (0, exports.deliverOrder)({ reference: data.order_ref });
         if (data.address_id === order.pickup.id)
-            return await exports.pickUpOrder({ reference: data.order_ref });
+            return await (0, exports.pickUpOrder)({ reference: data.order_ref });
         if (!order.picked_up) {
             if (order.delivered) {
                 await queryRunner.manager.update(Order_1.Orders, { reference: data.order_ref }, {
@@ -241,8 +241,8 @@ exports.updateTracker = updateTracker;
 const getOrder = async (reference) => {
     const validation = orderSchema_1.getOrderSchema.validate(reference);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     try {
         const order = await queryRunner.manager.findOne(Order_1.Orders, {
             where: [{ reference }],
@@ -270,8 +270,8 @@ exports.getOrder = getOrder;
 const getTracker = async (reference) => {
     const validation = orderSchema_1.getOrderSchema.validate(reference);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     try {
         const tracking = await queryRunner.manager.find(Tracking_1.Tracking, {
             where: [{ reference }],
@@ -310,8 +310,8 @@ exports.getTracker = getTracker;
 const getOrders = async (user_id) => {
     const validation = orderSchema_1.getOrderSchema.validate(user_id);
     if (validation.error)
-        return errors_1.ResourceNotFoundError(validation.error);
-    const queryRunner = await db_1.getQueryRunner();
+        return (0, errors_1.ResourceNotFoundError)(validation.error);
+    const queryRunner = await (0, db_1.getQueryRunner)();
     try {
         const user = await queryRunner.manager.findOne(Users_1.Users, {
             where: [{ id: user_id }],
@@ -340,7 +340,7 @@ const getOrders = async (user_id) => {
 };
 exports.getOrders = getOrders;
 const getAddress = async () => {
-    const queryRunner = await db_1.getQueryRunner();
+    const queryRunner = await (0, db_1.getQueryRunner)();
     try {
         const address = await queryRunner.manager.find(Addresses_1.Addresses);
         if (!address)

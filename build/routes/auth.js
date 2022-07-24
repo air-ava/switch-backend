@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateSession = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+// eslint-disable-next-line prettier/prettier
 const secrets_1 = require("../utils/secrets");
 const decodeToken = (token) => {
     try {

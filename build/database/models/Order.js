@@ -18,91 +18,91 @@ const Users_1 = require("./Users");
 let Orders = class Orders {
 };
 __decorate([
-    typeorm_1.PrimaryGeneratedColumn(),
+    (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
 ], Orders.prototype, "id", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Orders.prototype, "image_url", void 0);
 __decorate([
-    typeorm_1.Column('boolean'),
+    (0, typeorm_1.Column)('boolean'),
     __metadata("design:type", Boolean)
 ], Orders.prototype, "picked_up", void 0);
 __decorate([
-    typeorm_1.Column('boolean'),
+    (0, typeorm_1.Column)('boolean'),
     __metadata("design:type", Boolean)
 ], Orders.prototype, "delivered", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Orders.prototype, "reference", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Orders.prototype, "payment_reference", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Orders.prototype, "status", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Orders.prototype, "tracking_ref", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Orders.prototype, "item_name", void 0);
 __decorate([
-    typeorm_1.Column({ type: 'decimal', precision: 20, scale: 4 }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 20, scale: 4 }),
     __metadata("design:type", Number)
 ], Orders.prototype, "item_amount", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Orders.prototype, "description", void 0);
 __decorate([
-    typeorm_1.Column({ type: 'decimal', precision: 20, scale: 2 }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 20, scale: 2 }),
     __metadata("design:type", Number)
 ], Orders.prototype, "weight", void 0);
 __decorate([
-    typeorm_1.ManyToOne(() => Users_1.Users, (user) => user.orders),
+    (0, typeorm_1.ManyToOne)(() => Users_1.Users, (user) => user.orders),
     __metadata("design:type", Users_1.Users)
 ], Orders.prototype, "user", void 0);
 __decorate([
-    typeorm_1.ManyToOne(() => Addresses_1.Addresses, (address) => address.id),
+    (0, typeorm_1.ManyToOne)(() => Addresses_1.Addresses, (address) => address.id),
     __metadata("design:type", Addresses_1.Addresses)
 ], Orders.prototype, "pickup", void 0);
 __decorate([
-    typeorm_1.ManyToOne(() => Addresses_1.Addresses, (address) => address.id),
+    (0, typeorm_1.ManyToOne)(() => Addresses_1.Addresses, (address) => address.id),
     __metadata("design:type", Addresses_1.Addresses)
 ], Orders.prototype, "delivery", void 0);
 __decorate([
-    typeorm_1.OneToMany(() => Tracking_1.Tracking, (track) => track.order),
+    (0, typeorm_1.OneToMany)(() => Tracking_1.Tracking, (track) => track.order),
     __metadata("design:type", Array)
 ], Orders.prototype, "tracking", void 0);
 __decorate([
-    typeorm_1.Column('boolean'),
+    (0, typeorm_1.Column)('boolean'),
     __metadata("design:type", Boolean)
 ], Orders.prototype, "cancelled", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Orders.prototype, "cancelled_at", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Orders.prototype, "created_at", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Orders.prototype, "processed_at", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Orders.prototype, "updated_at", void 0);
 Orders = __decorate([
-    typeorm_1.Entity()
+    (0, typeorm_1.Entity)()
 ], Orders);
 exports.Orders = Orders;
 //# sourceMappingURL=Order.js.map

@@ -16,52 +16,52 @@ const Order_1 = require("./Order");
 let Users = class Users {
 };
 __decorate([
-    typeorm_1.PrimaryGeneratedColumn(),
+    (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
 ], Users.prototype, "id", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Users.prototype, "email", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Users.prototype, "first_name", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Users.prototype, "last_name", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Users.prototype, "phone_number", void 0);
 __decorate([
-    typeorm_1.Column('text'),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
 ], Users.prototype, "password", void 0);
 __decorate([
-    typeorm_1.Column('boolean'),
+    (0, typeorm_1.Column)('boolean'),
     __metadata("design:type", Boolean)
 ], Users.prototype, "is_business", void 0);
 __decorate([
-    typeorm_1.OneToOne(() => Addresses_1.Addresses),
-    typeorm_1.JoinColumn(),
+    (0, typeorm_1.OneToOne)(() => Addresses_1.Addresses),
+    (0, typeorm_1.JoinColumn)(),
     __metadata("design:type", Addresses_1.Addresses)
 ], Users.prototype, "address", void 0);
 __decorate([
-    typeorm_1.OneToMany(() => Order_1.Orders, (order) => order.user),
+    (0, typeorm_1.OneToMany)(() => Order_1.Orders, (order) => order.user),
     __metadata("design:type", Array)
 ], Users.prototype, "orders", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Users.prototype, "created_at", void 0);
 __decorate([
-    typeorm_1.Column('timestamp with time zone'),
+    (0, typeorm_1.Column)('timestamp with time zone'),
     __metadata("design:type", Date)
 ], Users.prototype, "updated_at", void 0);
 Users = __decorate([
-    typeorm_1.Entity()
+    (0, typeorm_1.Entity)()
 ], Users);
 exports.Users = Users;
 //# sourceMappingURL=Users.js.map
