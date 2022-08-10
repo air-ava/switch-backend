@@ -20,3 +20,4 @@ export const DB_HOST = throwIfUndefined('DB_HOST');
 export const DB_USERNAME = throwIfUndefined('DB_USERNAME');
 export const DB_PORT = throwIfUndefined('DB_PORT');
 export const DB_PASSWORD = throwIfUndefined('DB_PASSWORD');
+export const BASE_URL = throwIfUndefined('BASE_URL');

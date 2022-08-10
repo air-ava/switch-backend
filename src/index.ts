@@ -6,9 +6,14 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 
+import swaggerUi from 'swagger-ui-express';
+import swaggerJSDoc from 'swagger-jsdoc';
 import logger from './utils/logger';
 import router from './routes';
-import { PORT } from './utils/secrets';
+import swagger from './routes/swagger';
+import { PORT, BASE_URL } from './utils/secrets';
+import { Log, log } from './utils/logs';
+
 
 dotenv.config();
 const port = PORT || '3000';
@@ -22,10 +27,7 @@ async function startServer(): Promise<void> {
   app.use(helmet());
 
   app.use('/api', router);
-
-  app.get('/toto', (req: Request, res: Response) => {
-    res.json({ greeting: `Hello, Good Morning ${port} !` });
-  });
+  app.use('/swagger', swagger);
 
   app.use((req, res, _next): void => {
     res.status(404).send({
@@ -55,6 +57,7 @@ async function startServer(): Promise<void> {
   app.listen(port, () => {
     logger.info(`App is listening on port ${port} !`);
   });
+
 }
 
 startServer();
