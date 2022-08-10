@@ -22,71 +22,38 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUser = void 0;
 const bcrypt = __importStar(require("bcrypt"));
-const users_model_1 = require("../database/models/users.model");
 const user_validator_1 = require("../validators/user.validator");
 const errors_1 = require("../utils/errors");
-const db_1 = require("../database/helpers/db");
+const user_repo_1 = require("../database/repositories/user.repo");
 // import { Addresses } from '../database/models/Addresses';
 const createUser = async (data) => {
     const validation = user_validator_1.userSchema.validate(data);
     if (validation.error)
         return (0, errors_1.ResourceNotFoundError)(validation.error);
-    const queryRunner = await (0, db_1.getQueryRunner)();
-    await queryRunner.startTransaction();
+    const { is_business = false, email, phone_number, password } = data, rest = __rest(data, ["is_business", "email", "phone_number", "password"]);
     try {
-        const userAlreadyExist = await queryRunner.manager.findOne(users_model_1.Users, {
-            where: [{ email: data.email }, { phone_number: data.phone_number }],
-        });
+        const userAlreadyExist = await (0, user_repo_1.findUser)({ email }, []);
         if (userAlreadyExist)
-            return {
-                success: false,
-                message: 'Account already exists',
-            };
-        const user = await queryRunner.manager.save(users_model_1.Users, {
-            email: data.email,
-            first_name: data.first_name,
-            last_name: data.last_name,
-            phone_number: data.phone_number.replace('+', ''),
-            password: bcrypt.hashSync(data.password, 8),
-        });
-        const addressData = {
-            user,
-            address: data.address,
-            country: data.country,
-            state: data.state,
-            city: data.city,
-        };
-        if (data.is_business) {
-            if (!data.business_mobile)
-                return {
-                    success: false,
-                    message: 'Add a business Mobile',
-                };
-            addressData.business_mobile = data.business_mobile;
-            addressData.type = 'is_business';
-        }
-        // const address: Addresses = await queryRunner.manager.save(Addresses, addressData);
-        // await queryRunner.manager.update(Users, { id: user.id }, { address });
-        await queryRunner.commitTransaction();
-        return {
-            success: true,
-            message: 'Account created successfully',
-            // data: { address },
-        };
+            return (0, errors_1.BadRequestException)('Account already exists');
+        await (0, user_repo_1.createAUser)(Object.assign(Object.assign({ email }, rest), { phone_number: phone_number.replace('+', ''), password: bcrypt.hashSync(password, 8), is_business }));
+        return (0, errors_1.sendObjectResponse)('Account created successfully');
     }
     catch (e) {
-        await queryRunner.rollbackTransaction();
-        console.log({ e });
-        return {
-            success: false,
-            message: 'Account creation failed, kindly try again',
-        };
-    }
-    finally {
-        await queryRunner.release();
+        return (0, errors_1.BadRequestException)('Account creation failed, kindly try again', e);
     }
 };
 exports.createUser = createUser;

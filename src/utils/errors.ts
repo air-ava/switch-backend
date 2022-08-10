@@ -2,6 +2,8 @@
 /* eslint-disable no-console */
 // eslint-disable-next-line max-classes-per-file
 
+import { Log, log } from './logs';
+
 export const BadRequestError = (error: string) => {
   console.log(error);
   return {
@@ -17,5 +19,23 @@ export const ResourceNotFoundError = (errors: { message: any }) => {
     error: errors.message,
     success: false,
     data: null,
+  };
+};
+
+export const sendObjectResponse = (message: string, data?: any): { success: boolean; message: string; data?: any } => {
+  return {
+    success: true,
+    message,
+    data,
+  };
+};
+
+export const BadRequestException = (error: string, data?: any): { success: boolean; error: string; data?: any } => {
+  const newErr = typeof data === 'object' && JSON.stringify(data);
+  log(Log.fg.yellow, newErr || data.message);
+  return {
+    success: false,
+    error,
+    data,
   };
 };
