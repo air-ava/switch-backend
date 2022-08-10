@@ -49,13 +49,13 @@ class createUserTable1627744778669 {
                 },
                 {
                     name: 'created_at',
-                    type: 'timestamp with time zone',
+                    type: 'timestamp',
                     default: 'NOW()',
                     isNullable: false,
                 },
                 {
                     name: 'updated_at',
-                    type: 'timestamp with time zone',
+                    type: 'timestamp',
                     default: 'NOW()',
                     isNullable: false,
                 },

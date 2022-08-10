@@ -17,3 +17,12 @@ export interface IAddress {
   deleted: boolean;
   deleted_at: Date;
 }
+
+export interface IUser {
+  id: number;
+  userMobile: string;
+  firstName: string;
+  lastName: string;
+  created_at: Date;
+  updated_at: Date;
+}

@@ -2,12 +2,12 @@
 const { join } = require('path');
 
 module.exports = {
-  type: 'postgres',
-  host: process.env.DB_HOST || 'chunee.db.elephantsql.com',
-  port: process.env.DB_PORT || 5432,
-  username: process.env.DB_USERNAME || 'hfbzojbo',
-  password: process.env.DB_PASSWORD || 'xrPFgXvRnCjR9OX1Sy_-dsp3qjyV05U1',
-  database: process.env.DB_NAME || 'hfbzojbo',
+  type: 'mysql',
+  host: process.env.DB_HOST || `127.0.0.1`,
+  port: process.env.DB_PORT || 3306,
+  username: process.env.DB_USERNAME || 'root',
+  password: '',
+  database: process.env.DB_NAME || 'shopping_cart',
   logging: false,
   entities: [join(__dirname, 'build/database/models/**/*.js')],
   migrations: [join(__dirname, 'build/database/migrations/**/*.js')],
