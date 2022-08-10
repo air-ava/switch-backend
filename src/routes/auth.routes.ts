@@ -22,23 +22,23 @@ const router = express.Router();
  *          properties:
  *              first_name:
  *                  type: string
- *                  format: string
  *                  example: "Daniel"
  *              last_name:
  *                  type: string
- *                  format: string
  *                  example: "John"
  *              email:
  *                  type: string
  *                  example: "danya.degoke@gmail.com"
  *              phone_number:
  *                  type: string
- *                  format: string
  *                  example: "2348135613401"
  *              password:
  *                  type: string
- *                  format: string
  *                  example: "myAwesomeP@ssw0rd"
+ *              is_business:
+ *                  type: boolean
+ *                  example: true
+ *                  required: false
  *     responses:
  *       '200':
  *         description: Ok

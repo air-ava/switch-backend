@@ -32,7 +32,7 @@ export const sendObjectResponse = (message: string, data?: any): { success: bool
 
 export const BadRequestException = (error: string, data?: any): { success: boolean; error: string; data?: any } => {
   const newErr = typeof data === 'object' && JSON.stringify(data);
-  log(Log.fg.yellow, newErr || data.message);
+  log(Log.fg.yellow, newErr);
   return {
     success: false,
     error,

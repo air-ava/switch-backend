@@ -14,7 +14,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   const { is_business = false, email, phone_number, password, ...rest } = data;
 
   try {
-    const userAlreadyExist = await findUser({ email }, []);
+    const userAlreadyExist = await findUser([{ email }, { phone_number }], []);
     if (userAlreadyExist) return BadRequestException('Account already exists');
 
     await createAUser({
@@ -26,7 +26,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     });
 
     return sendObjectResponse('Account created successfully');
-  } catch (e) {
-    return BadRequestException('Account creation failed, kindly try again', e);
+  } catch (e: any) {
+    return BadRequestException('Account creation failed, kindly try again');
   }
 };
