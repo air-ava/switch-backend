@@ -12,6 +12,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const helmet_1 = __importDefault(require("helmet"));
 const logger_1 = __importDefault(require("./utils/logger"));
 const routes_1 = __importDefault(require("./routes"));
+const swagger_1 = __importDefault(require("./routes/swagger"));
 const secrets_1 = require("./utils/secrets");
 dotenv_1.default.config();
 const port = secrets_1.PORT || '3000';
@@ -22,9 +23,7 @@ async function startServer() {
     app.use((0, cors_1.default)());
     app.use((0, helmet_1.default)());
     app.use('/api', routes_1.default);
-    app.get('/toto', (req, res) => {
-        res.json({ greeting: `Hello, Good Morning ${port} !` });
-    });
+    app.use('/swagger', swagger_1.default);
     app.use((req, res, _next) => {
         res.status(404).send({
             status: false,
