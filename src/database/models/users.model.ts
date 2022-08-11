@@ -23,6 +23,9 @@ export class Users {
   password: string;
 
   @Column('boolean')
+  enabled: boolean;
+
+  @Column('boolean')
   is_business: boolean;
 
   @Column('timestamp')

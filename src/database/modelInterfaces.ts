@@ -20,9 +20,13 @@ export interface IAddress {
 
 export interface IUser {
   id: number;
-  userMobile: string;
-  firstName: string;
-  lastName: string;
+  email: string;
+  password: string;
+  phone_number: string;
+  first_name: string;
+  last_name: string;
+  enabled: boolean;
+  is_business: boolean;
   created_at: Date;
   updated_at: Date;
 }

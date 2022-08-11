@@ -1,5 +1,5 @@
 import express from 'express';
-import { signUp } from '../controllers/user.controller';
+import { loginCONTROLLER, signUpCONTROLLER } from '../controllers/user.controller';
 
 const router = express.Router();
 
@@ -45,7 +45,37 @@ const router = express.Router();
  *       '500':
  *         description: Internal error
  */
-router.post('/register', signUp);
-router.post('/login', signUp);
+router.post('/register', signUpCONTROLLER);
+
+/**
+ * @swagger
+ *
+ * /api/auth/login:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Shopper login
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         required: true
+ *         type: string
+ *         name: register user
+ *         schema:
+ *          properties:
+ *              email:
+ *                  type: string
+ *                  example: "danya.degoke@gmail.com"
+ *              password:
+ *                  type: string
+ *                  example: "myAwesomeP@ssw0rd"
+ *     responses:
+ *       '200':
+ *         description: Ok
+ *       '500':
+ *         description: Internal error
+ */
+router.post('/login', loginCONTROLLER);
 
 export default router;
