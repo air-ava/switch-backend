@@ -18,7 +18,7 @@ export const createBusiness = async (data: createUserDTO): Promise<theResponse> 
       email,
       ...rest,
       phone_number: phone_number.replace('+', ''),
-      password: bcrypt.hashSync(password, 8),
+      password: `bcrypt.hashSync(password, 8)`,
       is_business,
     });
 

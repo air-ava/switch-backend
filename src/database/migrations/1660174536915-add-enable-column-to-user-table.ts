@@ -1,18 +1,6 @@
-import { MigrationInterface, QueryRunner, TableColumn, TableUnique } from 'typeorm';
+import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 const columnsToChanges = {
-  phone_number: {
-    oldColumn: new TableColumn({
-      name: 'phone_number',
-      type: 'varchar',
-      isNullable: false,
-    }),
-    newColumn: new TableColumn({
-      name: 'phone_number',
-      type: 'int',
-      isNullable: false,
-    }),
-  },
   updated_at: {
     oldColumn: new TableColumn({
       name: 'updated_at',
@@ -27,14 +15,11 @@ const columnsToChanges = {
     }),
   },
 };
-const phoneUniqueKey = new TableUnique({
-  columnNames: ['phone_number'],
-});
-const { phone_number, updated_at } = columnsToChanges;
+const { updated_at } = columnsToChanges;
 export class addEnableColumnToUserTable1660174536915 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropUniqueConstraint('users', phoneUniqueKey);
-    await queryRunner.changeColumns('users', [phone_number, updated_at]);
+    await queryRunner.dropColumns('users', [new TableColumn({ name: 'phone_number', type: 'varchar' })]);
+    await queryRunner.changeColumns('users', [updated_at]);
     await queryRunner.addColumns('users', [
       new TableColumn({
         name: 'enabled',
@@ -47,18 +32,31 @@ export class addEnableColumnToUserTable1660174536915 implements MigrationInterfa
         type: 'varchar',
         isNullable: true,
       }),
+      new TableColumn({
+        name: 'phone_number',
+        type: 'int',
+        isNullable: false,
+      }),
     ]);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropUniqueConstraint('users', phoneUniqueKey);
-    await queryRunner.changeColumns('users', [
-      { oldColumn: phone_number.newColumn, newColumn: phone_number.oldColumn },
-      { oldColumn: updated_at.newColumn, newColumn: updated_at.oldColumn },
-    ]);
+    await queryRunner.changeColumns('users', [{ oldColumn: updated_at.newColumn, newColumn: updated_at.oldColumn }]);
     await queryRunner.dropColumns('users', [
       new TableColumn({ name: 'enabled', type: 'boolean' }),
       new TableColumn({ name: 'other_name', type: 'varchar' }),
+      new TableColumn({
+        name: 'phone_number',
+        type: 'int',
+      }),
+    ]);
+    await queryRunner.addColumns('users', [
+      new TableColumn({
+        name: 'phone_number',
+        type: 'varchar',
+        isUnique: true,
+        isNullable: false,
+      }),
     ]);
   }
 }
