@@ -43,7 +43,7 @@ export class createProductTable1660178281706 implements MigrationInterface {
             isNullable: false,
           },
           {
-            name: 'weight',
+            name: 'amount',
             type: 'decimal',
             default: 0,
             unsigned: true,
