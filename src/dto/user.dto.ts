@@ -1,19 +1,13 @@
 import { Users } from '../database/models/users.model';
+import { findAndCreatePhoneNumberDTO } from './helper.dto';
 
 export interface createUserDTO {
-  phone_number: string;
+  phone_number: findAndCreatePhoneNumberDTO;
   email: string;
   password: string;
   is_business?: boolean;
   first_name: string;
   last_name: string;
-  address: string;
-  country: string;
-  state: string;
-  city: string;
-  business_mobile?: string;
-  type?: string;
-  default?: boolean;
 }
 
 export interface createAddressDTO {

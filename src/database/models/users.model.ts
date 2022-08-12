@@ -16,8 +16,8 @@ export class Users {
   @Column('text')
   last_name: string;
 
-  @Column('text')
-  phone_number: string;
+  @Column('int')
+  phone_number: number;
 
   @Column('text')
   password: string;

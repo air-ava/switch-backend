@@ -19,10 +19,11 @@ export const createAUser = async (payload: {
   first_name: string;
   last_name: string;
   password: string;
-  phone_number?: string;
+  phone_number: number;
   is_business: boolean;
   t?: QueryRunner;
 }): Promise<InsertResult> => {
+  console.log({ payload });
   const { t, ...rest } = payload;
   return t ? t.manager.insert(Users, rest) : getRepository(Users).insert(rest);
 };

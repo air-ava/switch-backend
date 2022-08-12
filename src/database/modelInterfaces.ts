@@ -22,11 +22,22 @@ export interface IUser {
   id: number;
   email: string;
   password: string;
-  phone_number: string;
+  phone_number: number;
   first_name: string;
   last_name: string;
   enabled: boolean;
   is_business: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IPhoneNumber {
+  id: number;
+  countryCode: string;
+  localFormat: string;
+  internationalFormat: string;
+  active: boolean;
+  is_verified: boolean;
   created_at: Date;
   updated_at: Date;
 }

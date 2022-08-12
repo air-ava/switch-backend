@@ -30,8 +30,14 @@ const router = express.Router();
  *                  type: string
  *                  example: "danya.degoke@gmail.com"
  *              phone_number:
- *                  type: string
- *                  example: "2348135613401"
+ *                  type: object
+ *                  properties:
+ *                      countryCode:
+ *                          type: string
+ *                          example: "234"
+ *                      localFormat:
+ *                          type: string
+ *                          example: "07089000171"
  *              password:
  *                  type: string
  *                  example: "myAwesomeP@ssw0rd"
