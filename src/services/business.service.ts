@@ -2,7 +2,7 @@ import { findUser, createAUser } from '../database/repositories/user.repo';
 import { createUserDTO } from '../dto/user.dto';
 import { ResourceNotFoundError, BadRequestException, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
-import { registerValidator } from '../validators/user.validator';
+import { registerValidator } from '../validators/auth.validator';
 
 export const createBusiness = async (data: createUserDTO): Promise<theResponse> => {
   console.log({

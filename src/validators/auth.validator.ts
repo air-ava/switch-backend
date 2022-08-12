@@ -16,10 +16,17 @@ export const registerValidator = joi.object().keys({
   last_name: joi.string().min(3).message('Last Name must have more than 3 Characters').required(),
 });
 
+export const userAuthValidator = joi.object().keys({
+  email: joi.string().email().required(),
+  password: joi.string().pattern(passwordRegex).required(),
+  addPhone: joi.boolean().allow(null),
+});
+
 export const shopperLoginValidator = joi.object().keys({
   email: joi.string().email().required(),
-  password: joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
+  password: joi.string().pattern(passwordRegex).required(),
 });
+
 export interface Response {
   success: boolean;
   message?: string;

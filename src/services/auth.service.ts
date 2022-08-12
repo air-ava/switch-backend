@@ -1,11 +1,12 @@
 import * as bcrypt from 'bcrypt';
 import { theResponse } from '../utils/interface';
-import { registerValidator, shopperLoginValidator } from '../validators/user.validator';
+import { registerValidator, shopperLoginValidator, userAuthValidator } from '../validators/auth.validator';
 import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
-import { createUserDTO } from '../dto/user.dto';
+import { createUserDTO, shopperLoginDTO, userAuthDTO } from '../dto/user.dto';
 import { findUser, createAUser } from '../database/repositories/user.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
-// import { Addresses } from '../database/models/Addresses';
+import { sanitizeUser } from '../utils/sanitize';
+import { generateToken } from '../utils/jwt';
 
 export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   const validation = registerValidator.validate(data);
@@ -36,7 +37,47 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   }
 };
 
-export const shopperLogin = async (data: createUserDTO): Promise<theResponse> => {
+export const userAuth = async (data: userAuthDTO): Promise<theResponse> => {
+  const validation = userAuthValidator.validate(data);
+  if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { email, password, addPhone } = data;
+  console.log({ email, password, addPhone });
+
+  try {
+    const userAlreadyExist = await findUser({ email }, [], [addPhone && 'phone']);
+    if (!userAlreadyExist) throw Error(`Your credentials are incorrect`);
+    if (!userAlreadyExist.enabled) throw Error('Your account has been disabled');
+    if (!userAlreadyExist.password) throw Error('Kindly set password');
+
+    if (!bcrypt.compareSync(password, userAlreadyExist.password)) throw Error('Your credentials are incorrect');
+
+    return sendObjectResponse('User Authenticated', userAlreadyExist);
+  } catch (e: any) {
+    return BadRequestException(e.message);
+  }
+};
+
+export const shopperLogin = async (data: shopperLoginDTO): Promise<theResponse> => {
+  const validation = shopperLoginValidator.validate(data);
+  if (validation.error) return ResourceNotFoundError(validation.error);
+
+  try {
+    const { data: user, success, error, message } = await userAuth({ ...data, addPhone: true });
+    if (!success) throw Error(error);
+
+    const token = generateToken(user);
+
+    return sendObjectResponse('Login successful', {
+      user: sanitizeUser(user),
+      token,
+    });
+  } catch (e: any) {
+    return BadRequestException(e.message);
+  }
+};
+
+export const businessLogin = async (data: createUserDTO): Promise<theResponse> => {
   const validation = shopperLoginValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 

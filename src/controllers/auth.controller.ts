@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { createUser, shopperLogin } from '../services/user.service';
+import { createUser, shopperLogin } from '../services/auth.service';
 
 export const signUpCONTROLLER: RequestHandler = async (req, res) => {
   try {

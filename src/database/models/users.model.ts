@@ -1,8 +1,9 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { IPhoneNumber } from '../modelInterfaces';
 // import { Addresses } from './Addresses';
 // import { Orders } from './Order';
 
-@Entity()
+@Entity('users')
 export class Users {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,4 +34,8 @@ export class Users {
 
   @Column('timestamp')
   updated_at: Date;
+
+  @OneToOne('PhoneNumbers', 'users')
+  @JoinColumn({ name: 'phone_number' })
+  phone: IPhoneNumber;
 }

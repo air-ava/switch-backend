@@ -10,13 +10,28 @@ const router = express.Router();
 
 const swaggerConfig = {
   definition: {
+    swagger: '2.0',
     info: {
       title: 'PAYSTACK SHOPPING CART',
       version: '1.0.0',
       description: 'To test the shopping Cart Endpoints',
-      host: `localhost:${PORT}`,
-      basePath: '/',
     },
+    host: `localhost:${PORT}`,
+    basePath: '/',
+    schemes: ['http'],
+    securityDefinitions: {
+      Bearer: {
+        type: 'apiKey',
+        description: 'Value: Bearer ',
+        name: 'Authorization',
+        in: 'header',
+      },
+    },
+    security: [
+      {
+        Bearer: [],
+      },
+    ],
   },
   apis: ['./**/routes/index.ts', './**/routes/**.routes.ts'],
 };

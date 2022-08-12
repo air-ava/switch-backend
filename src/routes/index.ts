@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 
 // eslint-disable-next-line prettier/prettier
 import authRouter from './auth.routes';
@@ -10,5 +10,39 @@ router.get('/', (_, res) => res.json({ success: true, message: 'User gateway v1 
 
 router.use('/auth', authRouter);
 router.use(validateSession);
+/**
+ * @swagger
+ *
+ * /api/test:
+ *   post:
+ *     security:
+ *      - Bearer: []
+ *     tags:
+ *       - Test
+ *     summary: Shopper login
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         required: true
+ *         type: string
+ *         name: register user
+ *         schema:
+ *          properties:
+ *              email:
+ *                  type: string
+ *                  example: "danya.degoke@gmail.com"
+ *              password:
+ *                  type: string
+ *                  example: "myAwesomeP@ssw0rd"
+ *     responses:
+ *       '200':
+ *         description: Ok
+ *       '500':
+ *         description: Internal error
+ */
+router.get('/test', (req: Request, res: Response) => {
+  res.json({ greeting: `Hello, Good Morning` });
+});
 
 export default router;
