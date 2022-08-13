@@ -27,6 +27,7 @@ const router = express.Router();
  */
 
 router.post('/create', createBusinessCONTROLLER);
+router.post('/update', createBusinessCONTROLLER);
 
 export default router;
 

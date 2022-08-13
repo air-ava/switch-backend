@@ -42,9 +42,9 @@ export const sanitizeBusiness = (payload: IBusiness): any => {
   const { id, phone_number, phone, owners, ...rest } = jsonify(payload);
   const sanitized = {
     ...rest,
-    phone_number: phone.internationalFormat,
-    phone: sanitizePhoneNumber(phone),
-    owner: sanitizeUser(owners),
+    ...(phone && { phone_number: phone.internationalFormat }),
+    ...(phone && { phone: sanitizePhoneNumber(phone) }),
+    ...(owners && { owner: sanitizeUser(owners) }),
   };
   return sanitized;
 };

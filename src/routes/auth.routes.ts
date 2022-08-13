@@ -84,4 +84,8 @@ export default router;
  *       password:
  *           type: string
  *           example: "Dafecommand06!"
+ *       is_business:
+ *           type: boolean
+ *           example: false
+ *           summary: for loging into business or user
  */

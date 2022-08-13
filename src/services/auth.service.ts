@@ -17,7 +17,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
 
   try {
     const userAlreadyExist = await findUser({ email }, []);
-    if (userAlreadyExist) return BadRequestException('Account already exists');
+    if (userAlreadyExist) throw Error('Account already exists');
 
     const {
       data: { id: phone_number },
@@ -86,8 +86,8 @@ export const businessLogin = async (data: businessLoginDTO): Promise<theResponse
     const { data: user, success, error } = await userAuth({ ...data, addPhone: true });
     if (!success) throw Error(error);
 
-    const businessAlreadyExist = await getBusinessesREPO({ owner: user.id }, ['name', 'description'], ['phone', 'owners']);
-    if (!businessAlreadyExist) return BadRequestException('Sorry, you have not created a business');
+    const businessAlreadyExist = await getBusinessesREPO({ owner: user.id }, ['name', 'description', 'reference']);
+    if (!businessAlreadyExist) throw Error('Sorry, you have not created a business');
 
     const token = generateToken(user);
 
