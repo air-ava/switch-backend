@@ -33,7 +33,7 @@ const swaggerConfig = {
       },
     ],
   },
-  apis: ['./**/routes/index.ts', './**/routes/**.routes.ts'],
+  apis: ['./**/routes/index.ts', './**/routes/**/*.routes.ts'],
 };
 
 const options = {

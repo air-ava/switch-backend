@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { IPhoneNumber } from '../modelInterfaces';
 // import { Addresses } from './Addresses';
 // import { Orders } from './Order';
@@ -29,10 +29,10 @@ export class Users {
   @Column('boolean')
   is_business: boolean;
 
-  @Column('timestamp')
+  @CreateDateColumn()
   created_at: Date;
 
-  @Column('timestamp')
+  @UpdateDateColumn()
   updated_at: Date;
 
   @OneToOne('PhoneNumbers', 'users')

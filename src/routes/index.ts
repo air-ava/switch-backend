@@ -2,14 +2,29 @@ import express, { Request, Response } from 'express';
 
 // eslint-disable-next-line prettier/prettier
 import authRouter from './auth.routes';
+import businessRouter from './business.routes';
 import { validateSession } from '../middleware/auth.middleware';
 
 const router = express.Router();
+/**
+ * @swagger
+ * definitions:
+ *  PhoneNumbers:
+ *     type: object
+ *     properties:
+ *      countryCode:
+ *           type: string
+ *           example: "234"
+ *      localFormat:
+ *           type: string
+ *           example: "07089000171"
+ */
 
 router.get('/', (_, res) => res.json({ success: true, message: 'User gateway v1 up.' }));
 
 router.use('/auth', authRouter);
 router.use(validateSession);
+router.use('/business', businessRouter);
 /**
  * @swagger
  *
@@ -46,3 +61,14 @@ router.get('/test', (req: Request, res: Response) => {
 });
 
 export default router;
+
+/**
+ * @swagger
+ * tags:
+ *  - name: Authorization
+ *    description: Endpoints for authorizations
+ *  - name: Test
+ *    description: for testing
+ *  - name: Business
+ *    description: Endpoints for business
+ */

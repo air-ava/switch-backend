@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { IPhoneNumber, IUser } from '../database/modelInterfaces';
+import { IBusiness, IPhoneNumber, IUser } from '../database/modelInterfaces';
 
 export const jsonify = (payload: any): { [key: string]: any } => {
   try {
@@ -26,7 +26,7 @@ export const sanitizeUser = (payload: IUser): any => {
   const { id, password, phone_number, phone, ...rest } = jsonify(payload);
   const sanitized = {
     ...rest,
-    phone_number: phone.internationalFormat,
+    ...(phone && { phone_number: phone.internationalFormat }),
     phone: sanitizePhoneNumber(phone),
   };
   return sanitized;
@@ -35,4 +35,21 @@ export const sanitizeUser = (payload: IUser): any => {
 export const sanitizeUsers = (payload: any): any => {
   if (!Array.isArray(payload)) return null;
   return payload.map(sanitizeUser);
+};
+
+export const sanitizeBusiness = (payload: IBusiness): any => {
+  if (!payload) return null;
+  const { id, phone_number, phone, owners, ...rest } = jsonify(payload);
+  const sanitized = {
+    ...rest,
+    phone_number: phone.internationalFormat,
+    phone: sanitizePhoneNumber(phone),
+    owner: sanitizeUser(owners),
+  };
+  return sanitized;
+};
+
+export const sanitizeBusinesses = (payload: any): any => {
+  if (!Array.isArray(payload)) return null;
+  return payload.map(sanitizeBusiness);
 };

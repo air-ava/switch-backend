@@ -7,7 +7,6 @@ export function signToken(payload: string | Record<string, string>, key: string)
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function generateToken(data: any) {
   // information to be encoded in the JWT
-  
   const { first_name, id: userId } = data;
   const payload = {
     first_name,

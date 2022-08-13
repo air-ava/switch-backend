@@ -5,59 +5,6 @@ const router = express.Router();
 
 /**
  * @swagger
- * tags:
- *  - name: Authorization
- *    description: Endpoints for authorizations
- *  - name: Test
- *    description: for testing
- */
-
-/**
- * @swagger
- * definitions:
- *  PhoneNumbers:
- *     type: object
- *     properties:
- *      countryCode:
- *           type: string
- *           example: "234"
- *      localFormat:
- *           type: string
- *           example: "07089000171"
- *  RegisterUser:
- *     type: object
- *     properties:
- *       first_name:
- *          type: string
- *          example: "Daniel"
- *       last_name:
- *          type: string
- *          example: "John"
- *       email:
- *          type: string
- *          example: "danya.degoke@gmail.com"
- *       phone_number:
- *          $ref: '#/definitions/PhoneNumbers'
- *       password:
- *          type: string
- *          example: "myAwesomeP@ssw0rd"
- *       is_business:
- *          type: boolean
- *          example: true
- *          required: false
- *  LoginUser:
- *     type: object
- *     properties:
- *       email:
- *           type: string
- *           example: "danya.degoke@gmail.com"
- *       password:
- *           type: string
- *           example: "myAwesomeP@ssw0rd"
- */
-
-/**
- * @swagger
  * /api/auth/register:
  *   post:
  *     tags: [Authentication]
@@ -91,8 +38,7 @@ router.post('/register', signUpCONTROLLER);
  *     parameters:
  *       - in: body
  *         required: true
- *         type: string
- *         name: register user
+ *         name: login
  *         schema:
  *          $ref: '#/definitions/LoginUser'
  *     responses:
@@ -104,3 +50,38 @@ router.post('/register', signUpCONTROLLER);
 router.post('/login', loginCONTROLLER);
 
 export default router;
+
+/**
+ * @swagger
+ * definitions:
+ *  RegisterUser:
+ *     type: object
+ *     properties:
+ *       first_name:
+ *          type: string
+ *          example: "Daniel"
+ *       last_name:
+ *          type: string
+ *          example: "John"
+ *       email:
+ *          type: string
+ *          example: "danya.degoke@gmail.com"
+ *       phone_number:
+ *          $ref: '#/definitions/PhoneNumbers'
+ *       password:
+ *          type: string
+ *          example: "myAwesomeP@ssw0rd"
+ *       is_business:
+ *          type: boolean
+ *          example: true
+ *          required: false
+ *  LoginUser:
+ *     type: object
+ *     properties:
+ *       email:
+ *           type: string
+ *           example: "danya.degoke@gmail.com"
+ *       password:
+ *           type: string
+ *           example: "Dafecommand06!"
+ */

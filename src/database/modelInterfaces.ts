@@ -41,3 +41,29 @@ export interface IPhoneNumber {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface IBusiness {
+  id: number;
+  name: string;
+  description: string;
+  logo?: string;
+  active: boolean;
+  phone_number: string;
+  reference: string;
+  owner: number;
+  // default: boolean;
+  created_at: Date;
+  updated_at: Date;
+  // Owner: IUser;
+}
+
+export interface IImage {
+  id: number;
+  table_id: number;
+  table_type: string;
+  url: string;
+  available: boolean;
+  reference: string;
+  created_at: Date;
+  updated_at: Date;
+}
