@@ -67,3 +67,30 @@ export interface IImage {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface IProductCategory {
+  id: number;
+  image: number;
+  name: string;
+  description: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IProduct {
+  id: number;
+  reference: string;
+  name: string;
+  unit_price: number;
+  quantity: number;
+  weight: number;
+  description?: string;
+  image_reference: string;
+  product_categories: number;
+  business: number;
+  publish: boolean;
+  unlimited: boolean;
+  expire_at: Date;
+  created_at: Date;
+  updated_at: Date;
+}

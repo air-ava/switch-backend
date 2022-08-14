@@ -4,7 +4,7 @@ import { createBusinessDTO, getBusinessDTO, updateBusinessDTO, viewAllBusinessDT
 import { ResourceNotFoundError, BadRequestException, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { randomstringGeenerator } from '../utils/utils';
-import { createBusinessValidator } from '../validators/business.validator';
+import { createBusinessValidator, getBusinessValidator, updateBusinessValidator, viewAllBusinessValidator } from '../validators/business.validator';
 import { businessChecker, findOrCreateImage, findOrCreatePhoneNumber } from './helper.service';
 
 export const createBusiness = async (data: createBusinessDTO): Promise<theResponse> => {
@@ -58,12 +58,12 @@ export const createBusiness = async (data: createBusinessDTO): Promise<theRespon
 };
 
 export const updateBusiness = async (data: updateBusinessDTO): Promise<theResponse> => {
-  const validation = createBusinessValidator.validate(data);
+  const validation = updateBusinessValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { reference, phone_number: businessMobile, ...rest } = data;
+  const { owner, reference, phone_number: businessMobile, ...rest } = data;
   try {
-    await businessChecker({ reference });
+    await businessChecker({ reference, owner: Number(owner) });
 
     let phone_number;
     if (businessMobile) {
@@ -79,12 +79,12 @@ export const updateBusiness = async (data: updateBusinessDTO): Promise<theRespon
 };
 
 export const getBusiness = async (data: getBusinessDTO): Promise<theResponse> => {
-  const validation = createBusinessValidator.validate(data);
+  const validation = getBusinessValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { reference } = data;
+  const { reference, owner } = data;
   try {
-    const existingCompany = await getOneBuinessREPO({ reference }, ['name', 'description', 'reference'], ['phone', 'owners']);
+    const existingCompany = await getOneBuinessREPO({ reference, owner }, ['name', 'description', 'reference'], ['phone', 'owners']);
     if (!existingCompany) throw Error('Sorry, can not find this business');
 
     return sendObjectResponse('Business retrieved successfully', existingCompany);
@@ -94,13 +94,24 @@ export const getBusiness = async (data: getBusinessDTO): Promise<theResponse> =>
 };
 
 export const viewAllBusiness = async (data: viewAllBusinessDTO): Promise<theResponse> => {
-  const validation = createBusinessValidator.validate(data);
+  const validation = viewAllBusinessValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
   const { owner } = data;
   try {
     const existingCompany = await getBusinessesREPO({ owner }, ['name', 'description', 'reference'], ['phone', 'owners']);
-    if (existingCompany.length > 0) throw Error('Sorry, we can not find any business');
+    if (existingCompany.length === 0) throw Error('Sorry, we can not find any business');
+
+    return sendObjectResponse('Business retrieved successfully', existingCompany);
+  } catch (e: any) {
+    return BadRequestException(e.message || 'Business retrieval failed, kindly try again');
+  }
+};
+
+export const allBusiness = async (): Promise<theResponse> => {
+  try {
+    const existingCompany = await getBusinessesREPO({}, ['name', 'description', 'reference'], ['phone', 'owners']);
+    if (existingCompany.length === 0) throw Error('Sorry, no business has been created');
 
     return sendObjectResponse('Business retrieved successfully', existingCompany);
   } catch (e: any) {

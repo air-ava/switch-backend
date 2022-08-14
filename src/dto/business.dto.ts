@@ -9,6 +9,7 @@ export interface createBusinessDTO {
 }
 
 export interface updateBusinessDTO {
+  owner: string;
   reference: string;
   phone_number?: findAndCreatePhoneNumberDTO;
   description?: string;
@@ -18,6 +19,7 @@ export interface updateBusinessDTO {
 
 export interface getBusinessDTO {
   reference: string;
+  owner: string;
 }
 
 export interface viewAllBusinessDTO {

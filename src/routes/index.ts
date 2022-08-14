@@ -3,6 +3,8 @@ import express, { Request, Response } from 'express';
 // eslint-disable-next-line prettier/prettier
 import authRouter from './auth.routes';
 import businessRouter from './business.routes';
+import productRouter from './product.routes';
+import publicRouter from './public.routes';
 import { validateSession } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -23,8 +25,10 @@ const router = express.Router();
 router.get('/', (_, res) => res.json({ success: true, message: 'User gateway v1 up.' }));
 
 router.use('/auth', authRouter);
+router.use('/public', publicRouter);
 router.use(validateSession);
 router.use('/business', businessRouter);
+router.use('/product', productRouter);
 /**
  * @swagger
  *
@@ -71,4 +75,8 @@ export default router;
  *    description: for testing
  *  - name: Business
  *    description: Endpoints for business
+ *  - name: Products
+ *    description: Endpoints for products
+ *  - name: Store
+ *    description: Endpoints for the store
  */

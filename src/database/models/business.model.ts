@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
 import { IPhoneNumber, IUser } from '../modelInterfaces';
+import { Product } from './product.model';
 // import { User } from './user';
 
 @Entity('business')
@@ -41,4 +42,7 @@ export class Business {
   @ManyToOne('Users', 'business')
   @JoinColumn({ name: 'owner' })
   owners: IUser;
+
+  @OneToMany(() => Product, (product) => product.Business)
+  product: Product[];
 }

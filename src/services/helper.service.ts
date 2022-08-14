@@ -34,19 +34,20 @@ export const findOrCreateImage = async (payload: findAndCreateImageDTO): Promise
   const { error } = ImageValidator.validate(payload);
   if (error) return ResourceNotFoundError(error);
 
-  const { url, table_type, table_id } = payload;
+  const { url, table_type, table_id, reference: referenceImage } = payload;
   const existingImage = await getOneImageREPO(
     {
       url,
       table_type,
       table_id,
       available: true,
+      ...(referenceImage && { reference: referenceImage }),
     },
     [],
   );
   if (existingImage) return sendObjectResponse('Image retrieved successfully', existingImage);
 
-  const reference = randomstringGeenerator(table_type as 'image' | 'business' | 'cart' | 'order' | 'product' | 'transactions');
+  const reference = referenceImage || randomstringGeenerator('image');
   await createImageREPO({
     url,
     table_type,
