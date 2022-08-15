@@ -21,6 +21,20 @@ const router = express.Router();
  *         required: true
  *         type: string
  *         name: business
+ *         description: for identifing a businesses store
+ *         example: "cr_0uvro"
+ *       - in: query
+ *         required: false
+ *         type: string
+ *         name: is_business
+ *         description: for a store to view carted items (*REQUIRED FOR BUSINESS)
+ *         example: true
+ *       - in: query
+ *         required: false
+ *         type: string
+ *         name: reference
+ *         description: for viewing one cart and its items in the businesses store
+ *         example: "cr_0uvro"
  *     responses:
  *       '200':
  *         description: Ok

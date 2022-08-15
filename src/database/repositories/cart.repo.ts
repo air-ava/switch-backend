@@ -1,4 +1,5 @@
 import { QueryRunner, InsertResult, getRepository, UpdateResult } from 'typeorm';
+import { isNull } from 'util';
 import { ICart } from '../modelInterfaces';
 import { Cart } from '../models/cart.model';
 
@@ -83,10 +84,17 @@ export const getCartsREPO = (
       });
 };
 
-// export const incrementBalance = async (id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> => {
-//   return t ? t.manager.increment(Wallets, { id }, 'balance', amount) : getRepository(Wallets).increment({ id }, 'balance', amount);
-// };
+export const getTotalSellerCartedProduct = async (sellerId: number): Promise<any | undefined> => {
+  const queryBuilder = getRepository(Cart).createQueryBuilder('cart');
+  const response = await queryBuilder
+    .select('SUM(cart.quantity * cart.amount)', 'total')
+    .addSelect('SUM(cart.quantity)', 'totalqty')
+    .where('cart.business = :sellerId AND cart.completed = :completed AND cart.completed_at IS :completed_at ', {
+      sellerId,
+      completed: false,
+      completed_at: undefined,
+    })
+    .getRawOne();
 
-// export const decrementBalance = async (id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> => {
-//   return t ? t.manager.decrement(Wallets, { id }, 'balance', amount) : getRepository(Wallets).decrement({ id }, 'balance', amount);
-// };
+  return response;
+};

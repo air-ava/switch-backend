@@ -10,7 +10,7 @@ import { Product } from '../database/models/product.model';
  *
  */
 
-import { createAndGetCartREPO, getCartsREPO, getOneCartREPO, updateCartREPO } from '../database/repositories/cart.repo';
+import { createAndGetCartREPO, getCartsREPO, getOneCartREPO, getTotalSellerCartedProduct, updateCartREPO } from '../database/repositories/cart.repo';
 import {
   createAndGetCartProductREPO,
   getCartProductsREPO,
@@ -169,7 +169,13 @@ export const getBusinessCart = async (data: getBusinessCartDTO): Promise<theResp
 
     const allCarts = await getCartsREPO({ business: business.id }, []);
 
-    return sendObjectResponse('All customer carts retrieved successfully', allCarts);
+    const { total: cartTotal, totalqty: cartQty } = await getTotalSellerCartedProduct(business.id);
+
+    return sendObjectResponse('All customer carts retrieved successfully', {
+      carts: allCarts,
+      qty: cartQty,
+      total: cartTotal,
+    });
   } catch (error: any) {
     console.log(error);
     return BadRequestException(error.message || 'Cart retrieval failed, kindly try again');
