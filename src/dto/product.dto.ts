@@ -6,7 +6,6 @@ export interface createProductDTO {
   product_categories: number;
   unit_price: number;
   quantity?: number;
-  weight?: number;
   unlimited?: boolean;
   publish?: boolean;
 }

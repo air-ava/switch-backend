@@ -15,7 +15,7 @@ export const createProduct = async (data: createProductDTO): Promise<theResponse
   const validation = createProductValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { quantity = 1, weight = 1, images, name, business, publish = true, unlimited = false, ...rest } = data;
+  const { quantity = 1, images, name, business, publish = true, unlimited = false, ...rest } = data;
   const reference = randomstringGeenerator('product');
   const imageRef = randomstringGeenerator('image');
 
@@ -33,7 +33,6 @@ export const createProduct = async (data: createProductDTO): Promise<theResponse
       reference,
       image_reference: imageRef,
       quantity,
-      weight,
     });
     await Promise.all(
       images.map(async (image: any) => {

@@ -21,9 +21,6 @@ export class Product {
   quantity: number;
 
   @Column()
-  weight: number;
-
-  @Column()
   description: string;
 
   @Column()

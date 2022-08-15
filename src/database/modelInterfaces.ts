@@ -83,7 +83,6 @@ export interface IProduct {
   name: string;
   unit_price: number;
   quantity: number;
-  weight: number;
   description?: string;
   image_reference: string;
   product_categories: number;

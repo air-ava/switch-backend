@@ -7,7 +7,7 @@ module.exports = {
   port: process.env.DB_PORT || 3306,
   username: process.env.DB_USERNAME || 'root',
   password: '',
-  database: process.env.DB_NAME || 'shopping_cart',
+  database: process.env.DB_NAME,
   logging: false,
   entities: [join(__dirname, 'build/database/models/**/*.js')],
   migrations: [join(__dirname, 'build/database/migrations/**/*.js')],
