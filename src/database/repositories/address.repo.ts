@@ -55,10 +55,6 @@ export const getAddressesREPO = (
   relationOptions?: any[],
   transaction?: QueryRunner,
 ): Promise<IAddresses[]> => {
-  console.log({
-    queryParam,
-  });
-
   return transaction
     ? transaction.manager.find(Addresses, {
         where: queryParam,

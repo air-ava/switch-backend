@@ -1,4 +1,5 @@
 import jwt, { SignOptions, sign } from 'jsonwebtoken';
+import { JWT_KEY } from './secrets';
 
 export function signToken(payload: string | Record<string, string>, key: string): string {
   return jwt.sign(payload, key);
@@ -25,7 +26,7 @@ export function generateToken(data: any) {
   };
 
   // generate JWT
-  return sign(payload, 'privateKey', signInOptions);
+  return sign(payload, JWT_KEY, signInOptions);
 }
 
 export function decodeToken(token: string, key: string): { success: boolean } {

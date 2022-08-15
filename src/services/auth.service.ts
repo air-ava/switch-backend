@@ -51,7 +51,6 @@ export const userAuth = async (data: userAuthDTO): Promise<theResponse> => {
   if (validation.error) return ResourceNotFoundError(validation.error);
 
   const { email, password, addPhone } = data;
-  console.log({ email, password, addPhone });
 
   try {
     const userAlreadyExist = await findUser({ email }, [], [addPhone && 'phone']);

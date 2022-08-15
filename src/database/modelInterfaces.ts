@@ -144,6 +144,7 @@ export interface ICartProduct {
   quantity: number;
   product: number;
   cart: number;
+  deleted_at: Date;
   created_at: Date;
   updated_at: Date;
 }

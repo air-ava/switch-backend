@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { createCart, getBusinessCart, getShopperCart } from '../services/cart.service';
+import { createCart, deleteItem, getBusinessCart, getShopperCart } from '../services/cart.service';
 
 export const createCartCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -39,3 +39,19 @@ export const getCartCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
   }
 };
+
+export const deleteItemCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload = {
+      cartProductId: Number(req.params.item),
+      shopper: Number(req.userId),
+    };
+    const response = await deleteItem(payload);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+  }
+};
+

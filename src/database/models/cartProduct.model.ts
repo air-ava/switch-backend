@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, DeleteDateColumn } from 'typeorm';
 import { ICart, IProduct } from '../modelInterfaces';
 
 @Entity('cart_product')
@@ -14,6 +14,9 @@ export class CartProduct {
 
   @Column('int')
   cart: number;
+
+  @DeleteDateColumn()
+  deleted_at: Date;
 
   @CreateDateColumn()
   created_at: Date;

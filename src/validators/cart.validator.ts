@@ -36,3 +36,8 @@ export const getBusinessCartValidator = joi.object().keys({
   owner: joi.number().integer().required(),
   business: joi.string().required(),
 });
+
+export const deleteItemValidator = joi.object().keys({
+  cartProductId: joi.number().integer().required(),
+  shopper: joi.number().integer().required(),
+});

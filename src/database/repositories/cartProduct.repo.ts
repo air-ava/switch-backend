@@ -1,4 +1,4 @@
-import { QueryRunner, InsertResult, getRepository, UpdateResult, Not, IsNull, MoreThan } from 'typeorm';
+import { QueryRunner, InsertResult, getRepository, UpdateResult, Not, IsNull, MoreThan, DeleteResult } from 'typeorm';
 import { Product } from '../models/product.model';
 import { ICartProduct } from '../modelInterfaces';
 import { CartProduct } from '../models/cartProduct.model';
@@ -11,11 +11,9 @@ export const createCartProductREPO = (
 };
 
 export const createAndGetCartProductREPO = (
-  queryParams: Omit<ICartProduct, 'id' | 'created_at' | 'updated_at'>,
+  queryParams: Omit<ICartProduct, 'id' | 'created_at' | 'updated_at' | 'deleted_at'>,
   transaction?: QueryRunner,
 ): Promise<CartProduct> => {
-  console.log({ queryParams });
-
   return transaction ? transaction.manager.save(CartProduct, queryParams) : getRepository(CartProduct).save(queryParams);
 };
 
@@ -81,13 +79,14 @@ export const getTotalCartedProduct = async (cartId: number): Promise<any | undef
     .select('SUM(cart_product.quantity * product.unit_price)', 'total')
     .addSelect('SUM(cart_product.quantity)', 'totalqty')
     .where(
-      'cart_product.cart = :cartId AND product.publish = :publish AND ((product.quantity > :quantity AND product.unlimited = :unlimited) OR product.unlimited = :nowUnlimited)',
+      'cart_product.cart = :cartId AND product.publish = :publish AND cart_product.deleted_at IS :deleted_at AND ((product.quantity > :quantity AND product.unlimited = :unlimited) OR product.unlimited = :nowUnlimited)',
       {
         cartId,
         publish: true,
         quantity: 0,
         unlimited: false,
         nowUnlimited: true,
+        deleted_at: undefined,
       },
     )
     .getRawOne();
@@ -108,16 +107,25 @@ export const getCarteForCheckout = async (cartId: number, transaction?: QueryRun
     .addSelect('cart_product.quantity', 'quantity')
     .addSelect('cart_product.quantity * product.unit_price', 'price')
     .where(
-      'cart_product.cart = :cartId AND product.publish = :publish AND ((product.quantity > :quantity AND product.unlimited = :unlimited) OR product.unlimited = :nowUnlimited)',
+      'cart_product.cart = :cartId AND product.publish = :publish AND cart_product.deleted_at IS :deleted_at AND ((product.quantity > :quantity AND product.unlimited = :unlimited) OR product.unlimited = :nowUnlimited)',
       {
         cartId,
         publish: true,
         quantity: 0,
         unlimited: false,
         nowUnlimited: true,
+        deleted_at: undefined,
       },
     )
     .getRawMany();
 
   return response;
+};
+
+// deleteAProduct
+
+export const deleteAProductREPO = (cartProductId: number, transaction?: QueryRunner): Promise<any> => {
+  return transaction
+    ? transaction.manager.softRemove(CartProduct, { id: cartProductId })
+    : getRepository(CartProduct).softRemove({ id: cartProductId });
 };

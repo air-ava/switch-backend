@@ -29,3 +29,8 @@ export interface getBusinessCartDTO {
   owner: number;
   business: string;
 }
+
+export interface deleteItemDTO {
+  cartProductId: number;
+  shopper: number;
+}

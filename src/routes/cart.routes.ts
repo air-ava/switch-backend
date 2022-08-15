@@ -1,6 +1,6 @@
 import express from 'express';
 import { createAddressCONTROLLER, getAddressCONTROLLER } from '../controllers/address.controller';
-import { createCartCONTROLLER, getCartCONTROLLER } from '../controllers/cart.contoller';
+import { createCartCONTROLLER, deleteItemCONTROLLER, getCartCONTROLLER } from '../controllers/cart.contoller';
 import { completeCheckoutCONTROLLER } from '../controllers/checkout.controller';
 
 const router = express.Router();
@@ -91,6 +91,33 @@ router.post('/', createCartCONTROLLER);
  *         description: Internal error
  */
 router.post('/checkout', completeCheckoutCONTROLLER);
+
+/**
+ * @swagger
+ *
+ * /api/cart/{item}:
+ *   get:
+ *     security:
+ *      - Bearer: []
+ *     tags:
+ *       - Carting and Checkout
+ *     summary: Delete an Item from a Cart
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: path
+ *         required: true
+ *         type: string
+ *         name: business
+ *         description: for identifing an Item in a Cart
+ *         example: 1
+ *     responses:
+ *       '200':
+ *         description: Ok
+ *       '500':
+ *         description: Internal error
+ */
+router.delete('/:item', deleteItemCONTROLLER);
 
 export default router;
 

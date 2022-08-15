@@ -1,29 +1,25 @@
-import { IsNull, MoreThan, Not } from 'typeorm';
-import { Product } from '../database/models/product.model';
-/**
- * create a product _/
- * create a cart
- * avalability of a product in the cart before checkout
- * create a cart_product
- * update a cart
- * get a cart
- *
- */
-
+import { IsNull } from 'typeorm';
 import { createAndGetCartREPO, getCartsREPO, getOneCartREPO, getTotalSellerCartedProduct, updateCartREPO } from '../database/repositories/cart.repo';
 import {
   createAndGetCartProductREPO,
+  deleteAProductREPO,
   getCartProductsREPO,
   getOneCartProductREPO,
   getTotalCartedProduct,
   updateCartProductREPO,
 } from '../database/repositories/cartProduct.repo';
 import { getOneProductREPO } from '../database/repositories/product.repo';
-import { createCartDTO, getBusinessCartDTO, getShopperCartDTO, updateCartDTO } from '../dto/cart.dto';
+import { createCartDTO, deleteItemDTO, getBusinessCartDTO, getShopperCartDTO, updateCartDTO } from '../dto/cart.dto';
 import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { randomstringGeenerator, sumOfArray, sumOfTwoCoulumnsArray } from '../utils/utils';
-import { createCartValidator, getBusinessCartValidator, getShopperCartValidator, updateCartValidator } from '../validators/cart.validator';
+import {
+  createCartValidator,
+  deleteItemValidator,
+  getBusinessCartValidator,
+  getShopperCartValidator,
+  updateCartValidator,
+} from '../validators/cart.validator';
 import { businessChecker } from './helper.service';
 
 export const updateCart = async (data: updateCartDTO): Promise<theResponse> => {
@@ -128,6 +124,11 @@ export const getShopperCart = async (data: getShopperCartDTO): Promise<theRespon
     const { data: business } = await businessChecker({ reference: BusinessReference });
 
     const existingCart = await getOneCartREPO({ completed: false, shopper, business: business.id }, []);
+    if (!existingCart) throw Error(`Sorry, Cart Unavailable`);
+    console.log({
+      // existingCart,
+      // reference,
+    });
     const totalCartProduct = await getCartProductsREPO({ cart: existingCart.id }, [], ['Product']);
 
     const { total: cartTotal, totalqty: cartQty } = await getTotalCartedProduct(existingCart.id);
@@ -155,6 +156,8 @@ export const getBusinessCart = async (data: getBusinessCartDTO): Promise<theResp
 
     if (reference) {
       const existingCart = await getOneCartREPO({ reference }, []);
+      if (!existingCart) throw Error(`Sorry, Cart Unavailable`);
+
       const totalCartProduct = await getCartProductsREPO({ cart: existingCart.id }, [], ['Product']);
 
       const { total: cartTotal, totalqty: cartQty } = await getTotalCartedProduct(existingCart.id);
@@ -179,5 +182,35 @@ export const getBusinessCart = async (data: getBusinessCartDTO): Promise<theResp
   } catch (error: any) {
     console.log(error);
     return BadRequestException(error.message || 'Cart retrieval failed, kindly try again');
+  }
+};
+
+export const deleteItem = async (data: deleteItemDTO): Promise<theResponse> => {
+  const validation = deleteItemValidator.validate(data);
+  if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { shopper, cartProductId } = data;
+
+  try {
+    const existingCartProduct = await getOneCartProductREPO({ id: cartProductId, deleted_at: IsNull() }, [], ['Cart']);
+    if (!existingCartProduct) throw Error(`Sorry, Product Unavailable in Cart`);
+    if (existingCartProduct.Cart.completed) throw Error(`Sorry, Cart Unavailable`);
+    if (existingCartProduct.Cart.shopper !== shopper) throw Error(`Sorry, You do not have permission to remove item`);
+
+    const deletedCartProduct = await deleteAProductREPO(existingCartProduct.id);
+
+    const { total: cartTotal, totalqty: cartQty } = await getTotalCartedProduct(existingCartProduct.Cart.id);
+
+    await updateCartREPO(
+      { reference: existingCartProduct.Cart.reference },
+      {
+        amount: cartTotal,
+        quantity: cartQty,
+      },
+    );
+    return sendObjectResponse('Item removed from Cart successfully', deletedCartProduct);
+  } catch (error: any) {
+    console.log(error);
+    return BadRequestException(error.message || 'Item removal from Cart failed, kindly try again');
   }
 };
