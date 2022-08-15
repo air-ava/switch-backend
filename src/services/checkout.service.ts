@@ -10,23 +10,28 @@ import { getQueryRunner } from '../database/helpers/db';
 
 import { theResponse } from '../utils/interface';
 import { decrementQuantity, getOneProductREPO } from '../database/repositories/product.repo';
-import { sendObjectResponse, BadRequestException } from '../utils/errors';
+import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
 import { randomstringGeenerator } from '../utils/utils';
 import { createTransactionREPO } from '../database/repositories/transaction.repo';
 import { businessChecker } from './helper.service';
 import { createOrderREPO } from '../database/repositories/order.repo';
 import { completeCartREPO, getOneCartREPO } from '../database/repositories/cart.repo';
-import { getCartProductsREPO } from '../database/repositories/cartProduct.repo';
+import { getCarteForCheckout, getCartProductsREPO, getTotalCartedProduct } from '../database/repositories/cartProduct.repo';
+import { completeCheckoutDTO } from '../dto/checkout.dto';
+import { completeCheckoutValidator } from '../validators/checkout.validator';
 
-export const checkout = async (data: any): Promise<theResponse> => {
+export const checkout = async (data: completeCheckoutDTO): Promise<theResponse> => {
+  const validation = completeCheckoutValidator.validate(data);
+  if (validation.error) return ResourceNotFoundError(validation.error);
+
   const {
     processor_reference,
     cartReference,
-    processor_response: response,
+    processor_response: response = 'successful',
     shopper,
     business: businessReference,
-    amount,
-    quantity,
+    external_reference,
+    metadata,
     shopper_address,
     business_address,
   } = data;
@@ -38,38 +43,23 @@ export const checkout = async (data: any): Promise<theResponse> => {
   const queryRunner = await getQueryRunner();
   try {
     const existingCart = await getOneCartREPO({ reference: cartReference }, []);
-    const query = [
-      {
-        cart: existingCart.id,
-        Product: {
-          publish: true,
-          expire_at: IsNull(),
-          quantity: MoreThan(0),
-          unlimited: false,
-        },
-      },
-      {
-        cart: existingCart.id,
-        Product: {
-          publish: true,
-          expire_at: IsNull(),
-          unlimited: true,
-        },
-      },
-    ];
-    const cartedProduct = await getCartProductsREPO(query, [], ['Product']);
+    if (existingCart.completed) return BadRequestException('Cart Currently Unavailable');
 
     await queryRunner.startTransaction();
 
-    // map frm here to
+    const cartedProduct = await getCarteForCheckout(existingCart.id, queryRunner);
+    if (cartedProduct.length === 0) throw Error(`sorry, your cart is empty`);
+
+    const { total: amount } = await getTotalCartedProduct(existingCart.id);
+    if (amount === 0) throw Error(`sorry, your cart is empty`);
+
     await Promise.all(
       cartedProduct.map(async (item: any) => {
-        const product = await getOneProductREPO({ id: item.product }, [], [], queryRunner);
-        if (product.quantity < item.quantity) throw Error(`sorry, ${product.name} has insufficient Stock`);
-        await decrementQuantity(product.id, item.quantity, queryRunner);
+        const product = await getOneProductREPO({ id: item.id }, [], [], queryRunner);
+        if (Number(product.quantity) < Number(item.quantity) && !item.unlimited) throw Error(`sorry, ${product.name} has insufficient Stock`);
+        if (!item.unlimited) await decrementQuantity(product.id, item.quantity, queryRunner);
       }),
     );
-    // here
 
     createTransactionREPO(
       {
@@ -96,6 +86,8 @@ export const checkout = async (data: any): Promise<theResponse> => {
         shopper,
         business: business.id,
         cart_reference: cartReference,
+        ...(metadata && { metadata }),
+        ...(external_reference && { external_reference }),
       },
       queryRunner,
     );
@@ -104,9 +96,11 @@ export const checkout = async (data: any): Promise<theResponse> => {
     await queryRunner.commitTransaction();
 
     return sendObjectResponse('checkout completed successfully');
-  } catch (error) {
+  } catch (error: any) {
+    console.log({ error });
+
     await queryRunner.rollbackTransaction();
-    return BadRequestException('Checkout completion failed, kindly try again');
+    return BadRequestException(error.message || 'Checkout completion failed, kindly try again');
   } finally {
     await queryRunner.release();
   }

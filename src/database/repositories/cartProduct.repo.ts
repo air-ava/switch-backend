@@ -94,3 +94,30 @@ export const getTotalCartedProduct = async (cartId: number): Promise<any | undef
 
   return response;
 };
+
+export const getCarteForCheckout = async (cartId: number, transaction?: QueryRunner): Promise<any | undefined> => {
+  const queryBuilder = transaction
+    ? transaction.manager.createQueryBuilder<CartProduct>(CartProduct, 'cart_product').setLock('pessimistic_write')
+    : getRepository(CartProduct).createQueryBuilder('cart_product');
+
+  const response = await queryBuilder
+    .leftJoin(Product, 'product', 'cart_product.product = product.id')
+    .select('product.unit_price', 'unit_price')
+    .addSelect('product.id', 'id')
+    .addSelect('product.unlimited', 'unlimited')
+    .addSelect('cart_product.quantity', 'quantity')
+    .addSelect('cart_product.quantity * product.unit_price', 'price')
+    .where(
+      'cart_product.cart = :cartId AND product.publish = :publish AND ((product.quantity > :quantity AND product.unlimited = :unlimited) OR product.unlimited = :nowUnlimited)',
+      {
+        cartId,
+        publish: true,
+        quantity: 0,
+        unlimited: false,
+        nowUnlimited: true,
+      },
+    )
+    .getRawMany();
+
+  return response;
+};

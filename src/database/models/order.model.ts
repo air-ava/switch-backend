@@ -25,13 +25,13 @@ export class Order {
   business: number;
 
   @Column()
-  external_reference: string;
+  external_reference?: string;
 
   @Column()
   cart_reference: string;
 
   @Column('json')
-  metadata: { [key: string]: any };
+  metadata?: { [key: string]: any };
 
   @Column('timestamp')
   processed_at: Date;

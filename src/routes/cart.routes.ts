@@ -1,6 +1,7 @@
 import express from 'express';
 import { createAddressCONTROLLER, getAddressCONTROLLER } from '../controllers/address.controller';
 import { createCartCONTROLLER, getCartCONTROLLER } from '../controllers/cart.contoller';
+import { completeCheckoutCONTROLLER } from '../controllers/checkout.controller';
 
 const router = express.Router();
 
@@ -67,6 +68,30 @@ router.get('/:business', getCartCONTROLLER);
  */
 router.post('/', createCartCONTROLLER);
 
+/**
+ * @swagger
+ *
+ * /api/cart/checkout:
+ *   post:
+ *     security:
+ *      - Bearer: []
+ *     tags:
+ *       - Carting and Checkout
+ *     summary: Create a new CreateCart
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         schema:
+ *          $ref: '#/definitions/CompleteCheckout'
+ *     responses:
+ *       '200':
+ *         description: Ok
+ *       '500':
+ *         description: Internal error
+ */
+router.post('/checkout', completeCheckoutCONTROLLER);
+
 export default router;
 
 /**
@@ -89,4 +114,19 @@ export default router;
  *      business:
  *        type: string
  *        example: bs_f32am
+ *  CompleteCheckout:
+ *   type: object
+ *   properties:
+ *     cartReference:
+ *       type: string
+ *       example: cr_bc9h6
+ *     business:
+ *       type: string
+ *       example: bs_f32am
+ *     shopper_address:
+ *       type: number
+ *       example: '3'
+ *     business_address:
+ *       type: number
+ *       example: '11'
  */

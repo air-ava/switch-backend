@@ -53,12 +53,12 @@ export class createOrderTable1660175871711 implements MigrationInterface {
           {
             name: 'external_reference',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'metadata',
             type: 'json',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'processed_at',

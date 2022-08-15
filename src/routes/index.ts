@@ -7,22 +7,10 @@ import productRouter from './product.routes';
 import publicRouter from './public.routes';
 import addressRouter from './address.routes';
 import cartRouter from './cart.routes';
+import checkoutRouter from './checkout.routes';
 import { validateSession } from '../middleware/auth.middleware';
 
 const router = express.Router();
-/**
- * @swagger
- * definitions:
- *  PhoneNumbers:
- *     type: object
- *     properties:
- *      countryCode:
- *           type: string
- *           example: "234"
- *      localFormat:
- *           type: string
- *           example: "07089000171"
- */
 
 router.get('/', (_, res) => res.json({ success: true, message: 'User gateway v1 up.' }));
 
@@ -33,6 +21,7 @@ router.use('/business', businessRouter);
 router.use('/product', productRouter);
 router.use('/address', addressRouter);
 router.use('/cart', cartRouter);
+router.use('/checkout', checkoutRouter);
 /**
  * @swagger
  *
@@ -85,4 +74,18 @@ export default router;
  *    description: Endpoints for the address
  *  - name: Carting and Checkout
  *    description: Endpoints for the Carting and Checkout
+ */
+
+/**
+ * @swagger
+ * definitions:
+ *  PhoneNumbers:
+ *     type: object
+ *     properties:
+ *      countryCode:
+ *           type: string
+ *           example: "234"
+ *      localFormat:
+ *           type: string
+ *           example: "07089000171"
  */
