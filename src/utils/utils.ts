@@ -18,3 +18,13 @@ export const formatPhoneNumber = (localFormat: string): string => {
 export const randomstringGeenerator = (table_type: 'image' | 'business' | 'cart' | 'order' | 'product' | 'transactions'): string => {
   return `${table_prefix[table_type]}${randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
 };
+
+export const sumOfArray = (items: any[], element: string): number => {
+  return items.reduce((acc: any, curr: any) => acc + curr[element], 0);
+};
+
+export const sumOfTwoCoulumnsArray = (items: any[], elementOne: string, elementTwo: string): number => {
+  return items.reduce((acc: any, curr: any) => {
+    return acc + curr[elementOne] * curr[elementTwo];
+  }, 0);
+};

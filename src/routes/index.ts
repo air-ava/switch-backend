@@ -5,6 +5,7 @@ import authRouter from './auth.routes';
 import businessRouter from './business.routes';
 import productRouter from './product.routes';
 import publicRouter from './public.routes';
+import addressRouter from './address.routes';
 import { validateSession } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -29,6 +30,7 @@ router.use('/public', publicRouter);
 router.use(validateSession);
 router.use('/business', businessRouter);
 router.use('/product', productRouter);
+router.use('/address', addressRouter);
 /**
  * @swagger
  *

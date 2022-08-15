@@ -19,42 +19,31 @@ export const createProduct = async (data: createProductDTO): Promise<theResponse
   const reference = randomstringGeenerator('product');
   const imageRef = randomstringGeenerator('image');
 
-  const queryRunner = await getQueryRunner();
   try {
-    await queryRunner.startTransaction();
-    const businessAlreadyExist = await getOneBuinessREPO({ reference: business }, [], [], queryRunner);
+    const businessAlreadyExist = await getOneBuinessREPO({ reference: business }, [], []);
     if (!businessAlreadyExist) throw Error('Sorry, you can not create a product for this business');
 
-    const product = await createAndGetProductREPO(
-      {
-        name,
-        ...rest,
-        business: Number(businessAlreadyExist.id),
-        publish,
-        unlimited,
-        reference,
-        image_reference: imageRef,
-        quantity,
-        weight,
-      },
-      queryRunner,
-    );
+    const product = await createAndGetProductREPO({
+      name,
+      ...rest,
+      business: Number(businessAlreadyExist.id),
+      publish,
+      unlimited,
+      reference,
+      image_reference: imageRef,
+      quantity,
+      weight,
+    });
     await Promise.all(
       images.map(async (image: any) => {
         await findOrCreateImage({ url: image, table_type: 'product', table_id: product.id, reference: imageRef });
       }),
     );
 
-    await queryRunner.commitTransaction();
-
     return sendObjectResponse('Product created successfully');
   } catch (e: any) {
     console.log({ e });
-
-    await queryRunner.rollbackTransaction();
     return BadRequestException('Product creation failed, kindly try again');
-  } finally {
-    await queryRunner.release();
   }
 };
 

@@ -35,7 +35,7 @@ export class Business {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToOne('PhoneNumbers', 'users')
+  @OneToOne('PhoneNumbers', 'business')
   @JoinColumn({ name: 'phone_number' })
   phone: IPhoneNumber;
 

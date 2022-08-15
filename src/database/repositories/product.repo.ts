@@ -27,6 +27,7 @@ export const getOneProductREPO = (
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        lock: { mode: 'pessimistic_write' },
       })
     : getRepository(Product).findOne({
         where: queryParam,
@@ -35,8 +36,12 @@ export const getOneProductREPO = (
       });
 };
 
-export const updateProductREPO = (queryParams: Partial<IProduct>, updateFields: Partial<IProduct>, t?: QueryRunner): Promise<UpdateResult> => {
-  return t ? t.manager.update(Product, queryParams, updateFields) : getRepository(Product).update(queryParams, updateFields);
+export const updateProductREPO = (
+  queryParams: Partial<IProduct>,
+  updateFields: Partial<IProduct>,
+  transaction?: QueryRunner,
+): Promise<UpdateResult> => {
+  return transaction ? transaction.manager.update(Product, queryParams, updateFields) : getRepository(Product).update(queryParams, updateFields);
 };
 
 export const getProductesREPO = (
@@ -49,10 +54,10 @@ export const getProductesREPO = (
     | any,
   selectOptions: Array<keyof Product>,
   relationOptions?: any[],
-  t?: QueryRunner,
+  transaction?: QueryRunner,
 ): Promise<IProduct[]> => {
-  return t
-    ? t.manager.find(Product, {
+  return transaction
+    ? transaction.manager.find(Product, {
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
@@ -62,4 +67,10 @@ export const getProductesREPO = (
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
       });
+};
+
+export const decrementQuantity = async (id: number, quantity: number, transaction?: QueryRunner): Promise<UpdateResult> => {
+  return transaction
+    ? transaction.manager.decrement(Product, { id }, 'quantity', quantity)
+    : getRepository(Product).decrement({ id }, 'quantity', quantity);
 };

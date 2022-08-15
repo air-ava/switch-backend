@@ -3,10 +3,11 @@ import { theResponse } from '../utils/interface';
 import { getOnePhoneNumber, createAPhoneNumber } from '../database/repositories/phoneNumber.repo';
 import { ImageValidator, phoneNumberValidator } from '../validators/phoneNumber.validator';
 import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
-import { businessCheckerDTO, findAndCreateImageDTO, findAndCreatePhoneNumberDTO } from '../dto/helper.dto';
+import { businessCheckerDTO, findAndCreateAddressDTO, findAndCreateImageDTO, findAndCreatePhoneNumberDTO } from '../dto/helper.dto';
 import { formatPhoneNumber, randomstringGeenerator } from '../utils/utils';
 import { createImageREPO, getOneImageREPO } from '../database/repositories/image.repo';
 import { getBusinessesREPO, getOneBuinessREPO } from '../database/repositories/business.repo';
+import { getOneAddressREPO, createAndGetAddressREPO } from '../database/repositories/address.repo';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
@@ -60,6 +61,38 @@ export const findOrCreateImage = async (payload: findAndCreateImageDTO): Promise
   if (!createdImage) throw Error('Sorry, problem with Image creation');
 
   return sendObjectResponse('Account created successfully', createdImage);
+};
+
+export const findOrCreateAddress = async (payload: findAndCreateAddressDTO): Promise<theResponse> => {
+  const { street, country, state, city, shopper, business, default: isDefault } = payload;
+  const existingAddress = await getOneAddressREPO(
+    {
+      street,
+      country,
+      state,
+      city,
+      active: true,
+      ...(shopper && { shopper }),
+      ...(business && { business }),
+    },
+    [],
+  );
+  if (existingAddress) return sendObjectResponse('Image retrieved successfully', existingAddress);
+
+  const createdAddress = await createAndGetAddressREPO({
+    street,
+    country,
+    state,
+    city,
+    active: true,
+    default: isDefault || false,
+    ...(shopper && { shopper }),
+    ...(business && { business }),
+  });
+
+  if (!createdAddress) throw Error('Sorry, problem with Address creation');
+
+  return sendObjectResponse('Address created successfully', createdAddress);
 };
 
 export const businessChecker = async (payload: businessCheckerDTO): Promise<theResponse> => {

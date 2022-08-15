@@ -1,4 +1,5 @@
 import express from 'express';
+import { getAddressCONTROLLER } from '../controllers/address.controller';
 import { allBusinessCONTROLLER } from '../controllers/business.controller';
 import { viewAllProductCONTROLLER } from '../controllers/product.controller';
 import { allBusinessAndProductsCONTROLLER } from '../controllers/public.controller';
@@ -70,6 +71,29 @@ router.get('/', allBusinessAndProductsCONTROLLER);
  *         description: Internal error
  */
 router.get('/products', viewAllProductCONTROLLER);
+
+/**
+ * @swagger
+ *
+ * /api/public/address:
+ *   get:
+ *     tags:
+ *       - Store
+ *     summary: Get all products of a business as a shopper
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: query
+ *         required: true
+ *         type: string
+ *         name: business
+ *     responses:
+ *       '200':
+ *         description: Ok
+ *       '500':
+ *         description: Internal error
+ */
+router.get('/address', getAddressCONTROLLER);
 
 /**
  * @swagger

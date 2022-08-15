@@ -10,6 +10,16 @@ export interface findAndCreateImageDTO {
   reference?: string;
 }
 
+export interface findAndCreateAddressDTO {
+  street: string;
+  country: string;
+  state: string;
+  city: string;
+  default?: boolean;
+  shopper?: number;
+  business?: number;
+}
+
 export interface businessCheckerDTO {
   owner?: number;
   reference?: string;
