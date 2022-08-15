@@ -10,7 +10,7 @@ import { Product } from '../database/models/product.model';
  *
  */
 
-import { createAndGetCartREPO, getOneCartREPO, updateCartREPO } from '../database/repositories/cart.repo';
+import { createAndGetCartREPO, getCartsREPO, getOneCartREPO, updateCartREPO } from '../database/repositories/cart.repo';
 import {
   createAndGetCartProductREPO,
   getCartProductsREPO,
@@ -122,17 +122,19 @@ export const getShopperCart = async (data: getShopperCartDTO): Promise<theRespon
   const validation = getShopperCartValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { reference, shopper } = data;
+  const { reference: BusinessReference, shopper } = data;
 
   try {
-    const existingCart = await getOneCartREPO({ completed: false, shopper, reference }, []);
+    const { data: business } = await businessChecker({ reference: BusinessReference });
+
+    const existingCart = await getOneCartREPO({ completed: false, shopper, business: business.id }, []);
     const totalCartProduct = await getCartProductsREPO({ cart: existingCart.id }, [], ['Product']);
 
-    const cartQty = sumOfArray(totalCartProduct, 'quantity');
-    const cartTotal = sumOfTwoCoulumnsArray(totalCartProduct, 'quantity', 'Product.unit_price');
+    const { total: cartTotal, totalqty: cartQty } = await getTotalCartedProduct(existingCart.id);
 
     return sendObjectResponse('Cart retrieved successfully', {
-      cart: totalCartProduct,
+      ...existingCart,
+      items: totalCartProduct,
       qty: cartQty,
       total: cartTotal,
     });
@@ -149,38 +151,25 @@ export const getBusinessCart = async (data: getBusinessCartDTO): Promise<theResp
   const { reference, owner, business: businessReference } = data;
 
   try {
-    await businessChecker({ reference: businessReference, owner });
+    const { data: business } = await businessChecker({ reference: businessReference, owner });
 
-    const existingCart = await getOneCartREPO({ reference }, []);
+    if (reference) {
+      const existingCart = await getOneCartREPO({ reference }, []);
+      const totalCartProduct = await getCartProductsREPO({ cart: existingCart.id }, [], ['Product']);
 
-    const query = [
-      {
-        cart: existingCart.id,
-        Product: {
-          publish: true,
-          quantity: MoreThan(0),
-          unlimited: false,
-        },
-      },
-      {
-        cart: existingCart.id,
-        Product: {
-          publish: true,
-          unlimited: true,
-        },
-      },
-    ];
+      const { total: cartTotal, totalqty: cartQty } = await getTotalCartedProduct(existingCart.id);
 
-    const totalCartProduct = await getCartProductsREPO(query, [], ['Product']);
+      return sendObjectResponse('Cart retrieved successfully', {
+        ...existingCart,
+        items: totalCartProduct,
+        qty: cartQty,
+        total: cartTotal,
+      });
+    }
 
-    const cartQty = sumOfArray(totalCartProduct, 'quantity');
-    const cartTotal = sumOfTwoCoulumnsArray(totalCartProduct, 'quantity', 'Product.unit_price');
+    const allCarts = await getCartsREPO({ business: business.id }, []);
 
-    return sendObjectResponse('Cart retrieved successfully', {
-      cart: totalCartProduct,
-      qty: cartQty,
-      total: cartTotal,
-    });
+    return sendObjectResponse('All customer carts retrieved successfully', allCarts);
   } catch (error: any) {
     console.log(error);
     return BadRequestException(error.message || 'Cart retrieval failed, kindly try again');

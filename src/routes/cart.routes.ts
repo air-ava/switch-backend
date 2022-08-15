@@ -1,13 +1,13 @@
 import express from 'express';
 import { createAddressCONTROLLER, getAddressCONTROLLER } from '../controllers/address.controller';
-import { createCartCONTROLLER } from '../controllers/cart.contoller';
+import { createCartCONTROLLER, getCartCONTROLLER } from '../controllers/cart.contoller';
 
 const router = express.Router();
 
 /**
  * @swagger
  *
- * /api/cart/:
+ * /api/cart/{business}:
  *   get:
  *     security:
  *      - Bearer: []
@@ -16,13 +16,18 @@ const router = express.Router();
  *     summary: View your CreateCart
  *     produces:
  *       - application/json
+ *     parameters:
+ *       - in: path
+ *         required: true
+ *         type: string
+ *         name: business
  *     responses:
  *       '200':
  *         description: Ok
  *       '500':
  *         description: Internal error
  */
-router.get('/', getAddressCONTROLLER);
+router.get('/:business', getCartCONTROLLER);
 
 /**
  * @swagger

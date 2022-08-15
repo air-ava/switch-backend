@@ -32,7 +32,7 @@ export const getShopperCartValidator = joi.object().keys({
 });
 
 export const getBusinessCartValidator = joi.object().keys({
-  reference: joi.string().required(),
+  reference: joi.string().optional(),
   owner: joi.number().integer().required(),
   business: joi.string().required(),
 });

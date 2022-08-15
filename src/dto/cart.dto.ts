@@ -25,7 +25,7 @@ export interface getShopperCartDTO {
 }
 
 export interface getBusinessCartDTO {
-  reference: string;
+  reference?: string;
   owner: number;
   business: string;
 }
