@@ -1,3 +1,4 @@
+import { IsNull, MoreThan } from 'typeorm';
 import { getQueryRunner } from '../database/helpers/db';
 /**
  * check and lock product row
@@ -14,11 +15,11 @@ import { randomstringGeenerator } from '../utils/utils';
 import { createTransactionREPO } from '../database/repositories/transaction.repo';
 import { businessChecker } from './helper.service';
 import { createOrderREPO } from '../database/repositories/order.repo';
-import { completeCartREPO } from '../database/repositories/cart.repo';
+import { completeCartREPO, getOneCartREPO } from '../database/repositories/cart.repo';
+import { getCartProductsREPO } from '../database/repositories/cartProduct.repo';
 
 export const checkout = async (data: any): Promise<theResponse> => {
   const {
-    cartedProduct,
     processor_reference,
     cartReference,
     processor_response: response,
@@ -32,12 +33,43 @@ export const checkout = async (data: any): Promise<theResponse> => {
   const txReference = randomstringGeenerator('transactions');
   const orderReference = randomstringGeenerator('order');
 
+  const { data: business } = await businessChecker({ reference: businessReference });
+
   const queryRunner = await getQueryRunner();
   try {
-    await queryRunner.startTransaction();
-    const product = await getOneProductREPO({ id: cartedProduct.id }, [], [], queryRunner);
+    const existingCart = await getOneCartREPO({ reference: cartReference }, []);
+    const query = [
+      {
+        cart: existingCart.id,
+        Product: {
+          publish: true,
+          expire_at: IsNull(),
+          quantity: MoreThan(0),
+          unlimited: false,
+        },
+      },
+      {
+        cart: existingCart.id,
+        Product: {
+          publish: true,
+          expire_at: IsNull(),
+          unlimited: true,
+        },
+      },
+    ];
+    const cartedProduct = await getCartProductsREPO(query, [], ['Product']);
 
-    const { data: business } = await businessChecker({ reference: businessReference });
+    await queryRunner.startTransaction();
+
+    // map frm here to
+    await Promise.all(
+      cartedProduct.map(async (item: any) => {
+        const product = await getOneProductREPO({ id: item.product }, [], [], queryRunner);
+        if (product.quantity < item.quantity) throw Error(`sorry, ${product.name} has insufficient Stock`);
+        await decrementQuantity(product.id, item.quantity, queryRunner);
+      }),
+    );
+    // here
 
     createTransactionREPO(
       {
@@ -55,8 +87,6 @@ export const checkout = async (data: any): Promise<theResponse> => {
       queryRunner,
     );
 
-    await decrementQuantity(product.id, quantity, queryRunner);
-
     await createOrderREPO(
       {
         reference: orderReference,
@@ -71,6 +101,8 @@ export const checkout = async (data: any): Promise<theResponse> => {
     );
 
     await completeCartREPO(cartReference, queryRunner);
+    await queryRunner.commitTransaction();
+
     return sendObjectResponse('checkout completed successfully');
   } catch (error) {
     await queryRunner.rollbackTransaction();
