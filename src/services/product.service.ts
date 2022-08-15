@@ -1,7 +1,6 @@
 import dateFormat from 'dateformat';
 import { endOfDay } from 'date-fns';
 import { LessThan, Like, Not } from 'typeorm';
-import { getQueryRunner } from '../database/helpers/db';
 import { getOneBuinessREPO } from '../database/repositories/business.repo';
 import { createAndGetProductREPO, getProductesREPO } from '../database/repositories/product.repo';
 import { createProductDTO, viewAllProductDTO } from '../dto/product.dto';
@@ -10,6 +9,7 @@ import { theResponse } from '../utils/interface';
 import { randomstringGeenerator } from '../utils/utils';
 import { createProductValidator, viewAllProductValidator } from '../validators/product.validator';
 import { findOrCreateImage } from './helper.service';
+import { getProductCategoriesREPO } from '../database/repositories/productCategory.repo';
 
 export const createProduct = async (data: createProductDTO): Promise<theResponse> => {
   const validation = createProductValidator.validate(data);
@@ -91,5 +91,16 @@ export const viewAllProduct = async (data: viewAllProductDTO): Promise<theRespon
     });
 
     return BadRequestException(e.message || 'Products retrieval failed, kindly try again');
+  }
+};
+
+export const viewAllProductCategories = async (): Promise<theResponse> => {
+  try {
+    const products = await getProductCategoriesREPO({}, []);
+
+    return sendObjectResponse('Products categories retrieved successfully', products);
+  } catch (e: any) {
+    console.log({ e });
+    return BadRequestException(e.message || 'Products categories retrieval failed, kindly try again');
   }
 };

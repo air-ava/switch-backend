@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { createProduct, viewAllProduct } from '../services/product.service';
+import { createProduct, viewAllProduct, viewAllProductCategories } from '../services/product.service';
 
 export const createProductCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -23,6 +23,17 @@ export const viewAllProductCONTROLLER: RequestHandler = async (req, res) => {
       ...(search && { search: String(search) }),
       ...(quantity && { quantity: String(quantity) }),
     });
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+  }
+};
+
+export const viewAllProductCategoriesCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const response = await viewAllProductCategories();
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
