@@ -2,7 +2,7 @@ import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '
 import { theResponse } from '../utils/interface';
 import { createAddressValidator, getAddressValidator } from '../validators/address.validator';
 import { createAddressDTO, getAddressDTO } from '../dto/address.dto';
-import { businessChecker, findOrCreateAddress } from './helper.service';
+import { businessChecker, findOrCreateAddress, updateAddressDefault } from './helper.service';
 import { IBusiness } from '../database/modelInterfaces';
 import { getAddressesREPO } from '../database/repositories/address.repo';
 import { getOneBuinessREPO } from '../database/repositories/business.repo';
@@ -16,19 +16,21 @@ export const createAddress = async (data: createAddressDTO): Promise<theResponse
   try {
     const business = is_business && (await businessChecker({ reference: businessReference, owner: Number(userId) }));
 
+    const businessId = ((business as theResponse).data as IBusiness).id;
     const address = await findOrCreateAddress({
       street,
       country,
       state,
       city,
       ...(!is_business && { shopper: userId }),
-      ...(is_business && { business: ((business as theResponse).data as IBusiness).id }),
-      default: isDefault,
+      ...(is_business && { business: businessId }),
+      ...(isDefault && { default: isDefault }),
     });
-    return sendObjectResponse('Address created successfully', address);
+
+    return sendObjectResponse(address.message || 'Address created successfully', address.data);
   } catch (error: any) {
     console.log(error);
-    return BadRequestException(error.messaage || 'Address creation failed, kindly try again');
+    return BadRequestException(error.message || 'Address creation failed, kindly try again');
   }
 };
 
@@ -36,15 +38,21 @@ export const getAddress = async (data: getAddressDTO): Promise<theResponse> => {
   const validation = getAddressValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { reference, owner: shopper } = data;
+  const { reference, owner: shopper, public: publicUrl } = data;
   try {
-    const business = await getOneBuinessREPO({ reference }, []);
-    if (!business) throw Error('Sorry, can not find this business');
+    let business;
+    if (reference) {
+      business = await getOneBuinessREPO({ reference }, []);
+      console.log({ business, reference, data });
+
+      if (!business) throw Error('Sorry, can not find this business');
+    }
 
     const address = await getAddressesREPO(
       {
         ...(reference && { business: business.id }),
         ...(shopper && { shopper }),
+        ...(publicUrl && { default: publicUrl }),
       },
       [],
     );

@@ -40,7 +40,7 @@ router.get('/', allBusinessAndProductsCONTROLLER);
 /**
  * @swagger
  *
- * /api/public/products:
+ * /api/public/products/{business}:
  *   get:
  *     tags:
  *       - Store
@@ -60,7 +60,7 @@ router.get('/', allBusinessAndProductsCONTROLLER);
  *         required: false
  *         type: string
  *         name: search
- *       - in: query
+ *       - in: path
  *         required: true
  *         type: string
  *         name: business
@@ -70,12 +70,12 @@ router.get('/', allBusinessAndProductsCONTROLLER);
  *       '500':
  *         description: Internal error
  */
-router.get('/products', viewAllProductCONTROLLER);
+router.get('/products/:business', viewAllProductCONTROLLER);
 
 /**
  * @swagger
  *
- * /api/public/address:
+ * /api/public/address/{business}:
  *   get:
  *     tags:
  *       - Store
@@ -83,7 +83,7 @@ router.get('/products', viewAllProductCONTROLLER);
  *     produces:
  *       - application/json
  *     parameters:
- *       - in: query
+ *       - in: path
  *         required: true
  *         type: string
  *         name: business
@@ -93,7 +93,7 @@ router.get('/products', viewAllProductCONTROLLER);
  *       '500':
  *         description: Internal error
  */
-router.get('/address', getAddressCONTROLLER);
+router.get('/address/:business', getAddressCONTROLLER);
 
 /**
  * @swagger

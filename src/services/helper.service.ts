@@ -1,13 +1,19 @@
-import { parsePhoneNumber } from 'libphonenumber-js';
+import { Not } from 'typeorm';
 import { theResponse } from '../utils/interface';
 import { getOnePhoneNumber, createAPhoneNumber } from '../database/repositories/phoneNumber.repo';
 import { ImageValidator, phoneNumberValidator } from '../validators/phoneNumber.validator';
-import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import { ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
 import { businessCheckerDTO, findAndCreateAddressDTO, findAndCreateImageDTO, findAndCreatePhoneNumberDTO } from '../dto/helper.dto';
 import { formatPhoneNumber, randomstringGeenerator } from '../utils/utils';
 import { createImageREPO, getOneImageREPO } from '../database/repositories/image.repo';
-import { getBusinessesREPO, getOneBuinessREPO } from '../database/repositories/business.repo';
-import { getOneAddressREPO, createAndGetAddressREPO } from '../database/repositories/address.repo';
+import { getOneBuinessREPO } from '../database/repositories/business.repo';
+import {
+  getOneAddressREPO,
+  createAndGetAddressREPO,
+  getAddressesREPO,
+  updateAddressREPO,
+  countAddressesREPO,
+} from '../database/repositories/address.repo';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
@@ -25,7 +31,7 @@ export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO
       internationalFormat: String(internationalFormat.replace('+', '')),
     },
   });
-  const createdPhoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat } });
+  const createdPhoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: internationalFormat.replace('+', '') } });
   if (!createdPhoneNumber) throw Error('Sorry, problem with Phone Number creation');
 
   return sendObjectResponse('Account created successfully', createdPhoneNumber);
@@ -63,21 +69,51 @@ export const findOrCreateImage = async (payload: findAndCreateImageDTO): Promise
   return sendObjectResponse('Account created successfully', createdImage);
 };
 
-export const findOrCreateAddress = async (payload: findAndCreateAddressDTO): Promise<theResponse> => {
-  const { street, country, state, city, shopper, business, default: isDefault } = payload;
-  const existingAddress = await getOneAddressREPO(
+export const updateAddressDefault = async (payload: any): Promise<theResponse> => {
+  const { shopper, business, address: defaultAddress } = payload;
+  const addresses = await getAddressesREPO(
     {
-      street,
-      country,
-      state,
-      city,
-      active: true,
-      ...(shopper && { shopper }),
+      id: Not(defaultAddress),
+      default: true,
       ...(business && { business }),
+      ...(shopper && { shopper }),
     },
     [],
   );
-  if (existingAddress) return sendObjectResponse('Image retrieved successfully', existingAddress);
+  if (addresses)
+    await Promise.all(
+      addresses.map(async (address: any) => {
+        await updateAddressREPO({ id: address.id }, { default: false });
+      }),
+    );
+
+  return sendObjectResponse('Address Defaulted');
+};
+
+export const findOrCreateAddress = async (payload: findAndCreateAddressDTO): Promise<theResponse> => {
+  const { street, country, state, city, shopper, business, default: isDefault } = payload;
+  const query = {
+    street,
+    country,
+    state,
+    city,
+    active: true,
+    ...(shopper && { shopper }),
+    ...(business && { business }),
+  };
+  const existingAddress = await getOneAddressREPO(query, []);
+  if (existingAddress) return sendObjectResponse('Address retrieved successfully', existingAddress);
+
+  const addressCount = await countAddressesREPO({
+    active: true,
+    ...(shopper && { shopper }),
+    ...(business && { business }),
+  });
+  console.log({
+    addressCount,
+  });
+
+  if (addressCount > 3) throw Error('Sorry, you have reached your address capacity');
 
   const createdAddress = await createAndGetAddressREPO({
     street,
@@ -92,6 +128,12 @@ export const findOrCreateAddress = async (payload: findAndCreateAddressDTO): Pro
 
   if (!createdAddress) throw Error('Sorry, problem with Address creation');
 
+  await updateAddressDefault({
+    ...(shopper && { shopper }),
+    ...(business && { business }),
+    address: createdAddress.id,
+  });
+
   return sendObjectResponse('Address created successfully', createdAddress);
 };
 
@@ -102,7 +144,8 @@ export const businessChecker = async (payload: businessCheckerDTO): Promise<theR
       ...(owner && { owner }),
       ...(reference && { reference }),
     },
-    ['name', 'description', 'reference'],
+    [],
+    ['image', 'phone'],
   );
   if (!businessAlreadyExist) throw Error('Sorry, you have not created a business');
 

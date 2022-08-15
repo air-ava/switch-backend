@@ -81,4 +81,6 @@ export default router;
  *    description: Endpoints for products
  *  - name: Store
  *    description: Endpoints for the store
+ *  - name: Address
+ *    description: Endpoints for the store
  */

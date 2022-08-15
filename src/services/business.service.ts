@@ -38,8 +38,8 @@ export const createBusiness = async (data: createBusinessDTO): Promise<theRespon
 
     await queryRunner.commitTransaction();
 
+    const business = await getOneBuinessREPO({ reference }, [], []);
     if (logoUrl) {
-      const business = await getOneBuinessREPO({ reference }, [], []);
       if (!business) throw Error('Sorry, problem with business creation');
 
       const {
@@ -48,7 +48,7 @@ export const createBusiness = async (data: createBusinessDTO): Promise<theRespon
       await updateBusinessREPO({ reference }, { logo });
     }
 
-    return sendObjectResponse('Business created successfully');
+    return sendObjectResponse('Business created successfully', business);
   } catch (e: any) {
     await queryRunner.rollbackTransaction();
     return BadRequestException('Business creation failed, kindly try again');
@@ -61,18 +61,31 @@ export const updateBusiness = async (data: updateBusinessDTO): Promise<theRespon
   const validation = updateBusinessValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { owner, reference, phone_number: businessMobile, ...rest } = data;
+  const { owner, reference, phone_number: businessMobile, logo: url, ...rest } = data;
   try {
-    await businessChecker({ reference, owner: Number(owner) });
+    const { data: existingBusiness } = await businessChecker({ reference, owner: Number(owner) });
 
     let phone_number;
+    let logo;
     if (businessMobile) {
       const { data: phoneData } = await findOrCreatePhoneNumber(businessMobile);
       phone_number = phoneData.id;
     }
-    await updateBusinessREPO({ reference }, { ...rest, ...(phone_number && { phone_number }) });
+    if (url) {
+      const { data: imageData } = await findOrCreateImage({
+        url,
+        table_type: 'business',
+        table_id: existingBusiness.id,
+        reference: existingBusiness.image.reference,
+      });
+      logo = imageData.id;
+    }
+    await updateBusinessREPO({ reference }, { ...rest, ...(logo && { logo }), ...(phone_number && { phone_number }) });
 
-    return sendObjectResponse('Business updated successfully');
+    const updatedBusiness = await getOneBuinessREPO({ reference }, [], ['phone', 'image']);
+    if (!updatedBusiness) throw Error('Sorry, can not find this business');
+
+    return sendObjectResponse('Business updated successfully', updatedBusiness);
   } catch (e: any) {
     return BadRequestException(e.message || 'Business retrieval failed, kindly try again');
   }

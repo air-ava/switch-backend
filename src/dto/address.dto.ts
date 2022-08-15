@@ -12,4 +12,5 @@ export interface createAddressDTO {
 export interface getAddressDTO {
   reference?: string;
   owner?: string;
+  public?: boolean;
 }

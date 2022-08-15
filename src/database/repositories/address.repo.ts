@@ -55,6 +55,10 @@ export const getAddressesREPO = (
   relationOptions?: any[],
   transaction?: QueryRunner,
 ): Promise<IAddresses[]> => {
+  console.log({
+    queryParam,
+  });
+
   return transaction
     ? transaction.manager.find(Addresses, {
         where: queryParam,
@@ -66,4 +70,8 @@ export const getAddressesREPO = (
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
       });
+};
+
+export const countAddressesREPO = async (queryParam: Partial<IAddresses>, transaction?: QueryRunner): Promise<number> => {
+  return transaction ? transaction.manager.count(Addresses, { where: queryParam }) : getRepository(Addresses).count({ where: queryParam });
 };

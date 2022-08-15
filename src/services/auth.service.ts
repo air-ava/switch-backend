@@ -32,7 +32,15 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       is_business,
     });
 
-    return sendObjectResponse('Account created successfully');
+    const user = await findUser({ email }, [], ['phone']);
+    if (!user) throw Error(`Sorry, Error creating Account`);
+
+    const token = generateToken(user);
+
+    return sendObjectResponse('Account created successfully', {
+      user: sanitizeUser(user),
+      token,
+    });
   } catch (e: any) {
     return BadRequestException(e.message || 'Account creation failed, kindly try again', e);
   }

@@ -58,7 +58,7 @@ router.post('/create', createBusinessCONTROLLER);
  *       '500':
  *         description: Internal error
  */
-router.patch('/update/:{ref}', updateBusinessCONTROLLER);
+router.patch('/update/:ref', updateBusinessCONTROLLER);
 
 /**
  * @swagger
@@ -83,7 +83,7 @@ router.patch('/update/:{ref}', updateBusinessCONTROLLER);
  *       '500':
  *         description: Internal error
  */
-router.get('/:{ref}', getBusinessCONTROLLER);
+router.get('/:ref', getBusinessCONTROLLER);
 
 /**
  * @swagger

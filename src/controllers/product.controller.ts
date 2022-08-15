@@ -14,10 +14,10 @@ export const createProductCONTROLLER: RequestHandler = async (req, res) => {
 
 export const viewAllProductCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const { business, from, to, search, quantity } = req.query;
+    const { from, to, search, quantity } = req.query;
 
     const response = await viewAllProduct({
-      business: String(business),
+      business: String(req.params.business),
       ...(from && { from: String(from) }),
       ...(to && { to: String(to) }),
       ...(search && { search: String(search) }),

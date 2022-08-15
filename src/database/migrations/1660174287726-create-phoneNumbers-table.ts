@@ -16,7 +16,6 @@ export class createPhoneNumbersTable1660174287726 implements MigrationInterface 
           {
             name: 'countryCode',
             type: 'varchar',
-            isUnique: true,
             isNullable: false,
           },
           {

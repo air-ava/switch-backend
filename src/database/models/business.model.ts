@@ -43,6 +43,10 @@ export class Business {
   @JoinColumn({ name: 'owner' })
   owners: IUser;
 
+  @OneToOne('Image', 'business')
+  @JoinColumn({ name: 'logo' })
+  image: IUser;
+
   @OneToMany(() => Product, (product) => product.Business)
   product: Product[];
 }
