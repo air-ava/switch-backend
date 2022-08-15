@@ -42,7 +42,7 @@ export class Product {
   unlimited: boolean;
 
   @Column('timestamp')
-  expire_at: Date;
+  expire_at?: Date;
 
   @CreateDateColumn()
   created_at: Date;

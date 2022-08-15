@@ -6,6 +6,7 @@ import businessRouter from './business.routes';
 import productRouter from './product.routes';
 import publicRouter from './public.routes';
 import addressRouter from './address.routes';
+import cartRouter from './cart.routes';
 import { validateSession } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -31,6 +32,7 @@ router.use(validateSession);
 router.use('/business', businessRouter);
 router.use('/product', productRouter);
 router.use('/address', addressRouter);
+router.use('/cart', cartRouter);
 /**
  * @swagger
  *
@@ -71,8 +73,6 @@ export default router;
 /**
  * @swagger
  * tags:
- *  - name: Authorization
- *    description: Endpoints for authorizations
  *  - name: Test
  *    description: for testing
  *  - name: Business
@@ -82,5 +82,7 @@ export default router;
  *  - name: Store
  *    description: Endpoints for the store
  *  - name: Address
- *    description: Endpoints for the store
+ *    description: Endpoints for the address
+ *  - name: Carting and Checkout
+ *    description: Endpoints for the Carting and Checkout
  */

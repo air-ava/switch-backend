@@ -22,10 +22,10 @@ export class CartProduct {
   updated_at: Date;
 
   @ManyToOne('Cart', 'cart_product')
-  @JoinColumn({ name: 'shopper' })
+  @JoinColumn({ name: 'cart' })
   Cart: ICart;
 
   @ManyToOne('Product', 'cart_product')
-  @JoinColumn({ name: 'business' })
+  @JoinColumn({ name: 'product' })
   Product: IProduct;
 }

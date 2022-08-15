@@ -1,3 +1,5 @@
+import { IsNull, MoreThan, Not } from 'typeorm';
+import { Product } from '../database/models/product.model';
 /**
  * create a product _/
  * create a cart
@@ -8,9 +10,14 @@
  *
  */
 
-import { IsNull, MoreThan, Not } from 'typeorm';
 import { createAndGetCartREPO, getOneCartREPO, updateCartREPO } from '../database/repositories/cart.repo';
-import { createAndGetCartProductREPO, getCartProductsREPO, getOneCartProductREPO } from '../database/repositories/cartProduct.repo';
+import {
+  createAndGetCartProductREPO,
+  getCartProductsREPO,
+  getOneCartProductREPO,
+  getTotalCartedProduct,
+  updateCartProductREPO,
+} from '../database/repositories/cartProduct.repo';
 import { getOneProductREPO } from '../database/repositories/product.repo';
 import { createCartDTO, getBusinessCartDTO, getShopperCartDTO, updateCartDTO } from '../dto/cart.dto';
 import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
@@ -30,16 +37,17 @@ export const updateCart = async (data: updateCartDTO): Promise<theResponse> => {
     const product = await getOneProductREPO({ reference: items }, []);
     if (!product) throw Error(`sorry, product not found`);
     if (!product.publish) throw Error(`sorry, product not found`);
-    if (product.expire_at) throw Error(`sorry, product not found`);
     if (!product.unlimited && product.quantity === 0) throw Error(`sorry, product currently out of stock`);
 
     const { reference } = existingCart;
     let existingProductInCart = await getOneCartProductREPO({ cart: existingCart.id, product: product.id }, []);
-    existingProductInCart = await createAndGetCartProductREPO({ cart: existingCart.id, product: product.id, quantity });
+    if (!existingProductInCart) existingProductInCart = await createAndGetCartProductREPO({ cart: existingCart.id, product: product.id, quantity });
+    else {
+      await updateCartProductREPO({ id: existingProductInCart.id }, { quantity });
+    }
+    const totalCartProduct = await getCartProductsREPO({ cart: existingCart.id }, [], ['Product']);
 
-    const totalCartProduct = await getCartProductsREPO({ id: existingProductInCart.id }, [], ['Product']);
-    const cartQty = sumOfArray(totalCartProduct, 'quantity');
-    const cartTotal = sumOfTwoCoulumnsArray(totalCartProduct, 'quantity', 'Product.unit_price');
+    const { total: cartTotal, totalqty: cartQty } = await getTotalCartedProduct(existingCart.id);
 
     await updateCartREPO(
       { reference },
@@ -50,10 +58,15 @@ export const updateCart = async (data: updateCartDTO): Promise<theResponse> => {
     );
 
     const cart = await getOneCartREPO({ reference }, []);
-    return sendObjectResponse('Cart updated successfully', cart);
+    return sendObjectResponse('Cart updated successfully', {
+      ...cart,
+      items: totalCartProduct,
+      amount: cartTotal,
+      quantity: cartQty,
+    });
   } catch (error: any) {
-    console.log(error);
-    return BadRequestException(error.messaage || 'Cart update failed, kindly try again');
+    // console.log(error);
+    return BadRequestException(error.message || 'Cart update failed, kindly try again');
   }
 };
 
@@ -69,37 +82,33 @@ export const createCart = async (data: createCartDTO): Promise<theResponse> => {
     const reference = randomstringGeenerator('cart');
 
     const product = await getOneProductREPO({ reference: items }, []);
+
     if (!product) throw Error(`sorry, product not found`);
     if (!product.publish) throw Error(`sorry, product not found`);
-    if (product.expire_at) throw Error(`sorry, product not found`);
     if (!product.unlimited && product.quantity === 0) throw Error(`sorry, product currently out of stock`);
 
     const existingCart = await getOneCartREPO({ completed: false, shopper, business: business.id }, []);
     if (existingCart) {
-      await updateCart({
+      console.log('existingCart', existingCart);
+      const updatedCart = await updateCart({
         products,
         cart: {
           reference: existingCart.reference,
           id: existingCart.id,
         },
       });
-      //   reference = existingCart.reference;
 
-      //   let existingProductInCart = await getOneCartProductREPO({ cart: existingCart.id, product: product.id }, []);
-      //   existingProductInCart = await createAndGetCartProductREPO({ cart: existingCart.id, product: product.id, quantity });
-
-      //   const totalCartProduct = await getCartProductsREPO({ id: existingProductInCart.id }, [], ['Product']);
-      //   const cartQty = sumOfArray(totalCartProduct, 'quantity');
-      //   const cartTotal = sumOfTwoCoulumnsArray(totalCartProduct, 'quantity', 'Product.unit_price');
-
-      //   await updateCartREPO(
-      //     { reference },
-      //     {
-      //       amount: cartTotal,
-      //       quantity: cartQty,
-      //     },
-      //   );
+      //   console.log('updatedCart', updatedCart);
+      return sendObjectResponse(updatedCart.message || 'Cart updated successfully', updatedCart.data);
     }
+    console.log('createCart', {
+      reference,
+      amount: product.unit_price,
+      quantity,
+      completed: false,
+      shopper,
+      business: business.id,
+    });
 
     const cart = await createAndGetCartREPO({
       reference,
@@ -115,7 +124,7 @@ export const createCart = async (data: createCartDTO): Promise<theResponse> => {
     return sendObjectResponse('Cart created successfully', cart);
   } catch (error: any) {
     console.log(error);
-    return BadRequestException(error.messaage || 'Address creation failed, kindly try again');
+    return BadRequestException(error.message || 'Cart creation failed, kindly try again');
   }
 };
 
@@ -139,7 +148,7 @@ export const getShopperCart = async (data: getShopperCartDTO): Promise<theRespon
     });
   } catch (error: any) {
     console.log(error);
-    return BadRequestException(error.messaage || 'Cart retrieval failed, kindly try again');
+    return BadRequestException(error.message || 'Cart retrieval failed, kindly try again');
   }
 };
 
@@ -159,7 +168,6 @@ export const getBusinessCart = async (data: getBusinessCartDTO): Promise<theResp
         cart: existingCart.id,
         Product: {
           publish: true,
-          expire_at: IsNull(),
           quantity: MoreThan(0),
           unlimited: false,
         },
@@ -168,7 +176,6 @@ export const getBusinessCart = async (data: getBusinessCartDTO): Promise<theResp
         cart: existingCart.id,
         Product: {
           publish: true,
-          expire_at: IsNull(),
           unlimited: true,
         },
       },
@@ -186,6 +193,6 @@ export const getBusinessCart = async (data: getBusinessCartDTO): Promise<theResp
     });
   } catch (error: any) {
     console.log(error);
-    return BadRequestException(error.messaage || 'Cart retrieval failed, kindly try again');
+    return BadRequestException(error.message || 'Cart retrieval failed, kindly try again');
   }
 };

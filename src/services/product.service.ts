@@ -23,6 +23,7 @@ export const createProduct = async (data: createProductDTO): Promise<theResponse
     const businessAlreadyExist = await getOneBuinessREPO({ reference: business }, [], []);
     if (!businessAlreadyExist) throw Error('Sorry, you can not create a product for this business');
 
+    // can not create a product for with same name, price, business, description, category
     const product = await createAndGetProductREPO({
       name,
       ...rest,
@@ -40,7 +41,7 @@ export const createProduct = async (data: createProductDTO): Promise<theResponse
       }),
     );
 
-    return sendObjectResponse('Product created successfully');
+    return sendObjectResponse('Product created successfully', product);
   } catch (e: any) {
     console.log({ e });
     return BadRequestException('Product creation failed, kindly try again');

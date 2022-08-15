@@ -14,6 +14,8 @@ export const createAndGetCartProductREPO = (
   queryParams: Omit<ICartProduct, 'id' | 'created_at' | 'updated_at'>,
   transaction?: QueryRunner,
 ): Promise<CartProduct> => {
+  console.log({ queryParams });
+
   return transaction ? transaction.manager.save(CartProduct, queryParams) : getRepository(CartProduct).save(queryParams);
 };
 
@@ -23,6 +25,7 @@ export const getOneCartProductREPO = (
   relationOptions?: any[],
   transaction?: QueryRunner,
 ): Promise<ICartProduct | undefined | any> => {
+  // console.log({ queryParam, selectOptions, relationOptions });
   return transaction
     ? transaction.manager.findOne(CartProduct, {
         where: queryParam,
@@ -71,33 +74,23 @@ export const getCartProductsREPO = (
       });
 };
 
-export const getTotalCarted = (cart: number, product: number): Promise<{ total: number } | undefined> => {
-  return getRepository(CartProduct)
-    .createQueryBuilder('cart_product')
+export const getTotalCartedProduct = async (cartId: number): Promise<any | undefined> => {
+  const queryBuilder = getRepository(CartProduct).createQueryBuilder('cart_product');
+  const response = await queryBuilder
     .leftJoin(Product, 'product', 'cart_product.product = product.id')
     .select('SUM(cart_product.quantity * product.unit_price)', 'total')
-    .where('cart_product.cart = :cart AND cart_product.product = :product', { cart, product })
-    .andWhere('product.publish = :publish', { publish: true })
-    .andWhere('product.expire_at = :expire_at', { expire_at: null })
-    .andWhere('product.unlimited = :unlimited AND product.quantity = :quantity ', { unlimited: Not(false), quantity: Not(0) })
-    .getRawOne();
-};
-
-export const getTotalCartedProduct = (cartId: number): Promise<any | undefined> => {
-  return getRepository(CartProduct)
-    .createQueryBuilder('product')
-    .leftJoin(Product, 'product', 'cart_product.product = product.id')
-    .select('SUM(cart_product.quantity * product.unit_price)', 'total')
-    .addSelect('SUM(cart_product.quantit)', 'Qty')
+    .addSelect('SUM(cart_product.quantity)', 'totalqty')
     .where(
-      'cart_product.id = :cartId AND product.publish = :publish AND product.expire_at = :expire_at AND product.quantity = :quantity AND product.unlimited = :unlimited',
-      { cartId, publish: true, expire_at: IsNull(), quantity: MoreThan(0), unlimited: false },
+      'cart_product.cart = :cartId AND product.publish = :publish AND ((product.quantity > :quantity AND product.unlimited = :unlimited) OR product.unlimited = :nowUnlimited)',
+      {
+        cartId,
+        publish: true,
+        quantity: 0,
+        unlimited: false,
+        nowUnlimited: true,
+      },
     )
-    .orWhere('cart_product.id = :cartId AND product.publish = :publish AND product.expire_at = :expire_at AND product.unlimited = :unlimited', {
-      cartId,
-      publish: true,
-      expire_at: IsNull(),
-      unlimited: true,
-    })
     .getRawOne();
+
+  return response;
 };

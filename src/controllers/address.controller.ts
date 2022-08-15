@@ -3,10 +3,6 @@ import { createAddress, getAddress } from '../services/address.service';
 
 export const getAddressCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    console.log({
-      req: req.originalUrl,
-    });
-
     const businessAddress = req.params.business || req.query.business;
     const response = businessAddress
       ? await getAddress({ reference: String(businessAddress), public: req.originalUrl.includes('public') })

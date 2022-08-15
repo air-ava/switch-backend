@@ -109,10 +109,6 @@ export const findOrCreateAddress = async (payload: findAndCreateAddressDTO): Pro
     ...(shopper && { shopper }),
     ...(business && { business }),
   });
-  console.log({
-    addressCount,
-  });
-
   if (addressCount > 3) throw Error('Sorry, you have reached your address capacity');
 
   const createdAddress = await createAndGetAddressREPO({

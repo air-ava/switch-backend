@@ -90,7 +90,7 @@ export interface IProduct {
   business: number;
   publish: boolean;
   unlimited: boolean;
-  expire_at: Date;
+  expire_at?: Date;
   created_at: Date;
   updated_at: Date;
 }

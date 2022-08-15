@@ -80,7 +80,7 @@ export class createProductTable1660178281706 implements MigrationInterface {
           {
             name: 'expire_at',
             type: 'timestamp',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'created_at',

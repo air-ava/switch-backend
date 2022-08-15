@@ -43,8 +43,6 @@ export const getAddress = async (data: getAddressDTO): Promise<theResponse> => {
     let business;
     if (reference) {
       business = await getOneBuinessREPO({ reference }, []);
-      console.log({ business, reference, data });
-
       if (!business) throw Error('Sorry, can not find this business');
     }
 

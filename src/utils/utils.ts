@@ -20,7 +20,7 @@ export const randomstringGeenerator = (table_type: 'image' | 'business' | 'cart'
 };
 
 export const sumOfArray = (items: any[], element: string): number => {
-  return items.reduce((acc: any, curr: any) => acc + curr[element], 0);
+  return items.reduce((acc: any, curr: any) => Number(acc) + Number(curr[element]), 0);
 };
 
 export const sumOfTwoCoulumnsArray = (items: any[], elementOne: string, elementTwo: string): number => {
