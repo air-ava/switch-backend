@@ -89,7 +89,6 @@ export const createCart = async (data: createCartDTO): Promise<theResponse> => {
 
     const existingCart = await getOneCartREPO({ completed: false, shopper, business: business.id }, []);
     if (existingCart) {
-      console.log('existingCart', existingCart);
       const updatedCart = await updateCart({
         products,
         cart: {
@@ -101,15 +100,6 @@ export const createCart = async (data: createCartDTO): Promise<theResponse> => {
       //   console.log('updatedCart', updatedCart);
       return sendObjectResponse(updatedCart.message || 'Cart updated successfully', updatedCart.data);
     }
-    console.log('createCart', {
-      reference,
-      amount: product.unit_price,
-      quantity,
-      completed: false,
-      shopper,
-      business: business.id,
-    });
-
     const cart = await createAndGetCartREPO({
       reference,
       amount: product.unit_price,
