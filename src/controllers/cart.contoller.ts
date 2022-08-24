@@ -54,4 +54,3 @@ export const deleteItemCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
   }
 };
-

@@ -12,7 +12,7 @@ const swaggerConfig = {
   definition: {
     swagger: '2.0',
     info: {
-      title: 'PAYSTACK SHOPPING CART',
+      title: 'LAND REPUBLIC DEV ENVIRONMENT',
       version: '1.0.0',
       description: 'To test the shopping Cart Endpoints',
     },
