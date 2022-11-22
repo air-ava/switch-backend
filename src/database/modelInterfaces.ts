@@ -19,16 +19,23 @@ export interface IAddress {
 }
 
 export interface IUser {
-  id: number;
+  id: string;
   email: string;
   password: string;
+  code?: string;
+  phone?: string;
+  user_type: string;
+  business_name: string;
+  country: string;
   phone_number: number;
   first_name: string;
   last_name: string;
-  enabled: boolean;
-  is_business: boolean;
+  remember_token: string | null;
+  email_verified_at?: Date;
+  // enabled: boolean;
+  // is_business: boolean;
   created_at: Date;
-  updated_at: Date;
+  updated_at?: Date;
 }
 
 export interface IPhoneNumber {
@@ -40,6 +47,12 @@ export interface IPhoneNumber {
   is_verified: boolean;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface IEmailMessage {
+  purpose: string;
+  recipientEmail: string;
+  templateInfo: { [key: string]: string };
 }
 
 export interface IBusiness {

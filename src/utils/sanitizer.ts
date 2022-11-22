@@ -23,11 +23,11 @@ export const sanitizePhoneNumbers = (payload: any): any => {
 
 export const sanitizeUser = (payload: IUser): any => {
   if (!payload) return null;
-  const { id, password, phone_number, phone, ...rest } = jsonify(payload);
+  const { id, password, phone_number, remember_token, phoneNumber, ...rest } = jsonify(payload);
   const sanitized = {
     ...rest,
-    ...(phone && { phone_number: phone.internationalFormat }),
-    phone: sanitizePhoneNumber(phone),
+    ...(phoneNumber && { phone_number: phoneNumber.internationalFormat }),
+    phoneNumber: sanitizePhoneNumber(phoneNumber),
   };
   return sanitized;
 };

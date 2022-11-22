@@ -6,7 +6,7 @@ module.exports = {
   host: process.env.DB_HOST || `127.0.0.1`,
   port: process.env.DB_PORT || 3306,
   username: process.env.DB_USERNAME || 'root',
-  password: '',
+  password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME,
   logging: false,
   entities: [join(__dirname, 'build/database/models/**/*.js')],
@@ -20,6 +20,9 @@ module.exports = {
   extra: {
     max: 25,
     connectionTimeoutMillis: 1000,
-    // ssl: { rejectUnauthorized: false },
+    // ssl: true,
+    ssl: { rejectUnauthorized: false },
+    // sslcert: '/etc/ssl/certs/ca-certificates.crt',
+    // ssl: {},
   },
 };

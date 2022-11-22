@@ -21,3 +21,7 @@ export const DB_USERNAME = throwIfUndefined('DB_USERNAME');
 export const DB_PORT = throwIfUndefined('DB_PORT');
 export const DB_PASSWORD = throwIfUndefined('DB_PASSWORD');
 export const BASE_URL = throwIfUndefined('BASE_URL');
+export const MAILTRAP_USER = throwIfUndefined('MAILTRAP_USER');
+export const MAILTRAP_PASS = throwIfUndefined('MAILTRAP_PASS');
+export const MAILTRAP_PORT = throwIfUndefined('MAILTRAP_PORT');
+export const MAILTRAP_HOST = throwIfUndefined('MAILTRAP_HOST');

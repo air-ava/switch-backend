@@ -8,6 +8,7 @@ import publicRouter from './public.routes';
 import addressRouter from './address.routes';
 import cartRouter from './cart.routes';
 import checkoutRouter from './checkout.routes';
+import userRouter from './user.routes';
 import { validateSession } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -17,6 +18,7 @@ router.get('/', (_, res) => res.json({ success: true, message: 'User gateway v1 
 router.use('/auth', authRouter);
 router.use('/public', publicRouter);
 router.use(validateSession);
+router.use('/user', userRouter);
 router.use('/business', businessRouter);
 router.use('/product', productRouter);
 router.use('/address', addressRouter);

@@ -1,5 +1,5 @@
 import express from 'express';
-import { loginCONTROLLER, signUpCONTROLLER } from '../controllers/auth.controller';
+import { forgotCONTROLLER, loginCONTROLLER, newPasswordCONTROLLER, signUpCONTROLLER, verifyCONTROLLER } from '../controllers/auth.controller';
 
 const router = express.Router();
 
@@ -48,6 +48,8 @@ router.post('/register', signUpCONTROLLER);
  *         description: Internal error
  */
 router.post('/login', loginCONTROLLER);
+router.post('/forgot', forgotCONTROLLER);
+router.post('/change', newPasswordCONTROLLER);
 
 export default router;
 

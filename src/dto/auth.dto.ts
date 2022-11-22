@@ -11,6 +11,20 @@ export interface businessLoginDTO {
   password: string;
 }
 
+export interface verifyUserDTO {
+  id: string;
+  token: string;
+}
+
+export interface newPasswordDTO {
+  otp: string;
+  email: string;
+  password: string;
+}
+export interface resetPasswordDTO {
+  id: string;
+  password: string;
+}
 export interface userAuthDTO {
   email: string;
   password: string;
@@ -23,5 +37,8 @@ export interface createUserDTO {
   password: string;
   first_name: string;
   last_name: string;
-  is_business?: boolean;
+  user_type: string;
+  business_name: string;
+  country: string;
+  // is_business?: boolean;
 }

@@ -2,12 +2,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import express, { Application, NextFunction, Request, Response } from 'express';
 import { createConnection } from 'typeorm';
+
+
+
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+// import { jsonify } from './utils/sanitizer';
+// import User from './database/models/user.entity';
+// import { getOneUser } from './database/repositories/user.repository';
 import logger from './utils/logger';
 import router from './routes';
 import swagger from './routes/swagger';
@@ -54,8 +60,11 @@ async function startServer(): Promise<void> {
       process.exit(1);
     });
 
-  app.listen(port, () => {
+  app.listen(port, async () => {
     logger.info(`App is listening on port ${port} !`);
+    // eslint-disable-next-line import/no-named-as-default-member
+    // const newUser = await getOneUser({ queryParams: { id: '43e5f477-9541-42dc-8d93-cd025a7d2959' } });
+    // console.log({newUser: jsonify(newUser)})
   });
 
 }
