@@ -21,6 +21,13 @@ export interface newPasswordDTO {
   email: string;
   password: string;
 }
+
+export interface changePasswordDTO {
+  old_password: string;
+  password: string;
+  override: boolean;
+  userId: number;
+}
 export interface resetPasswordDTO {
   id: string;
   password: string;
@@ -38,7 +45,8 @@ export interface createUserDTO {
   first_name: string;
   last_name: string;
   user_type: string;
-  business_name: string;
+  business_name?: string;
+  organisation_email?: string;
   country: string;
   // is_business?: boolean;
 }

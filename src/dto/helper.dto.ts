@@ -10,14 +10,29 @@ export interface findAndCreateImageDTO {
   reference?: string;
 }
 
+export interface findAndCreateAssetsDTO {
+  name: string;
+  file_name: string;
+  status: number;
+  file_type: string;
+  organisation: number;
+  user: string;
+}
+
+export interface findAndCreateOrganisationDTO {
+  business_name?: string;
+  organisation_email?: string;
+  // owner: string;
+  slug: string;
+}
+
 export interface findAndCreateAddressDTO {
   street: string;
   country: string;
   state: string;
   city: string;
-  default?: boolean;
-  shopper?: number;
-  business?: number;
+  status: number;
+  area: string;
 }
 
 export interface businessCheckerDTO {

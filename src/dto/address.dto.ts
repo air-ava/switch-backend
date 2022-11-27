@@ -2,6 +2,7 @@ export interface createAddressDTO {
   street: string;
   country: string;
   state: string;
+  area: string;
   city: string;
   reference: string;
   userId: number;

@@ -1,5 +1,15 @@
 import { RequestHandler } from 'express';
-import { businessLogin, createUser, forgotPassword, newPassword, resetPassword, userLogin, verifyAccount } from '../services/auth.service';
+import { changePasswordDTO } from '../dto/auth.dto';
+import {
+  businessLogin,
+  changePassword,
+  createUser,
+  forgotPassword,
+  newPassword,
+  resetPassword,
+  userLogin,
+  verifyAccount,
+} from '../services/auth.service';
 
 export const signUpCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -58,6 +68,18 @@ export const newPasswordCONTROLLER: RequestHandler = async (req, res) => {
 export const resetPasswordCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const response = await resetPassword({ password: req.body.password, id: req.userId });
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error) {
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+  }
+};
+
+export const changePasswordCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload: changePasswordDTO = { ...req.body, userId: req.userId };
+
+    const response = await changePassword(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {

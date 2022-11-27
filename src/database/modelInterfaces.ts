@@ -18,6 +18,13 @@ export interface IAddress {
   deleted_at: Date;
 }
 
+export interface IStatus {
+  id: number;
+  value: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
 export interface IUser {
   id: string;
   email: string;
@@ -30,10 +37,38 @@ export interface IUser {
   phone_number: number;
   first_name: string;
   last_name: string;
+  image: string;
+  title: string;
+  employer: string;
+  job_title: string;
+  industry_skills: string;
+  job_status: string;
+  state: string;
+  area: string;
+  city: string;
+  bio: string;
+  provider: string;
+  provider_id: string;
+  facebook: string;
+  linkedin: string;
+  twitter: string;
+  website: string;
+  slug: string;
+  address: string;
+  instagram: string;
+  logo: string;
+  organisation_email: string;
+  organisation_headline: string;
+  organisation_bio: string;
+  organisation_code: string;
+  organisation_phone: string;
+  organisation_address: string;
+  organisation_country: string;
+  organisation_state: string;
+  organisation_area: string;
+  organisation_city: string;
   remember_token: string | null;
   email_verified_at?: Date;
-  // enabled: boolean;
-  // is_business: boolean;
   created_at: Date;
   updated_at?: Date;
 }
@@ -45,6 +80,16 @@ export interface IPhoneNumber {
   internationalFormat: string;
   active: boolean;
   is_verified: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IPassword {
+  id: number;
+  user: string;
+  password: string;
+  organization: number;
+  status: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -77,6 +122,90 @@ export interface IImage {
   url: string;
   available: boolean;
   reference: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ICurrency {
+  id: number;
+  code: string;
+  short_code: string;
+  currency_name: string;
+  currency_unit_name: string;
+  status: number;
+  icon?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IScholarship {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  image: string;
+  amount: number;
+  image_id: number;
+  org_id: number;
+  frequency: string;
+  winners: number;
+  state: string;
+  status: number;
+  currency: string;
+  deadline_note: string;
+  application_deadline: Date;
+  created_at: Date;
+  updated_at: Date;
+  currencyId: ICurrency;
+}
+
+export interface IOrganisation {
+  id: number;
+  name: string;
+  email: string;
+  bio: string;
+  status: number;
+  logo: string;
+  phone_number: string;
+  owner: string;
+  slug: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISTATUSES {
+  ACTIVE: number;
+  INACTIVE: number;
+  PAUSE: number;
+  FREEZE: number;
+  BLOCKED: number;
+  VERIFIED: number;
+  UNVERIFIED: number;
+  INVITED: number;
+  CANCELLED: number;
+  DELETED: number;
+  PENDING: number;
+  APPROVED: number;
+  REJECTED: number;
+  SUCCESS: number;
+  FAILED: number;
+  DECLINED: number;
+  PAID: number;
+  PROCESSING: number;
+  PROCESSED: number;
+}
+
+export interface IAssets {
+  id: number;
+  name: string;
+  file_name: string;
+  status: number;
+  file_type: string;
+  file_format: string;
+  bytes: number;
+  url: string;
+  organisation: number;
+  user: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -126,14 +255,11 @@ export interface ITransactions {
 export interface IAddresses {
   id: number;
   street: string;
+  area: string;
   country: string;
   state: string;
   city: string;
-  active: boolean;
-  default: boolean;
-  shopper?: number;
-  business?: number;
-  deleted_at: Date;
+  status: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -174,6 +300,61 @@ export interface IOrder {
   cart_reference: string;
   metadata?: { [key: string]: any };
   processed_at: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ICurrencyRate {
+  id: number;
+  currency: string;
+  base_currency: string;
+  buy_rate: number;
+  sell_rate: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IScholarshipEligibility {
+  id: string;
+  scholarship_id: string;
+  applicant_description: string;
+  submission_requirements: string;
+  essay_requirements: string;
+  link_requirements: string;
+  file_requirements: string;
+  image_requirements: string;
+  specific_schools: boolean;
+  eligible_schools: string;
+  education_level: string;
+  state: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISponsorships {
+  id: string;
+  scholarship_id: string;
+  accept_contribution: string;
+  minimum_amount: number;
+  currency: string;
+  fees_paid_by: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IScholarshipApplication {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  image: string;
+  amount: number;
+  frequency: string;
+  winners: number;
+  state: string;
+  status: number;
+  currency: string;
+  application_deadline: Date;
   created_at: Date;
   updated_at: Date;
 }

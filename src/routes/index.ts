@@ -9,6 +9,8 @@ import addressRouter from './address.routes';
 import cartRouter from './cart.routes';
 import checkoutRouter from './checkout.routes';
 import userRouter from './user.routes';
+import miscillaneousRouter from './miscillaneous.routes';
+import scholarshipRouter from './scholarship.routes';
 import { validateSession } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -20,10 +22,12 @@ router.use('/public', publicRouter);
 router.use(validateSession);
 router.use('/user', userRouter);
 router.use('/business', businessRouter);
+router.use('/scholarship', scholarshipRouter);
 router.use('/product', productRouter);
 router.use('/address', addressRouter);
 router.use('/cart', cartRouter);
 router.use('/checkout', checkoutRouter);
+router.use('/misc', miscillaneousRouter);
 /**
  * @swagger
  *

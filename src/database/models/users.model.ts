@@ -21,8 +21,104 @@ export class Users {
   other_name: string;
 
   @Column('text')
+  image: string;
+
+  @Column('text')
+  title: string;
+
+  @Column('text')
+  employer: string;
+
+  @Column('int')
+  organisation: number;
+
+  @Column('text')
+  job_title: string;
+
+  @Column('text')
+  industry_skills: string;
+
+  @Column('text')
+  job_status: string;
+
+  @Column('text')
+  country: string;
+
+  @Column('text')
+  state: string;
+
+  @Column('text')
+  area: string;
+
+  @Column('text')
+  city: string;
+
+  @Column('text')
+  bio: string;
+
+  @Column('text')
+  provider: string;
+
+  @Column('text')
+  provider_id: string;
+
+  @Column('text')
+  facebook: string;
+
+  @Column('text')
+  linkedin: string;
+
+  @Column('text')
+  twitter: string;
+
+  @Column('text')
+  website: string;
+
+  @Column('text')
+  slug: string;
+
+  @Column('text')
+  address: string;
+
+  @Column('text')
+  instagram: string;
+
+  @Column('text')
+  logo: string;
+
+  @Column('text')
+  organisation_email: string;
+
+  @Column('text')
+  organisation_headline: string;
+
+  @Column('text')
+  organisation_bio: string;
+
+  @Column('text')
+  organisation_code: string;
+
+  @Column('text')
+  organisation_phone: string;
+
+  @Column('text')
+  organisation_address: string;
+
+  @Column('text')
+  organisation_country: string;
+
+  @Column('text')
+  organisation_state: string;
+
+  @Column('text')
+  organisation_area: string;
+
+  @Column('text')
+  organisation_city: string;
+
+  @Column('text')
   user_type: string;
-  
+
   @Column('text')
   business_name: string;
 
@@ -34,9 +130,6 @@ export class Users {
 
   @Column('text')
   phone?: string;
-
-  @Column('text')
-  country: string;
 
   @Column('int')
   phone_number: number;
@@ -53,7 +146,7 @@ export class Users {
   @CreateDateColumn()
   created_at: Date;
 
-  @CreateDateColumn()
+  @Column()
   email_verified_at?: Date;
 
   @UpdateDateColumn()

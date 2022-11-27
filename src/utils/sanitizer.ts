@@ -1,6 +1,78 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { IBusiness, IPhoneNumber, IUser } from '../database/modelInterfaces';
+import { IBusiness, ICurrency, IPhoneNumber, IScholarship, ISTATUSES, IUser } from '../database/modelInterfaces';
+import { STATUSES } from '../database/models/status.model';
+
+export const Sanitizer = {
+  jsonify(payload: any) {
+    try {
+      return payload.toJSON();
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
+    return payload;
+  },
+
+  sanitizeCurrency(payload: ICurrency) {
+    if (!payload) return null;
+    const { id, status, Status, Scholarships, CurrencyRate, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      scholarships: Scholarships && Sanitizer.sanitizeAllArray(Scholarships, Sanitizer.sanitizeScholarship),
+      currencyRate: CurrencyRate && Sanitizer.sanitizeAllArray(CurrencyRate, Sanitizer.sanitizeCurrencyRate),
+    };
+    return sanitized;
+  },
+
+  sanitizeCurrencyRate(payload: ICurrency) {
+    if (!payload) return null;
+    const { id, status, Status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+
+  getStatusById(object: any, value: string): any {
+    return Object.keys(object).find((key) => object[key] === value);
+  },
+
+  sanitizeScholarship(payload: IScholarship) {
+    if (!payload) return null;
+    const { status, Status, Currency, Eligibility, User, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      Currency: Currency && Sanitizer.sanitizeCurrency(Currency),
+      eligibility: Eligibility && Sanitizer.jsonify(Eligibility),
+      partner: User && Sanitizer.jsonify(User),
+    };
+    return sanitized;
+  },
+
+  sanitizeAllArray(payload: any, object: any): any[] {
+    if (!Array.isArray(payload)) return [];
+    return payload.map(object);
+  },
+
+  sanitizeUser(payload: IUser): any {
+    if (!payload) return null;
+    const { password, phone_number, remember_token, phoneNumber, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      ...(phoneNumber && { phone_number: phoneNumber.internationalFormat }),
+      phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
+    };
+    return sanitized;
+  },
+
+  sanitizePhoneNumber(payload: IPhoneNumber): any {
+    if (!payload) return null;
+    const { id, ...rest } = Sanitizer.jsonify(payload);
+    return rest;
+  },
+};
 
 export const jsonify = (payload: any): { [key: string]: any } => {
   try {
@@ -23,11 +95,42 @@ export const sanitizePhoneNumbers = (payload: any): any => {
 
 export const sanitizeUser = (payload: IUser): any => {
   if (!payload) return null;
-  const { id, password, phone_number, remember_token, phoneNumber, ...rest } = jsonify(payload);
+  const { password, phone_number, remember_token, phoneNumber, ...rest } = jsonify(payload);
   const sanitized = {
     ...rest,
     ...(phoneNumber && { phone_number: phoneNumber.internationalFormat }),
     phoneNumber: sanitizePhoneNumber(phoneNumber),
+  };
+  return sanitized;
+};
+
+export const getStatusById = (object: any, value: string): any => {
+  return Object.keys(object).find((key) => object[key] === value);
+};
+
+export const sanitizeAllArray = (payload: any, object: any): any[] => {
+  if (!Array.isArray(payload)) return [];
+  return payload.map(object);
+};
+
+export const sanitizeCurrency = (payload: ICurrency): any => {
+  if (!payload) return null;
+  const { id, status, Scholarships, ...rest } = jsonify(payload);
+  const sanitized = {
+    ...rest,
+    status: status && getStatusById(STATUSES, status).toLowerCase(),
+    // scholarships: Scholarships && sanitizeAllArray(Scholarships, sanitizeScholarship),
+  };
+  return sanitized;
+};
+
+export const sanitizeScholarship = (payload: IScholarship): any => {
+  if (!payload) return null;
+  const { status, Status, Currency, ...rest } = jsonify(payload);
+  const sanitized = {
+    ...rest,
+    status: (status && getStatusById(STATUSES, status).toLowerCase()) || Status.value.toLowerCase(),
+    Currency: Currency && sanitizeCurrency(Currency),
   };
   return sanitized;
 };

@@ -30,10 +30,11 @@ export const createAUser = async (payload: {
   code?: string;
   phone?: string;
   user_type: string;
-  business_name: string;
+  business_name?: string;
   remember_token: string;
+  organisation_email?: string;
   country: string;
-
+  organisation: number;
   phone_number: number;
   // is_business: boolean;
   t?: QueryRunner;

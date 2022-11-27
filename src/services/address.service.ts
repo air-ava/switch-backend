@@ -6,12 +6,13 @@ import { businessChecker, findOrCreateAddress, updateAddressDefault } from './he
 import { IBusiness } from '../database/modelInterfaces';
 import { getAddressesREPO } from '../database/repositories/address.repo';
 import { getOneBuinessREPO } from '../database/repositories/business.repo';
+import { STATUSES } from '../database/models/status.model';
 
 export const createAddress = async (data: createAddressDTO): Promise<theResponse> => {
   const validation = createAddressValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { street, country, state, city, default: isDefault, is_business, reference: businessReference, userId } = data;
+  const { street, country, state, city, area, is_business, reference: businessReference, userId } = data;
 
   try {
     const business = is_business && (await businessChecker({ reference: businessReference, owner: Number(userId) }));
@@ -22,9 +23,8 @@ export const createAddress = async (data: createAddressDTO): Promise<theResponse
       country,
       state,
       city,
-      ...(!is_business && { shopper: userId }),
-      ...(is_business && { business: businessId }),
-      ...(isDefault && { default: isDefault }),
+      area,
+      status: STATUSES.ACTIVE,
     });
 
     return sendObjectResponse(address.message || 'Address created successfully', address.data);

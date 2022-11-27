@@ -1,9 +1,11 @@
+/* eslint-disable array-callback-return */
 import * as bcrypt from 'bcrypt';
 import randomstring from 'randomstring';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import otpGenerator from 'otp-generator';
 import { theResponse } from '../utils/interface';
 import {
+  changePasswordValidator,
   forgotPasswordValidator,
   newPasswordValidator,
   registerValidator,
@@ -12,14 +14,26 @@ import {
   userAuthValidator,
   verifyUserValidator,
 } from '../validators/auth.validator';
-import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
-import { businessLoginDTO, createUserDTO, newPasswordDTO, resetPasswordDTO, shopperLoginDTO, userAuthDTO, verifyUserDTO } from '../dto/auth.dto';
+import { BadRequestException, oldSendObjectResponse, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import {
+  businessLoginDTO,
+  changePasswordDTO,
+  createUserDTO,
+  newPasswordDTO,
+  resetPasswordDTO,
+  shopperLoginDTO,
+  userAuthDTO,
+  verifyUserDTO,
+} from '../dto/auth.dto';
 import { findUser, createAUser, updateUser, verifyUser } from '../database/repositories/user.repo';
-import { findOrCreatePhoneNumber } from './helper.service';
+import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, sanitizeUser } from '../utils/sanitizer';
 import { generateToken } from '../utils/jwt';
 import { getBusinessesREPO, getOneBuinessREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
+import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
+import { STATUSES } from '../database/models/status.model';
+import { createOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 // import { IEmailMessage } from '../database/modelInterfaces';
 
 export const createUser = async (data: createUserDTO): Promise<theResponse> => {
@@ -31,6 +45,9 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     phone_number: reqPhone,
     email,
     password,
+    user_type,
+    organisation_email,
+    business_name,
     ...rest
   } = data;
 
@@ -46,6 +63,18 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
 
     // todo: put the token in redis and expire it
     const remember_token = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+    const slug = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+    const userTypeCheck = user_type === 'partner';
+    const passwordHash = bcrypt.hashSync(password, 8);
+
+    let organisation: any;
+    if (userTypeCheck) {
+      organisation = await findOrCreateOrganizaton({
+        business_name,
+        organisation_email,
+        slug,
+      });
+    }
 
     await createAUser({
       email,
@@ -53,12 +82,19 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       code,
       phone,
       remember_token,
+      user_type,
+      ...(userTypeCheck && organisation_email && { organisation_email }),
+      ...(userTypeCheck && business_name && { business_name }),
+      ...(userTypeCheck && { slug }),
       ...rest,
-      password: bcrypt.hashSync(password, 8),
+      password: passwordHash,
+      organisation: organisation.data.id,
     });
-
     const user = await findUser({ email }, [], ['phoneNumber']);
     if (!user) throw Error(`Sorry, Error creating Account`);
+    await createPassword({ user: user.id, password: passwordHash });
+
+    if (userTypeCheck) await updateOrganisationREPO({ id: organisation.data.id }, { owner: user.id });
 
     await sendEmail({
       recipientEmail: user.email,
@@ -97,7 +133,7 @@ export const userAuth = async (data: userAuthDTO): Promise<theResponse> => {
   }
 };
 
-export const userLogin = async (data: shopperLoginDTO): Promise<theResponse> => {
+export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
   const validation = shopperLoginValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
@@ -107,7 +143,7 @@ export const userLogin = async (data: shopperLoginDTO): Promise<theResponse> => 
 
     const token = generateToken(user);
 
-    return sendObjectResponse('Login successful', {
+    return oldSendObjectResponse('Login successful', {
       user: sanitizeUser(user),
       token,
     });
@@ -175,7 +211,7 @@ export const newPassword = async (data: newPasswordDTO): Promise<theResponse> =>
   const { email, password, otp: remember_token } = data;
   try {
     const userAlreadyExist = await findUser({ email }, [], []);
-    if (!userAlreadyExist) throw Error(`Wrong Token`);
+    if (!userAlreadyExist) throw Error(`User Not found`);
     if (!userAlreadyExist.remember_token) throw Error(`You have not initiated forgot password`);
     if (userAlreadyExist.remember_token !== remember_token) throw Error(`Wrong OTP`);
 
@@ -185,6 +221,51 @@ export const newPassword = async (data: newPasswordDTO): Promise<theResponse> =>
     await updateUser({ id: userAlreadyExist.id }, { remember_token: null, password: bcrypt.hashSync(password, 8) });
 
     return sendObjectResponse('Password Change Completed');
+  } catch (e: any) {
+    console.log({ e });
+    return BadRequestException(e.message);
+  }
+};
+
+export const changePassword = async (data: changePasswordDTO): Promise<any> => {
+  const validation = changePasswordValidator.validate(data);
+  if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { password, old_password, override = false, userId: id } = data;
+  try {
+    const userAlreadyExist = await findUser({ id }, [], []);
+    if (!userAlreadyExist) throw Error(`User Not found`);
+    if (!bcrypt.compareSync(old_password, userAlreadyExist.password)) throw Error('Your credentials are incorrect');
+
+    // const passwordExisit = bcrypt.compareSync(old_password, userAlreadyExist.password);
+    const passwords = await findPasswords({ user: userAlreadyExist.id }, []);
+
+    let identifiedPassword: string | any;
+    const passwordIds: number[] = [];
+    const checkedPassword: boolean[] = passwords.map((item: { [key: string]: any }) => {
+      passwordIds.push(item.id);
+      return bcrypt.compareSync(password, item.password);
+    });
+    if (!override && checkedPassword.includes(true)) throw Error(`You have used this password before`);
+    if (override && checkedPassword.includes(true)) {
+      await updatePassword({ id: passwordIds[checkedPassword.indexOf(true)] }, { status: STATUSES.ACTIVE });
+      identifiedPassword = passwords[checkedPassword.indexOf(true)].password;
+      passwordIds.splice(checkedPassword.indexOf(true), 1);
+      passwordIds.map(async (item: number) => {
+        await updatePassword({ id: item }, { status: STATUSES.INACTIVE });
+      });
+    }
+
+    if (!identifiedPassword) {
+      const passwordHash = bcrypt.hashSync(password, 8);
+      await createPassword({ user: userAlreadyExist.id, password: passwordHash });
+      identifiedPassword = passwordHash;
+      passwordIds.map(async (item: number) => {
+        await updatePassword({ id: item }, { status: STATUSES.INACTIVE });
+      });
+    }
+    await updateUser({ id: userAlreadyExist.id }, { password: identifiedPassword });
+    return oldSendObjectResponse('Password Changed Successfully', userAlreadyExist);
   } catch (e: any) {
     console.log({ e });
     return BadRequestException(e.message);

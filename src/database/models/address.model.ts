@@ -1,5 +1,4 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IUser, IBusiness } from '../modelInterfaces';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('addresses')
 export class Addresses {
@@ -10,6 +9,9 @@ export class Addresses {
   street: string;
 
   @Column()
+  area: string;
+
+  @Column('varchar', { default: 'Nigeria' })
   country: string;
 
   @Column()
@@ -18,32 +20,12 @@ export class Addresses {
   @Column()
   city: string;
 
-  @Column('boolean')
-  active: boolean;
-
-  @Column('boolean')
-  default: boolean;
-
   @Column('int')
-  shopper?: number;
-
-  @Column('int')
-  business?: number;
-
-  @DeleteDateColumn()
-  deleted_at: Date;
+  status: number;
 
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
-
-  @ManyToOne('Users', 'addresses')
-  @JoinColumn({ name: 'shopper' })
-  Shopper: IUser;
-
-  @ManyToOne('Business', 'addresses')
-  @JoinColumn({ name: 'business' })
-  Business: IBusiness;
 }

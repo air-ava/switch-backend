@@ -11,6 +11,7 @@ declare namespace Express {
       phone_number: number;
       first_name: string;
       last_name: string;
+      organisation: number;
       // enabled: boolean;
       // is_business: boolean;
       created_at: Date;

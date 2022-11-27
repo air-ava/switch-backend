@@ -11,6 +11,13 @@ export interface theResponse {
   data?: any;
 }
 
+export interface oldResponse {
+  success: boolean;
+  message?: string;
+  error?: any;
+  data?: any;
+}
+
 export interface ControllerResponse {
   success: boolean;
   error?: string;

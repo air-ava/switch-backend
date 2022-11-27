@@ -44,13 +44,7 @@ export const updateAddressREPO = (
 };
 
 export const getAddressesREPO = (
-  queryParam:
-    | Partial<IAddresses>
-    | {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        [key: string]: any;
-      }
-    | any,
+  queryParam: Partial<IAddresses> | any,
   selectOptions: Array<keyof Addresses>,
   relationOptions?: any[],
   transaction?: QueryRunner,

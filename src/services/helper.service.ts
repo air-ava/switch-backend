@@ -3,7 +3,14 @@ import { theResponse } from '../utils/interface';
 import { getOnePhoneNumber, createAPhoneNumber } from '../database/repositories/phoneNumber.repo';
 import { ImageValidator, phoneNumberValidator } from '../validators/phoneNumber.validator';
 import { ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
-import { businessCheckerDTO, findAndCreateAddressDTO, findAndCreateImageDTO, findAndCreatePhoneNumberDTO } from '../dto/helper.dto';
+import {
+  businessCheckerDTO,
+  findAndCreateAddressDTO,
+  findAndCreateAssetsDTO,
+  findAndCreateImageDTO,
+  findAndCreateOrganisationDTO,
+  findAndCreatePhoneNumberDTO,
+} from '../dto/helper.dto';
 import { formatPhoneNumber, randomstringGeenerator } from '../utils/utils';
 import { createImageREPO, getOneImageREPO } from '../database/repositories/image.repo';
 import { getOneBuinessREPO } from '../database/repositories/business.repo';
@@ -14,6 +21,9 @@ import {
   updateAddressREPO,
   countAddressesREPO,
 } from '../database/repositories/address.repo';
+import { STATUSES } from '../database/models/status.model';
+import { getOneAssetsREPO, createAssetsREPO } from '../database/repositories/assets.repo';
+import { getOneOrganisationREPO, createOrganisationREPO } from '../database/repositories/organisation.repo';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
@@ -69,9 +79,45 @@ export const findOrCreateImage = async (payload: findAndCreateImageDTO): Promise
   return sendObjectResponse('Account created successfully', createdImage);
 };
 
+export const findOrCreateAssets = async (payload: findAndCreateAssetsDTO): Promise<theResponse> => {
+  // const { error } = ImageValidator.validate(payload);
+  // if (error) return ResourceNotFoundError(error);
+
+  const { name, file_name, status, file_type, organisation, user } = payload;
+  const existingAssets = await getOneAssetsREPO(
+    {
+      name,
+      file_name,
+      status,
+      file_type,
+      ...(organisation && { organisation }),
+      ...(user && { user }),
+    },
+    [],
+  );
+  if (existingAssets) return sendObjectResponse('Asset retrieved successfully', existingAssets);
+
+  await createAssetsREPO({
+    name,
+    file_name,
+    status,
+    file_type,
+    ...(organisation && { organisation }),
+    ...(user && { user }),
+  });
+
+  const createdImage = await getOneAssetsREPO(
+    { name, file_name, status, file_type, ...(organisation && { organisation }), ...(user && { user }) },
+    [],
+  );
+  if (!createdImage) throw Error('Sorry, problem with Image creation');
+
+  return sendObjectResponse('Account created successfully', createdImage);
+};
+
 export const updateAddressDefault = async (payload: any): Promise<theResponse> => {
   const { shopper, business, address: defaultAddress } = payload;
-  const addresses = await getAddressesREPO(
+  await getAddressesREPO(
     {
       id: Not(defaultAddress),
       default: true,
@@ -80,55 +126,32 @@ export const updateAddressDefault = async (payload: any): Promise<theResponse> =
     },
     [],
   );
-  if (addresses)
-    await Promise.all(
-      addresses.map(async (address: any) => {
-        await updateAddressREPO({ id: address.id }, { default: false });
-      }),
-    );
 
   return sendObjectResponse('Address Defaulted');
 };
 
 export const findOrCreateAddress = async (payload: findAndCreateAddressDTO): Promise<theResponse> => {
-  const { street, country, state, city, shopper, business, default: isDefault } = payload;
+  const { street, country, state, city, area } = payload;
   const query = {
     street,
     country,
     state,
     city,
     active: true,
-    ...(shopper && { shopper }),
-    ...(business && { business }),
   };
   const existingAddress = await getOneAddressREPO(query, []);
   if (existingAddress) return sendObjectResponse('Address retrieved successfully', existingAddress);
-
-  const addressCount = await countAddressesREPO({
-    active: true,
-    ...(shopper && { shopper }),
-    ...(business && { business }),
-  });
-  if (addressCount > 3) throw Error('Sorry, you have reached your address capacity');
 
   const createdAddress = await createAndGetAddressREPO({
     street,
     country,
     state,
     city,
-    active: true,
-    default: isDefault || false,
-    ...(shopper && { shopper }),
-    ...(business && { business }),
+    status: STATUSES.ACTIVE,
+    area,
   });
 
   if (!createdAddress) throw Error('Sorry, problem with Address creation');
-
-  await updateAddressDefault({
-    ...(shopper && { shopper }),
-    ...(business && { business }),
-    address: createdAddress.id,
-  });
 
   return sendObjectResponse('Address created successfully', createdAddress);
 };
@@ -146,4 +169,21 @@ export const businessChecker = async (payload: businessCheckerDTO): Promise<theR
   if (!businessAlreadyExist) throw Error('Sorry, you have not created a business');
 
   return sendObjectResponse('Business Exists', businessAlreadyExist);
+};
+
+export const findOrCreateOrganizaton = async (payload: findAndCreateOrganisationDTO): Promise<theResponse> => {
+  // const { error } = ImageValidator.validate(payload);
+  // if (error) return ResourceNotFoundError(error);
+
+  const { business_name: name, organisation_email: email, slug } = payload;
+  const existingOrganisation = await getOneOrganisationREPO({ name, status: STATUSES.ACTIVE }, []);
+  if (existingOrganisation && existingOrganisation.email === email) return sendObjectResponse('Organisation retrieved successfully', existingOrganisation);
+  if (existingOrganisation && existingOrganisation.name === name) throw Error('Business name already exists');
+
+  await createOrganisationREPO({ name, email, slug });
+
+  const createdOrganisation = await getOneOrganisationREPO({ email, status: STATUSES.ACTIVE, slug }, []);
+  if (!createdOrganisation) throw Error('Sorry, problem with Organisation creation');
+
+  return sendObjectResponse('Organisation created successfully', createdOrganisation);
 };
