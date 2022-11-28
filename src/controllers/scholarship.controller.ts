@@ -11,7 +11,7 @@ export const countriesCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(200).json(countries);
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -56,7 +56,7 @@ export const addSponsorsCONTROLLER: RequestHandler = async (req, res) => {
     console.log({ error });
     return error.message
       ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+      : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -68,7 +68,7 @@ export const getScholarshipsCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeScholarship)));
   } catch (error) {
     console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -80,6 +80,6 @@ export const getScholarshipCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeScholarship(data), true));
   } catch (error) {
     console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };

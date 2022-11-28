@@ -33,8 +33,9 @@ export const createSchorlaship = async (data: {
   const existingScholarship = await findScholarship({ title, user_id: user, ...(organisation && { org_id: organisation }) }, []);
   if (existingScholarship) throw Error('Sorry, Scholarship already exists');
 
-  const { success, data: asset } = await createAsset({ imagePath: image, user });
-
+  const Asset = await createAsset({ imagePath: image, user });
+  console.log({ Asset })
+  const { success, data: asset } = Asset
   if (!success) throw Error('Error creating asset');
 
   const { amount, currency, ...response } = await saveScholarshipREPO({

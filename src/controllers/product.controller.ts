@@ -8,7 +8,7 @@ export const createProductCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(responseCode).json(response);
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -27,7 +27,7 @@ export const viewAllProductCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(responseCode).json(response);
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -38,6 +38,6 @@ export const viewAllProductCategoriesCONTROLLER: RequestHandler = async (req, re
     return res.status(responseCode).json(response);
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };

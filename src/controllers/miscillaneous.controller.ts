@@ -12,7 +12,7 @@ export const countriesCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(200).json(oldSendObjectResponse('Countries retrieved successfully', countries));
   } catch (error) {
     log(Log.fg.red, error);
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -24,7 +24,7 @@ export const getCurrenciesCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeCurrency)));
   } catch (error) {
     console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 

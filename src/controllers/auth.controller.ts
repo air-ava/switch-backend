@@ -18,7 +18,7 @@ export const signUpCONTROLLER: RequestHandler = async (req, res) => {
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -30,7 +30,7 @@ export const loginCONTROLLER: RequestHandler = async (req, res) => {
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -42,7 +42,7 @@ export const verifyCONTROLLER: RequestHandler = async (req, res) => {
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -52,7 +52,7 @@ export const forgotCONTROLLER: RequestHandler = async (req, res) => {
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -62,7 +62,7 @@ export const newPasswordCONTROLLER: RequestHandler = async (req, res) => {
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -72,7 +72,7 @@ export const resetPasswordCONTROLLER: RequestHandler = async (req, res) => {
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
 
@@ -84,6 +84,6 @@ export const changePasswordCONTROLLER: RequestHandler = async (req, res) => {
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(oldSendObjectResponse(response.messaage, response.date, true));
   } catch (error) {
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
