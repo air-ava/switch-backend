@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne, OneToOne, OneToMany } from 'typeorm';
-import { ICurrency, IScholarshipApplication, IScholarshipEligibility, ISponsorships, IStatus, IUser, IAssets } from '../modelInterfaces';
+import { ICurrency, IScholarshipApplication, IScholarshipEligibility, ISponsorships, IStatus, IUser, IAssets, IOrganisation } from '../modelInterfaces';
 import { ScholarshipApplication } from './scholarshipApplication.model';
 import { Sponsorships } from './sponsorships.model';
 // import { STATUSES } from './status.model';
@@ -61,6 +61,10 @@ export class Scholarship {
   @ManyToOne('Currency', 'scholarships')
   @JoinColumn({ name: 'currency', referencedColumnName: 'short_code' })
   Currencies: ICurrency;
+
+  @ManyToOne('Organisation', 'scholarships')
+  @JoinColumn({ name: 'org_id', referencedColumnName: 'id' })
+  Organisation: IOrganisation;
 
   @OneToOne('Currency', 'scholarships')
   @JoinColumn({ name: 'currency', referencedColumnName: 'short_code' })

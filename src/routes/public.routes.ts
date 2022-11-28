@@ -3,7 +3,7 @@ import { getAddressCONTROLLER } from '../controllers/address.controller';
 import { allBusinessCONTROLLER } from '../controllers/business.controller';
 import { countriesCONTROLLER } from '../controllers/miscillaneous.controller';
 import { viewAllProductCategoriesCONTROLLER, viewAllProductCONTROLLER } from '../controllers/product.controller';
-import { allBusinessAndProductsCONTROLLER } from '../controllers/public.controller';
+import { allBusinessAndProductsCONTROLLER, getPartnershipScholarshipCONTROLLER, getScholarshipsCONTROLLER } from '../controllers/public.controller';
 
 const router = express.Router();
 
@@ -38,6 +38,8 @@ const router = express.Router();
  */
 router.get('/', allBusinessAndProductsCONTROLLER);
 router.get('/countries', countriesCONTROLLER);
+router.get('/partner/:slug', getPartnershipScholarshipCONTROLLER);
+router.get('/scholarship', getScholarshipsCONTROLLER);
 
 /**
  * @swagger

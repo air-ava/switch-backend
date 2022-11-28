@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
-import { IPhoneNumber, IUser } from '../modelInterfaces';
+import { IPhoneNumber, IScholarship, IStatus, IUser } from '../modelInterfaces';
 import { Product } from './product.model';
+import { Scholarship } from './schorlaship.model';
 // import { User } from './user';
 
 @Entity('organisations')
@@ -46,7 +47,18 @@ export class Organisation {
   @JoinColumn({ name: 'owner' })
   owners: IUser;
 
+  @OneToMany(() => Scholarship, (scholarship) => scholarship.Organisation)
+  Scholarships: IScholarship[];
+
+  @OneToOne('Status', 'organisation')
+  @JoinColumn({ name: 'status', referencedColumnName: 'id' })
+  Status: IStatus;
+
+  @OneToOne('Users', 'organisation')
+  @JoinColumn({ name: 'owner' })
+  Owner: IUser;
+
   @OneToOne('Assets', 'organisation')
   @JoinColumn({ name: 'logo' })
-  logoId: IUser;
+  LogoId: IUser;
 }

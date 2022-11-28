@@ -25,6 +25,20 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizePartner(payload: ICurrency) {
+    if (!payload) return null;
+    const { id, status, Status, Scholarships, LogoId, Owner, phone, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      partner: Owner && Sanitizer.sanitizeUser(Owner),
+      phone: Sanitizer.sanitizePhoneNumber(phone),
+      logo: LogoId && Sanitizer.sanitizeAsset(LogoId),
+      scholarships: Scholarships && Sanitizer.sanitizeAllArray(Scholarships, Sanitizer.sanitizeScholarship),
+    };
+    return sanitized;
+  },
+
   sanitizeCurrencyRate(payload: ICurrency) {
     if (!payload) return null;
     const { id, status, Status, ...rest } = Sanitizer.jsonify(payload);
