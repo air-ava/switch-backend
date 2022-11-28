@@ -143,7 +143,7 @@ export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
 
     const token = generateToken(user);
 
-    return oldSendObjectResponse('Login successful', {
+    return sendObjectResponse('Login successful', {
       user: sanitizeUser(user),
       token,
     });
