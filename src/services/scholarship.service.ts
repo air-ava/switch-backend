@@ -170,7 +170,7 @@ export const getScholarships = async (): Promise<any> => {
     const existingCompany = await findMultipleScholarships({}, [], ['Status', 'Currency', 'Eligibility', 'User', 'Sponsorships', 'Applications']);
     if (!existingCompany.length) throw Error('Sorry, no business has been created');
 
-    return oldSendObjectResponse('Business retrieved successfully', existingCompany);
+    return sendObjectResponse('Business retrieved successfully', existingCompany);
   } catch (e: any) {
     log(Log.fg.red, e);
     return BadRequestException(e.message || 'Business retrieval failed, kindly try again');

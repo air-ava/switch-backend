@@ -265,7 +265,7 @@ export const changePassword = async (data: changePasswordDTO): Promise<any> => {
       });
     }
     await updateUser({ id: userAlreadyExist.id }, { password: identifiedPassword });
-    return oldSendObjectResponse('Password Changed Successfully', userAlreadyExist);
+    return sendObjectResponse('Password Changed Successfully', userAlreadyExist);
   } catch (e: any) {
     console.log({ e });
     return BadRequestException(e.message);

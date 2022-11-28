@@ -10,6 +10,7 @@ import {
   userLogin,
   verifyAccount,
 } from '../services/auth.service';
+import { oldSendObjectResponse } from '../utils/errors';
 
 export const signUpCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -81,7 +82,7 @@ export const changePasswordCONTROLLER: RequestHandler = async (req, res) => {
 
     const response = await changePassword(payload);
     const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
+    return res.status(responseCode).json(oldSendObjectResponse(response.messaage, response.date, true));
   } catch (error) {
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });
   }
