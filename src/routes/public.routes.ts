@@ -1,6 +1,7 @@
 import express from 'express';
 import { getAddressCONTROLLER } from '../controllers/address.controller';
 import { allBusinessCONTROLLER } from '../controllers/business.controller';
+import { countriesCONTROLLER } from '../controllers/miscillaneous.controller';
 import { viewAllProductCategoriesCONTROLLER, viewAllProductCONTROLLER } from '../controllers/product.controller';
 import { allBusinessAndProductsCONTROLLER } from '../controllers/public.controller';
 
@@ -23,7 +24,7 @@ const router = express.Router();
  *         name: from
  *       - in: query
  *         required: false
- *         type: string
+ *         type: string`
  *         name: to
  *       - in: query
  *         required: false
@@ -36,6 +37,7 @@ const router = express.Router();
  *         description: Internal error
  */
 router.get('/', allBusinessAndProductsCONTROLLER);
+router.get('/countries', countriesCONTROLLER);
 
 /**
  * @swagger

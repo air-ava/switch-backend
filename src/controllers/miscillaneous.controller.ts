@@ -1,12 +1,11 @@
 import { RequestHandler } from 'express';
 import { log } from 'winston';
-import cloudinary from '../config/cloudinary';
 import countries from '../miscillaneous/countries.json';
 import { createAsset } from '../services/assets.service';
 import { getCurrencies } from '../services/curencies.service';
 import { oldSendObjectResponse } from '../utils/errors';
 import { Log } from '../utils/logs';
-import { sanitizeAllArray, sanitizeCurrency, Sanitizer } from '../utils/sanitizer';
+import { Sanitizer } from '../utils/sanitizer';
 
 export const countriesCONTROLLER: RequestHandler = async (req, res) => {
   try {
