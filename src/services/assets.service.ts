@@ -1,9 +1,17 @@
 import cloudinary from '../config/cloudinary';
-import { createAssetsREPO, saveAssetsREPO } from '../database/repositories/assets.repo';
-import { oldSendObjectResponse, sendObjectResponse } from '../utils/errors';
+import { saveAssetsREPO } from '../database/repositories/assets.repo';
+import { sendObjectResponse } from '../utils/errors';
 
-export const createAsset = async (data: { imagePath: string; organisation?: number; user?: string; video?: boolean }): Promise<any> => {
-  const { organisation, user, video } = data;
+export const createAsset = async (data: {
+  imagePath: string;
+  organisation?: number;
+  user?: string;
+  name?: string;
+  reference?: string;
+  trigger?: string;
+  video?: boolean;
+}): Promise<any> => {
+  const { organisation, user, video, name: assetName, reference, trigger } = data;
   const options = {
     use_filename: false,
     unique_filename: true,
@@ -15,9 +23,11 @@ export const createAsset = async (data: { imagePath: string; organisation?: numb
   const { public_id: name, original_filename: file_name, resource_type: file_type, format: file_format, bytes, secure_url: url } = response;
   const createAssets = await saveAssetsREPO({
     name,
-    file_name,
+    file_name: (assetName && assetName) || file_name,
     ...(organisation && { organisation }),
     ...(user && { user }),
+    ...(reference && { reference }),
+    ...(trigger && { trigger }),
     file_type,
     file_format,
     bytes,

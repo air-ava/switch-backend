@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne } from 'typeorm';
 import { IScholarshipEligibility } from '../modelInterfaces';
 
-@Entity('assets')
-export class Assets {
+@Entity('links')
+export class Link {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -10,28 +10,16 @@ export class Assets {
   name: string;
 
   @Column()
-  file_name: string;
+  link: string;
 
   @Column('int')
   status: number;
 
   @Column({ nullable: true })
-  file_type: string;
-
-  @Column()
-  file_format: string;
-
-  @Column()
-  bytes: number;
-
-  @Column()
-  reference: string;
-
-  @Column()
   trigger: string;
 
   @Column()
-  url: string;
+  reference: string;
 
   @Column('int')
   organisation: number;
@@ -45,7 +33,7 @@ export class Assets {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne('ScholarshipEligibility', 'assets')
-  @JoinColumn({ name: 'reference', referencedColumnName: 'asset_reference' })
+  @ManyToOne('ScholarshipEligibility', 'links')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'link_reference' })
   Scholarship: IScholarshipEligibility;
 }

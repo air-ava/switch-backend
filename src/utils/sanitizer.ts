@@ -1,6 +1,7 @@
+import { ISponsorships, IAssets, IScholarshipEligibility } from './../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { IBusiness, ICurrency, IPhoneNumber, IScholarship, ISTATUSES, IUser } from '../database/modelInterfaces';
+import { IBusiness, ICurrency, ILink, IPhoneNumber, IScholarship, ISTATUSES, IUser } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 
 export const Sanitizer = {
@@ -40,13 +41,14 @@ export const Sanitizer = {
 
   sanitizeScholarship(payload: IScholarship) {
     if (!payload) return null;
-    const { status, Status, Currency, Eligibility, User, ...rest } = Sanitizer.jsonify(payload);
+    const { status, Status, Currency, Eligibility, Sponsorships, User, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       Currency: Currency && Sanitizer.sanitizeCurrency(Currency),
-      eligibility: Eligibility && Sanitizer.jsonify(Eligibility),
-      partner: User && Sanitizer.jsonify(User),
+      eligibility: Eligibility && Sanitizer.sanitizeEligibility(Eligibility),
+      sponsorships: Sponsorships && Sanitizer.sanitizeAllArray(Sponsorships, Sanitizer.sanitizeSponsorship),
+      partner: User && Sanitizer.sanitizeUser(User),
     };
     return sanitized;
   },
@@ -67,10 +69,51 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizeSponsorship(payload: ISponsorships): any {
+    if (!payload) return null;
+    const { password, user, User, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      sponsor: User && Sanitizer.sanitizeUser(User),
+    };
+    return sanitized;
+  },
+
+  sanitizeEligibility(payload: IScholarshipEligibility): any {
+    if (!payload) return null;
+    const { password, status, Links, Assets, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      assets: Assets && Sanitizer.sanitizeAllArray(Assets, Sanitizer.sanitizeAsset),
+      links: Links && Sanitizer.sanitizeAllArray(Links, Sanitizer.sanitizeLink),
+    };
+    return sanitized;
+  },
+
   sanitizePhoneNumber(payload: IPhoneNumber): any {
     if (!payload) return null;
     const { id, ...rest } = Sanitizer.jsonify(payload);
     return rest;
+  },
+
+  sanitizeLink(payload: ILink): any {
+    if (!payload) return null;
+    const { status, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
+
+  sanitizeAsset(payload: IAssets): any {
+    if (!payload) return null;
+    const { status, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
   },
 };
 

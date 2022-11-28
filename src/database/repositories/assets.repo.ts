@@ -11,7 +11,7 @@ export const saveAssetsREPO = (queryParams: Partial<IAssets>, transaction?: Quer
 };
 
 export const getOneAssetsREPO = (
-  queryParam: Partial<IAssets>,
+  queryParam: Partial<IAssets> | any,
   selectOptions: Array<keyof Assets>,
   transaction?: QueryRunner,
 ): Promise<IAssets | undefined | any> => {

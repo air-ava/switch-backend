@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
-import { ICurrency, IScholarship, IStatus } from '../modelInterfaces';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
+import { IAssets, ILink, IScholarship } from '../modelInterfaces';
+import { Assets } from './assets.model';
+import { Link } from './link.model';
 
 @Entity('scholarship_eligibility')
 export class ScholarshipEligibility {
@@ -37,6 +39,12 @@ export class ScholarshipEligibility {
   education_level: string;
 
   @Column()
+  link_reference: string;
+
+  @Column()
+  asset_reference: string;
+
+  @Column()
   state: string;
 
   @CreateDateColumn()
@@ -48,4 +56,10 @@ export class ScholarshipEligibility {
   @OneToOne('Scholarship', 'scholarship_eligibility')
   @JoinColumn({ name: 'scholarship_id', referencedColumnName: 'id' })
   Scholarship: IScholarship;
+
+  @OneToMany(() => Assets, (asset) => asset.Scholarship)
+  Assets: IAssets[];
+
+  @OneToMany(() => Link, (link) => link.Scholarship)
+  Links: ILink[];
 }

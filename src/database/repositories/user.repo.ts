@@ -31,10 +31,10 @@ export const createAUser = async (payload: {
   phone?: string;
   user_type: string;
   business_name?: string;
-  remember_token: string;
+  remember_token?: string;
   organisation_email?: string;
-  country: string;
-  organisation: number;
+  country?: string;
+  organisation?: number;
   phone_number: number;
   // is_business: boolean;
   t?: QueryRunner;
@@ -42,6 +42,27 @@ export const createAUser = async (payload: {
   console.log({ payload });
   const { t, ...rest } = payload;
   return t ? t.manager.insert(Users, rest) : getRepository(Users).insert(rest);
+};
+
+export const saveAUser = async (payload: {
+  email: string;
+  first_name: string;
+  last_name: string;
+  password: string;
+  code?: string;
+  phone?: string;
+  user_type: string;
+  business_name?: string;
+  remember_token?: string;
+  organisation_email?: string;
+  country?: string;
+  organisation?: number;
+  phone_number: number;
+  // is_business: boolean;
+  t?: QueryRunner;
+}): Promise<Users> => {
+  const { t, ...rest } = payload;
+  return t ? t.manager.save(Users, rest) : getRepository(Users).save(rest);
 };
 
 export const updateUser = (queryParams: Pick<IUser, 'id'>, updateFields: Partial<IUser>, t?: QueryRunner): Promise<UpdateResult> => {

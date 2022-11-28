@@ -206,6 +206,8 @@ export interface IAssets {
   url: string;
   organisation: number;
   user: string;
+  reference: string;
+  trigger: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -326,7 +328,9 @@ export interface IScholarshipEligibility {
   specific_schools: boolean;
   eligible_schools: string;
   education_level: string;
-  state: string;
+  link_reference: string;
+  asset_reference: string;
+  state?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -334,12 +338,19 @@ export interface IScholarshipEligibility {
 export interface ISponsorships {
   id: string;
   scholarship_id: string;
-  accept_contribution: string;
+  accept_contribution?: string;
   minimum_amount: number;
   currency: string;
-  fees_paid_by: string;
+  fees_paid_by?: string;
   created_at: Date;
   updated_at: Date;
+  user: string;
+  payment_type: string;
+  frequency: string;
+  organisation?: number;
+  status?: number;
+  anonymous: boolean;
+  take_transaction_charge: boolean;
 }
 
 export interface IScholarshipApplication {
@@ -355,6 +366,18 @@ export interface IScholarshipApplication {
   status: number;
   currency: string;
   application_deadline: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+export interface ILink {
+  id: number;
+  name: string;
+  link: string;
+  status: number;
+  trigger: string;
+  reference: string;
+  organisation: number;
+  user: string;
   created_at: Date;
   updated_at: Date;
 }

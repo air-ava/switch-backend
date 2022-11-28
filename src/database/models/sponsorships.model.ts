@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
-import { ICurrency, IScholarship, IStatus } from '../modelInterfaces';
+import { ICurrency, IOrganisation, IScholarship, IStatus, IUser } from '../modelInterfaces';
 
 @Entity('sponsorships')
 export class Sponsorships {
@@ -27,6 +27,27 @@ export class Sponsorships {
   @UpdateDateColumn()
   updated_at: Date;
 
+  @Column()
+  user: string;
+
+  @Column()
+  payment_type: string;
+
+  @Column()
+  frequency: string;
+
+  @Column()
+  organisation: number;
+
+  @Column()
+  status: number;
+
+  @Column()
+  anonymous: boolean;
+
+  @Column()
+  take_transaction_charge: boolean;
+
   @OneToOne('Currency', 'scholarships')
   @JoinColumn({ name: 'currency', referencedColumnName: 'short_code' })
   Currency: ICurrency;
@@ -34,4 +55,16 @@ export class Sponsorships {
   @ManyToOne('Scholarship', 'sponsorships')
   @JoinColumn({ name: 'scholarship_id', referencedColumnName: 'id' })
   Scholarship: IScholarship;
+
+  @OneToOne('Users', 'sponsorships')
+  @JoinColumn({ name: 'user', referencedColumnName: 'id' })
+  User: IUser;
+
+  @OneToOne('Organisation', 'sponsorships')
+  @JoinColumn({ name: 'organisation', referencedColumnName: 'id' })
+  Organisation: IOrganisation;
+
+  @OneToOne('Status', 'sponsorships')
+  @JoinColumn({ name: 'status', referencedColumnName: 'id' })
+  Status: IStatus;
 }
