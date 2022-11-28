@@ -77,7 +77,7 @@ export const getScholarshipCONTROLLER: RequestHandler = async (req, res) => {
     const response = await getScholarship(req.params.code);
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeScholarship(data)));
+    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeScholarship(data), true));
   } catch (error) {
     console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.' });

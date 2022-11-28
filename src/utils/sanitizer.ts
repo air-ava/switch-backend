@@ -1,4 +1,4 @@
-import { ISponsorships, IAssets, IScholarshipEligibility } from './../database/modelInterfaces';
+import { ISponsorships, IAssets, IScholarshipEligibility, IScholarshipApplication } from './../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { IBusiness, ICurrency, ILink, IPhoneNumber, IScholarship, ISTATUSES, IUser } from '../database/modelInterfaces';
@@ -41,14 +41,15 @@ export const Sanitizer = {
 
   sanitizeScholarship(payload: IScholarship) {
     if (!payload) return null;
-    const { status, Status, Currency, Eligibility, Sponsorships, User, ...rest } = Sanitizer.jsonify(payload);
+    const { status, Status, Currency, Eligibility, Sponsorships, Applications, User, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
-      Currency: Currency && Sanitizer.sanitizeCurrency(Currency),
+      currency: Currency && Sanitizer.sanitizeCurrency(Currency),
       eligibility: Eligibility && Sanitizer.sanitizeEligibility(Eligibility),
       sponsorships: Sponsorships && Sanitizer.sanitizeAllArray(Sponsorships, Sanitizer.sanitizeSponsorship),
       partner: User && Sanitizer.sanitizeUser(User),
+      applications: Applications && Sanitizer.sanitizeAllArray(Applications, Sanitizer.sanitizeApplication),
     };
     return sanitized;
   },
@@ -76,6 +77,16 @@ export const Sanitizer = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       sponsor: User && Sanitizer.sanitizeUser(User),
+    };
+    return sanitized;
+  },
+
+  sanitizeApplication(payload: IScholarshipApplication): any {
+    if (!payload) return null;
+    const { status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
     return sanitized;
   },

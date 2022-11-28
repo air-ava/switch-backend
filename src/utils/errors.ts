@@ -30,12 +30,15 @@ export const sendObjectResponse = (message: string, data?: any): { success: bool
   };
 };
 
-export const oldSendObjectResponse = (message: string, data?: any): { status: boolean; message: string; data?: any } => {
+export const oldSendObjectResponse = (message: string, data?: any, old = false): { status: boolean; message: string; data?: any } => {
   return {
     status: true,
     message,
-    ...(Array.isArray(data) && { data }),
-    ...(!Array.isArray(data) && { ...data }),
+    ...(!old && {
+      ...(Array.isArray(data) && { data }),
+      ...(!Array.isArray(data) && { ...data }),
+    }),
+    ...(old && { data }),
   };
 };
 
