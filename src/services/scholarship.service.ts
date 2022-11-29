@@ -33,9 +33,7 @@ export const createSchorlaship = async (data: {
   const existingScholarship = await findScholarship({ title, user_id: user, ...(organisation && { org_id: organisation }) }, []);
   if (existingScholarship) throw Error('Sorry, Scholarship already exists');
 
-  const Asset = await createAsset({ imagePath: image, user });
-  console.log({ Asset })
-  const { success, data: asset } = Asset
+  const { success, data: asset } = await createAsset({ imagePath: image, user });
   if (!success) throw Error('Error creating asset');
 
   const { amount, currency, ...response } = await saveScholarshipREPO({
@@ -61,16 +59,20 @@ export const createSchorlashipEligibility = async (data: {
   applicant_description: string;
   submission_requirements: ('essay' | 'link' | 'file' | 'images')[];
   essay_requirements: string;
-  link_requirements: { name: string; url: string }[];
-  file_requirements: { name: string; url: string }[];
+  // link_requirements: { name: string; url: string }[];
+  // file_requirements: { name: string; url: string }[];
+  link_requirements: string;
+  file_requirements: string;
   image_requirements: string;
   specific_schools: boolean;
   eligible_schools: string;
   userId: string;
   organisation?: number;
 }): Promise<any> => {
+  // todo: validation for this functions
   // const validation = createBusinessValidator.validate(data);
   // if (validation.error) return ResourceNotFoundError(validation.error);
+
   const { organisation, scholarship_id, submission_requirements, link_requirements, file_requirements, userId, ...rest } = data;
 
   const existingScholarship = await findScholarship({ id: scholarship_id }, []);
@@ -79,25 +81,28 @@ export const createSchorlashipEligibility = async (data: {
   const existingEligibility = await findScholarshipEligibility({ scholarship_id }, []);
   if (existingEligibility) throw Error('Sorry, Scholarship Eligibility already field');
 
-  const link_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
-  const asset_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
+  // ? Below is used to add assets and links
+  // const link_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
+  // const asset_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
 
-  await Promise.all(
-    file_requirements.map(({ name, url }) =>
-      createAsset({ imagePath: url, user: userId, trigger: 'scholarship_eligibility', organisation, name, reference: asset_reference }),
-    ),
-  );
-  await Promise.all(
-    link_requirements.map(({ name, url }) =>
-      saveLinkREPO({ link: url, user: userId, name, trigger: 'scholarship_eligibility', organisation, reference: link_reference }),
-    ),
-  );
+  // await Promise.all(
+  //   file_requirements.map(({ name, url }) =>
+  //     createAsset({ imagePath: url, user: userId, trigger: 'scholarship_eligibility', organisation, name, reference: asset_reference }),
+  //   ),
+  // );
+  // await Promise.all(
+  //   link_requirements.map(({ name, url }) =>
+  //     saveLinkREPO({ link: url, user: userId, name, trigger: 'scholarship_eligibility', organisation, reference: link_reference }),
+  //   ),
+  // );
 
   const response = await saveScholarshipEligibilityREPO({
     scholarship_id,
     submission_requirements: submission_requirements.toString(),
-    link_reference,
-    asset_reference,
+    link_requirements,
+    file_requirements,
+    // link_reference,
+    // asset_reference,
     ...rest,
   });
 
