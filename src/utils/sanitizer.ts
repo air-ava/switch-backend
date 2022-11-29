@@ -25,6 +25,17 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizeAmount(payload: any[], key: { currency: string; amount: string }): any {
+    if (!Array.isArray(payload)) return { USD: 0 };
+    if (!payload.length) return { USD: 0 };
+    const response: { [key: string]: string } = {};
+    payload.forEach((item) => {
+      if (!response[item[key.currency]]) response[item[key.currency]] = item[key.amount];
+      else response[item[key.currency]] += item[key.amount];
+    });
+    return response;
+  },
+
   sanitizePartner(payload: ICurrency) {
     if (!payload) return null;
     const { id, status, Status, Scholarships, LogoId, Owner, phone, ...rest } = Sanitizer.jsonify(payload);
@@ -61,6 +72,7 @@ export const Sanitizer = {
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       currency: Currency && Sanitizer.sanitizeCurrency(Currency),
       eligibility: Eligibility && Sanitizer.sanitizeEligibility(Eligibility),
+      amount_raised: Sponsorships && Sanitizer.sanitizeAmount(Sponsorships, { currency: 'currency', amount: 'minimum_amount' }),
       sponsorships: Sponsorships && Sanitizer.sanitizeAllArray(Sponsorships, Sanitizer.sanitizeSponsorship),
       partner: User && Sanitizer.sanitizeUser(User),
       applications: Applications && Sanitizer.sanitizeAllArray(Applications, Sanitizer.sanitizeApplication),
