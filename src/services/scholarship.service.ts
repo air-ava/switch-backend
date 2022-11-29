@@ -5,11 +5,13 @@ import { saveLinkREPO } from '../database/repositories/link.repo';
 import { findMultipleScholarships, findScholarship, saveScholarshipREPO } from '../database/repositories/scholarship.repo';
 import { findScholarshipEligibility, saveScholarshipEligibilityREPO } from '../database/repositories/scholarshipEligibility.repo';
 import { createAUser, findUser, saveAUser } from '../database/repositories/user.repo';
-import { sendObjectResponse, oldSendObjectResponse, BadRequestException } from '../utils/errors';
+import { sendObjectResponse, oldSendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { createAsset } from './assets.service';
 import { findOrCreatePhoneNumber } from './helper.service';
 import { saveSponsorshipsREPO } from '../database/repositories/sponsorship.repo';
+import { saveSponsorshipConditionsREPO } from '../database/repositories/sponsorshipConditions.repo';
+import { createSchorlashipValidator } from '../validators/scholarship.validator';
 
 export const createSchorlaship = async (data: {
   image: string;
@@ -24,11 +26,14 @@ export const createSchorlaship = async (data: {
   user: string;
   deadline_note: string;
   organisation: number;
+  external_sponsorship?: boolean;
+  minimum_amount: number;
+  accepted_currency: string[];
 }): Promise<any> => {
-  // const validation = createBusinessValidator.validate(data);
-  // if (validation.error) return ResourceNotFoundError(validation.error);
+  const validation = createSchorlashipValidator.validate(data);
+  if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { image, user, title, organisation, ...rest } = data;
+  const { image, user, title, organisation, external_sponsorship = false, minimum_amount, accepted_currency, ...rest } = data;
 
   const existingScholarship = await findScholarship({ title, user_id: user, ...(organisation && { org_id: organisation }) }, []);
   if (existingScholarship) throw Error('Sorry, Scholarship already exists');
@@ -36,14 +41,24 @@ export const createSchorlaship = async (data: {
   const { success, data: asset } = await createAsset({ imagePath: image, user });
   if (!success) throw Error('Error creating asset');
 
-  const { amount, currency, ...response } = await saveScholarshipREPO({
+  const {
+    id: scholarship_id,
+    amount,
+    currency,
+    ...response
+  } = await saveScholarshipREPO({
     image,
     image_id: asset.id,
     user_id: user,
     org_id: organisation,
     title,
+    ...(external_sponsorship && { external_sponsorship }),
     ...rest,
   });
+
+  if (external_sponsorship) {
+    await Promise.all(accepted_currency.map((item: string) => saveSponsorshipConditionsREPO({ scholarship_id, currency: item, minimum_amount })));
+  }
 
   return sendObjectResponse('Business created successfully', {
     amount: amount.toLocaleString('en-US', {

@@ -25,6 +25,14 @@ export interface IStatus {
   updated_at?: Date;
 }
 
+export interface ISettings {
+  id: number;
+  key: string;
+  value: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
 export interface IUser {
   id: string;
   email: string;
@@ -153,6 +161,7 @@ export interface IScholarship {
   status: number;
   currency: string;
   deadline_note: string;
+  external_sponsorship?: boolean;
   application_deadline: Date;
   created_at: Date;
   updated_at: Date;
@@ -351,6 +360,16 @@ export interface ISponsorships {
   status?: number;
   anonymous: boolean;
   take_transaction_charge: boolean;
+}
+
+export interface ISponsorshipConditions {
+  id: number;
+  scholarship_id: string;
+  minimum_amount: number;
+  currency: string;
+  status: number;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface IScholarshipApplication {

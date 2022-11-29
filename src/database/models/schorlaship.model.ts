@@ -1,6 +1,17 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne, OneToOne, OneToMany } from 'typeorm';
-import { ICurrency, IScholarshipApplication, IScholarshipEligibility, ISponsorships, IStatus, IUser, IAssets, IOrganisation } from '../modelInterfaces';
+import {
+  ICurrency,
+  IScholarshipApplication,
+  IScholarshipEligibility,
+  ISponsorships,
+  IStatus,
+  IUser,
+  IAssets,
+  IOrganisation,
+  ISponsorshipConditions,
+} from '../modelInterfaces';
 import { ScholarshipApplication } from './scholarshipApplication.model';
+import { SponsorshipConditions } from './sponsorshipConditions.model';
 import { Sponsorships } from './sponsorships.model';
 // import { STATUSES } from './status.model';
 
@@ -51,6 +62,9 @@ export class Scholarship {
   @Column()
   deadline_note: string;
 
+  @Column()
+  external_sponsorship: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 
@@ -88,6 +102,9 @@ export class Scholarship {
 
   @OneToMany(() => Sponsorships, (sponsorships) => sponsorships.Scholarship)
   Sponsorships: ISponsorships[];
+
+  @OneToMany(() => SponsorshipConditions, (conditions) => conditions.Scholarship)
+  SponsorshipConditions: ISponsorshipConditions[];
 
   @OneToMany(() => ScholarshipApplication, (application) => application.Scholarship)
   Applications: IScholarshipApplication[];

@@ -12,6 +12,7 @@ import userRouter from './user.routes';
 import miscillaneousRouter from './miscillaneous.routes';
 import scholarshipRouter from './scholarship.routes';
 import { validateSession } from '../middleware/auth.middleware';
+import Settings from '../services/settings.service';
 
 const router = express.Router();
 
@@ -28,6 +29,8 @@ router.use('/address', addressRouter);
 router.use('/cart', cartRouter);
 router.use('/checkout', checkoutRouter);
 router.use('/misc', miscillaneousRouter);
+
+// Settings.init();
 /**
  * @swagger
  *

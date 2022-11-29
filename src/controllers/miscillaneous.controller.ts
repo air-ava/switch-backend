@@ -30,7 +30,6 @@ export const getCurrenciesCONTROLLER: RequestHandler = async (req, res) => {
 
 export const uploadCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    console.log({ 'req.body.imagePath': req.body.imagePath });
     const payload = { ...req.body, user: req.userId };
 
     const response = await createAsset(payload);
