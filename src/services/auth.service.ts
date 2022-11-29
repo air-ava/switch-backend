@@ -55,11 +55,11 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     const userAlreadyExist = await findUser({ email }, []);
     if (userAlreadyExist) throw Error('Account already exists');
 
-    const {
-      data: { id: phone_number },
-    } = await findOrCreatePhoneNumber(reqPhone);
-
-    const { countryCode: code, localFormat: phone } = reqPhone;
+    let phone_number;
+    if (reqPhone) {
+      const { data: phone } = await findOrCreatePhoneNumber(reqPhone);
+      phone_number = phone.id;
+    }
 
     // todo: put the token in redis and expire it
     const remember_token = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
@@ -78,9 +78,9 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
 
     await createAUser({
       email,
-      phone_number,
-      code,
-      phone,
+      ...(phone_number && { phone_number }),
+      ...(reqPhone && { code: reqPhone.countryCode }),
+      ...(reqPhone && { phone: reqPhone.localFormat }),
       remember_token,
       user_type,
       ...(userTypeCheck && organisation_email && { organisation_email }),

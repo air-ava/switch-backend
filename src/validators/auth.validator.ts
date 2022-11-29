@@ -10,7 +10,7 @@ export const registerValidator = joi
         countryCode: joi.string().valid('234').max(3).message('Your region is wrong for the phone number now').required(),
         localFormat: joi.string().length(11).message('Wrong Phone number format').required(),
       })
-      .required(),
+      .optional(),
     email: joi.string().email().required(),
     password: joi.string().pattern(passwordRegex).required(),
     country: joi.string().valid('NG', 'UG').required(),
