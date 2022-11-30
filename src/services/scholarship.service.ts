@@ -67,6 +67,7 @@ export const createSchorlaship = async (data: {
       style: 'currency',
       currency,
     }),
+    id: scholarship_id,
     ...response,
   });
 };
