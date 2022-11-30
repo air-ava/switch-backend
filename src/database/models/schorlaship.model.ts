@@ -61,6 +61,9 @@ export class Scholarship {
 
   @Column()
   deadline_note: string;
+  
+  @Column()
+  other_rewards: string;
 
   @Column()
   external_sponsorship: boolean;

@@ -134,6 +134,17 @@ export interface IImage {
   updated_at: Date;
 }
 
+export interface ISchools {
+  id: number;
+  country: string;
+  state: string;
+  name: string;
+  education_level: string;
+  status: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface ICurrency {
   id: number;
   code: string;
@@ -161,6 +172,7 @@ export interface IScholarship {
   status: number;
   currency: string;
   deadline_note: string;
+  other_rewards: string;
   external_sponsorship?: boolean;
   application_deadline: Date;
   created_at: Date;
@@ -335,11 +347,21 @@ export interface IScholarshipEligibility {
   file_requirements: string;
   image_requirements: string;
   specific_schools: boolean;
-  eligible_schools: string;
+  eligible_school: string;
   education_level: string;
-  link_reference: string;
-  asset_reference: string;
+  link_reference?: string;
+  asset_reference?: string;
   state?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IScholarshipRequirement {
+  id: number;
+  name: string;
+  reference: string;
+  requirement_type: string;
+  status: number;
   created_at: Date;
   updated_at: Date;
 }

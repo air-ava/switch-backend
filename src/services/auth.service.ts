@@ -133,6 +133,32 @@ export const userAuth = async (data: userAuthDTO): Promise<theResponse> => {
   }
 };
 
+export const resendVerifyToken = async (email: string): Promise<theResponse> => {
+  try {
+    const user = await findUser({ email }, []);
+    if (!user) throw Error('Account Not Found');
+
+    console.log({ user });
+
+    const remember_token = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+    updateUser({ id: user.id }, { remember_token });
+
+    console.log({ user });
+    await sendEmail({
+      recipientEmail: user.email,
+      purpose: 'welcome_user',
+      templateInfo: {
+        code: remember_token,
+        name: ` ${user.first_name}`,
+      },
+    });
+
+    return sendObjectResponse('Token resent successfully');
+  } catch (e: any) {
+    return BadRequestException(e.message || 'Account creation failed, kindly try again', e);
+  }
+};
+
 export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
   const validation = shopperLoginValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);

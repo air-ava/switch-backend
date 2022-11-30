@@ -1,5 +1,5 @@
 import express from 'express';
-import { forgotCONTROLLER, loginCONTROLLER, newPasswordCONTROLLER, signUpCONTROLLER, verifyCONTROLLER } from '../controllers/auth.controller';
+import { forgotCONTROLLER, loginCONTROLLER, newPasswordCONTROLLER, resendCONTROLLER, signUpCONTROLLER, verifyCONTROLLER } from '../controllers/auth.controller';
 
 const router = express.Router();
 
@@ -50,6 +50,7 @@ router.post('/register', signUpCONTROLLER);
 router.post('/login', loginCONTROLLER);
 router.post('/forgot', forgotCONTROLLER);
 router.post('/change', newPasswordCONTROLLER);
+router.post('/resend/:email', resendCONTROLLER);
 
 export default router;
 

@@ -7,7 +7,7 @@ export const createSchorlashipValidator = joi
     user: joi.string().required(),
     title: joi.string().required(),
     description: joi.string().optional(),
-    extra_rewards: joi.string().optional(),
+    other_rewards: joi.string().optional(),
     state: joi.valid('published', 'draft').required(),
     frequency: joi.string().valid('weekly', 'monthly', 'quaterly', 'yearly', 'bi-annually').optional(),
     winners: joi.number().integer().optional(),

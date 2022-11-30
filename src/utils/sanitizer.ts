@@ -1,7 +1,18 @@
-import { ISponsorships, IAssets, IScholarshipEligibility, IScholarshipApplication } from './../database/modelInterfaces';
+import {
+  IBusiness,
+  ICurrency,
+  ILink,
+  IPhoneNumber,
+  IScholarship,
+  IUser,
+  ISponsorships,
+  IAssets,
+  IScholarshipEligibility,
+  IScholarshipApplication,
+} from '../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { IBusiness, ICurrency, ILink, IPhoneNumber, IScholarship, ISTATUSES, IUser } from '../database/modelInterfaces';
+// import { IBusiness, ICurrency, ILink, IPhoneNumber, IScholarship, ISTATUSES, IUser } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 
 export const Sanitizer = {
@@ -51,6 +62,16 @@ export const Sanitizer = {
   },
 
   sanitizeCurrencyRate(payload: ICurrency) {
+    if (!payload) return null;
+    const { id, status, Status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+
+  sanitizeRequirements(payload: ICurrency) {
     if (!payload) return null;
     const { id, status, Status, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
@@ -119,12 +140,12 @@ export const Sanitizer = {
 
   sanitizeEligibility(payload: IScholarshipEligibility): any {
     if (!payload) return null;
-    const { password, status, Links, Assets, ...rest } = Sanitizer.jsonify(payload);
+    const { password, status, linkRequirements, fileRequirements, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
-      assets: Assets && Sanitizer.sanitizeAllArray(Assets, Sanitizer.sanitizeAsset),
-      links: Links && Sanitizer.sanitizeAllArray(Links, Sanitizer.sanitizeLink),
+      fileRequirements: fileRequirements && Sanitizer.sanitizeAllArray(fileRequirements, Sanitizer.sanitizeRequirements),
+      linkRequirements: linkRequirements && Sanitizer.sanitizeAllArray(linkRequirements, Sanitizer.sanitizeRequirements),
     };
     return sanitized;
   },

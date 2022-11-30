@@ -6,12 +6,23 @@ import { getCurrencies } from '../services/curencies.service';
 import { oldSendObjectResponse } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { Sanitizer } from '../utils/sanitizer';
+import Settings from '../services/settings.service';
 
 export const countriesCONTROLLER: RequestHandler = async (req, res) => {
   try {
     return res.status(200).json(oldSendObjectResponse('Countries retrieved successfully', countries));
   } catch (error) {
-    log(Log.fg.red, error);
+    console.log({ error });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
+export const educationLevelCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    // const educationLevel = JSON.parse();
+    return res.status(200).json(oldSendObjectResponse('Education Level retrieved successfully', Settings.get('EDUCATIOAL_LEVEL').level, true));
+  } catch (error) {
+    console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };

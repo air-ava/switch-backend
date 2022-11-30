@@ -14,3 +14,23 @@ export const getOneSettingsREPO = (
       })
     : getRepository(Settings).findOne({ where: queryParam, ...(selectOptions.length && { select: selectOptions.concat(['id']) }) });
 };
+
+export const findSettingsREPO = async (
+  queryParam: Partial<ISettings> | any,
+  selectOptions: Array<keyof Settings>,
+  relationOptions?: any[],
+
+  t?: QueryRunner,
+): Promise<Settings[]> => {
+  return t
+    ? t.manager.find(Settings, {
+        where: queryParam,
+        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+        ...(relationOptions && { relations: relationOptions }),
+      })
+    : getRepository(Settings).find({
+        where: queryParam,
+        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+        ...(relationOptions && { relations: relationOptions }),
+      });
+};

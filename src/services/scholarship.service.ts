@@ -1,17 +1,18 @@
-import randomstring from 'randomstring';
 import * as bcrypt from 'bcrypt';
 import { log } from 'winston';
-import { saveLinkREPO } from '../database/repositories/link.repo';
+import randomstring from 'randomstring';
 import { findMultipleScholarships, findScholarship, saveScholarshipREPO } from '../database/repositories/scholarship.repo';
 import { findScholarshipEligibility, saveScholarshipEligibilityREPO } from '../database/repositories/scholarshipEligibility.repo';
-import { createAUser, findUser, saveAUser } from '../database/repositories/user.repo';
-import { sendObjectResponse, oldSendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
+import { findUser, saveAUser } from '../database/repositories/user.repo';
+import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { createAsset } from './assets.service';
 import { findOrCreatePhoneNumber } from './helper.service';
 import { saveSponsorshipsREPO } from '../database/repositories/sponsorship.repo';
 import { saveSponsorshipConditionsREPO } from '../database/repositories/sponsorshipConditions.repo';
 import { createSchorlashipValidator } from '../validators/scholarship.validator';
+import { saveSchoolsREPO } from '../database/repositories/schools.repo';
+import { saveScholarshipRequirementREPO } from '../database/repositories/scholarshipRequirement.repo';
 
 export const createSchorlaship = async (data: {
   image: string;
@@ -20,6 +21,7 @@ export const createSchorlaship = async (data: {
   amount: number;
   frequency: string;
   state: string;
+  other_rewards: string;
   winners: number;
   application_deadline: Date;
   currency: string;
@@ -74,13 +76,19 @@ export const createSchorlashipEligibility = async (data: {
   applicant_description: string;
   submission_requirements: ('essay' | 'link' | 'file' | 'images')[];
   essay_requirements: string;
+  education_level: string;
   // link_requirements: { name: string; url: string }[];
   // file_requirements: { name: string; url: string }[];
-  link_requirements: string;
-  file_requirements: string;
+  link_requirements: string[];
+  file_requirements: string[];
   image_requirements: string;
   specific_schools: boolean;
-  eligible_schools: string;
+  eligible_schools: {
+    country: string;
+    state: string;
+    level: string;
+    name: string;
+  };
   userId: string;
   organisation?: number;
 }): Promise<any> => {
@@ -88,7 +96,17 @@ export const createSchorlashipEligibility = async (data: {
   // const validation = createBusinessValidator.validate(data);
   // if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { organisation, scholarship_id, submission_requirements, link_requirements, file_requirements, userId, ...rest } = data;
+  const {
+    organisation,
+    eligible_schools,
+    scholarship_id,
+    submission_requirements,
+    link_requirements,
+    file_requirements,
+    specific_schools = false,
+    userId,
+    ...rest
+  } = data;
 
   const existingScholarship = await findScholarship({ id: scholarship_id }, []);
   if (!existingScholarship) throw Error('Sorry, Scholarship does not exist');
@@ -97,27 +115,39 @@ export const createSchorlashipEligibility = async (data: {
   if (existingEligibility) throw Error('Sorry, Scholarship Eligibility already field');
 
   // ? Below is used to add assets and links
-  // const link_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
-  // const asset_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
+  const link_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
+  const file_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
 
   // await Promise.all(
   //   file_requirements.map(({ name, url }) =>
   //     createAsset({ imagePath: url, user: userId, trigger: 'scholarship_eligibility', organisation, name, reference: asset_reference }),
   //   ),
   // );
-  // await Promise.all(
-  //   link_requirements.map(({ name, url }) =>
-  //     saveLinkREPO({ link: url, user: userId, name, trigger: 'scholarship_eligibility', organisation, reference: link_reference }),
-  //   ),
-  // );
+  await Promise.all(
+    link_requirements.map((item: string) => saveScholarshipRequirementREPO({ name: item, requirement_type: 'link', reference: link_reference })),
+  );
+  await Promise.all(
+    file_requirements.map((item: string) => saveScholarshipRequirementREPO({ name: item, requirement_type: 'file', reference: file_reference })),
+  );
+
+  let school;
+  if (specific_schools) {
+    const { country, state, level, name } = eligible_schools;
+    school = await saveSchoolsREPO({
+      country,
+      state,
+      education_level: level,
+      name,
+    });
+  }
 
   const response = await saveScholarshipEligibilityREPO({
     scholarship_id,
     submission_requirements: submission_requirements.toString(),
-    link_requirements,
-    file_requirements,
-    // link_reference,
-    // asset_reference,
+    link_requirements: link_reference,
+    file_requirements: file_reference,
+    specific_schools,
+    ...(school && { eligible_school: school.id }),
     ...rest,
   });
 
@@ -188,7 +218,21 @@ export const addSponsors = async (data: {
 
 export const getScholarships = async (): Promise<any> => {
   try {
-    const existingCompany = await findMultipleScholarships({}, [], ['Status', 'Currency', 'Eligibility', 'User', 'Sponsorships', 'Applications']);
+    const existingCompany = await findMultipleScholarships(
+      {},
+      [],
+      [
+        'Status',
+        'Currency',
+        'Eligibility',
+        'Eligibility.linkRequirements',
+        'Eligibility.fileRequirements',
+        'User',
+        'Sponsorships.User',
+        'Sponsorships',
+        'Applications',
+      ],
+    );
     if (!existingCompany.length) throw Error('Sorry, no business has been created');
 
     return sendObjectResponse('Business retrieved successfully', existingCompany);
@@ -203,7 +247,17 @@ export const getScholarship = async (code: string): Promise<any> => {
     const existingCompany = await findScholarship(
       { id: code },
       [],
-      ['Status', 'Currency', 'Eligibility', 'Eligibility.Links', 'Eligibility.Assets', 'User', 'Sponsorships.User', 'Sponsorships', 'Applications'],
+      [
+        'Status',
+        'Currency',
+        'Eligibility',
+        'Eligibility.linkRequirements',
+        'Eligibility.fileRequirements',
+        'User',
+        'Sponsorships.User',
+        'Sponsorships',
+        'Applications',
+      ],
     );
     if (!existingCompany) throw Error('Sorry, no business has been created');
 

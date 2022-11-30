@@ -11,6 +11,7 @@ import helmet from 'helmet';
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
+import Settings from './services/settings.service';
 // import { jsonify } from './utils/sanitizer';
 // import User from './database/models/user.entity';
 // import { getOneUser } from './database/repositories/user.repository';
@@ -62,6 +63,7 @@ async function startServer(): Promise<void> {
 
   app.listen(port, async () => {
     logger.info(`App is listening on port ${port} !`);
+    Settings.init();
     // eslint-disable-next-line import/no-named-as-default-member
     // const newUser = await getOneUser({ queryParams: { id: '43e5f477-9541-42dc-8d93-cd025a7d2959' } });
     // console.log({newUser: jsonify(newUser)})

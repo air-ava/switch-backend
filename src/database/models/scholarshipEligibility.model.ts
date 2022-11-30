@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
-import { IAssets, ILink, IScholarship } from '../modelInterfaces';
+import { IAssets, ILink, IScholarship, IScholarshipRequirement } from '../modelInterfaces';
 import { Assets } from './assets.model';
+import { ScholarshipRequirement } from './scholarshipRequirement.model';
 import { Link } from './link.model';
 
 @Entity('scholarship_eligibility')
@@ -33,16 +34,16 @@ export class ScholarshipEligibility {
   specific_schools: boolean;
 
   @Column()
-  eligible_schools: string;
+  eligible_school: string;
 
   @Column()
   education_level: string;
 
   @Column()
-  link_reference: string;
+  link_reference?: string;
 
   @Column()
-  asset_reference: string;
+  asset_reference?: string;
 
   @Column()
   state: string;
@@ -62,4 +63,10 @@ export class ScholarshipEligibility {
 
   @OneToMany(() => Link, (link) => link.Scholarship)
   Links: ILink[];
+
+  @OneToMany(() => ScholarshipRequirement, (requirement) => requirement.Link)
+  linkRequirements: IScholarshipRequirement[];
+
+  @OneToMany(() => ScholarshipRequirement, (requirement) => requirement.File)
+  fileRequirements: IScholarshipRequirement[];
 }

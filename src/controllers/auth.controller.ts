@@ -6,11 +6,13 @@ import {
   createUser,
   forgotPassword,
   newPassword,
+  resendVerifyToken,
   resetPassword,
   userLogin,
   verifyAccount,
 } from '../services/auth.service';
 import { oldSendObjectResponse } from '../utils/errors';
+import Settings from '../services/settings.service';
 
 export const signUpCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -25,6 +27,7 @@ export const signUpCONTROLLER: RequestHandler = async (req, res) => {
 export const loginCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const { is_business = false, ...rest } = req.body;
+    await Settings.init();
 
     const response = is_business ? await businessLogin({ ...rest }) : await userLogin({ ...rest });
     const responseCode = response.success === true ? 200 : 400;
@@ -39,6 +42,16 @@ export const verifyCONTROLLER: RequestHandler = async (req, res) => {
     const { token } = req.body;
 
     const response = await verifyAccount({ token, id: req.userId });
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error) {
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
+export const resendCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const response = await resendVerifyToken(req.params.email);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
