@@ -102,6 +102,8 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       templateInfo: {
         code: remember_token,
         name: ` ${user.first_name}`,
+        website: 'https://joinsteward.com/',
+        email: 'support@joinsteward.com',
       },
     });
 
@@ -146,7 +148,7 @@ export const resendVerifyToken = async (email: string): Promise<theResponse> => 
       purpose: 'welcome_user',
       templateInfo: {
         code: remember_token,
-        name: ` ${user.first_name}`,
+        name: ` ${user.first_name}`
       },
     });
 

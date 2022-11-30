@@ -23,7 +23,7 @@ export function getTemplateAndSubjectFromPurpose(purpose: string): { subject: st
     case 'account_email_activate':
       return { subject: 'Activate your Account', template: `${EMAIL_TEMPLATES_PATH}/activation.pug` };
     case 'welcome_user':
-      return { subject: 'Welcome to OurPass', template: `${EMAIL_TEMPLATES_PATH}/welcome.pug` };
+      return { subject: 'Welcome to Steward', template: `${EMAIL_TEMPLATES_PATH}/email-verification.pug` };
     case 'otp_validate':
       return { subject: 'OTP verification', template: `${EMAIL_TEMPLATES_PATH}/welcome.pug` };
     default:
@@ -41,6 +41,10 @@ export const sendEmail = async ({
   templateInfo: { [key: string]: string };
 }): Promise<any> => {
   const { template, subject } = getTemplateAndSubjectFromPurpose(purpose);
+  console.log({
+    templateInfo,
+  });
+
   return transporter.sendMail({
     to: recipientEmail,
     from: 'info@joinsteward.co',
