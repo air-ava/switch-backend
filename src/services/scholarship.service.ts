@@ -242,6 +242,32 @@ export const getScholarships = async (): Promise<any> => {
   }
 };
 
+export const getCompanyScholarships = async (user_id: string, org_id: number): Promise<any> => {
+  try {
+    const existingCompany = await findMultipleScholarships(
+      { user_id, org_id },
+      [],
+      [
+        'Status',
+        'Currency',
+        'Eligibility',
+        'Eligibility.linkRequirements',
+        'Eligibility.fileRequirements',
+        'User',
+        'Sponsorships.User',
+        'Sponsorships',
+        'Applications',
+      ],
+    );
+    if (!existingCompany.length) throw Error('Sorry, no business has been created');
+
+    return sendObjectResponse('Business retrieved successfully', existingCompany);
+  } catch (e: any) {
+    log(Log.fg.red, e);
+    return BadRequestException(e.message || 'Business retrieval failed, kindly try again');
+  }
+};
+
 export const getScholarship = async (code: string): Promise<any> => {
   try {
     const existingCompany = await findScholarship(

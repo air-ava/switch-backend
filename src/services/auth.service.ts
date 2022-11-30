@@ -138,12 +138,9 @@ export const resendVerifyToken = async (email: string): Promise<theResponse> => 
     const user = await findUser({ email }, []);
     if (!user) throw Error('Account Not Found');
 
-    console.log({ user });
-
     const remember_token = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
     updateUser({ id: user.id }, { remember_token });
 
-    console.log({ user });
     await sendEmail({
       recipientEmail: user.email,
       purpose: 'welcome_user',

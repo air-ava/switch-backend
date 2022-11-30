@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { log } from 'winston';
 import countries from '../miscillaneous/countries.json';
-import { addSponsors, createSchorlaship, createSchorlashipEligibility, getScholarship, getScholarships } from '../services/scholarship.service';
+import { addSponsors, createSchorlaship, createSchorlashipEligibility, getCompanyScholarships, getScholarship, getScholarships } from '../services/scholarship.service';
 import { oldSendObjectResponse } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { sanitizeAllArray, Sanitizer, sanitizeScholarship } from '../utils/sanitizer';
@@ -62,7 +62,7 @@ export const addSponsorsCONTROLLER: RequestHandler = async (req, res) => {
 
 export const getScholarshipsCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await getScholarships();
+    const response = await getCompanyScholarships(req.userId, req.user.organisation);
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
     return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeScholarship)));
