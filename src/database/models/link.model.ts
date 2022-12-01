@@ -18,6 +18,12 @@ export class Link {
   @Column({ nullable: true })
   trigger: string;
 
+  @Column({ nullable: true })
+  entity: string;
+
+  @Column({ nullable: true })
+  entity_id: string;
+
   @Column()
   reference: string;
 

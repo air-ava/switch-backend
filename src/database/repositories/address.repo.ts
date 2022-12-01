@@ -9,10 +9,7 @@ export const createAddressREPO = (
   return transaction ? transaction.manager.insert(Addresses, queryParams) : getRepository(Addresses).insert(queryParams);
 };
 
-export const createAndGetAddressREPO = (
-  queryParams: Omit<IAddresses, 'id' | 'created_at' | 'updated_at' | 'deleted_at'>,
-  transaction?: QueryRunner,
-): Promise<Addresses> => {
+export const createAndGetAddressREPO = (queryParams: Partial<IAddresses>, transaction?: QueryRunner): Promise<Addresses> => {
   return transaction ? transaction.manager.save(Addresses, queryParams) : getRepository(Addresses).save(queryParams);
 };
 

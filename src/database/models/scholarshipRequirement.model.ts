@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { IUser, IBusiness, IAddresses, IScholarshipEligibility, IStatus } from '../modelInterfaces';
+import { IUser, IBusiness, IAddresses, IScholarshipEligibility, IStatus, IScholarshipRequirementB } from '../modelInterfaces';
 
 @Entity('scholarship_requirement')
 export class ScholarshipRequirement {
@@ -16,6 +16,9 @@ export class ScholarshipRequirement {
   requirement_type: string;
 
   @Column()
+  trigger: string;
+
+  @Column()
   status: number;
 
   @CreateDateColumn()
@@ -29,10 +32,6 @@ export class ScholarshipRequirement {
   Status: IStatus;
 
   @ManyToOne('ScholarshipEligibility', 'scholarship_requirement')
-  @JoinColumn({ name: 'reference', referencedColumnName: 'link_requirements' })
-  Link: IScholarshipEligibility;
-
-  @ManyToOne('ScholarshipEligibility', 'scholarship_requirement')
-  @JoinColumn({ name: 'reference', referencedColumnName: 'file_requirements' })
-  File: IScholarshipEligibility;
+  @JoinColumn({ name: 'trigger', referencedColumnName: 'id' })
+  Requirements: IScholarshipEligibility;
 }

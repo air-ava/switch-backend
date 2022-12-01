@@ -31,7 +31,7 @@ export interface findAndCreateAddressDTO {
   country: string;
   state: string;
   city: string;
-  status: number;
+  status?: number;
   area: string;
 }
 

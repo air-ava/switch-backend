@@ -79,6 +79,7 @@ export interface IUser {
   email_verified_at?: Date;
   created_at: Date;
   updated_at?: Date;
+  address_id: number;
 }
 
 export interface IPhoneNumber {
@@ -229,6 +230,8 @@ export interface IAssets {
   user: string;
   reference: string;
   trigger: string;
+  entity: string;
+  entity_id: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -366,6 +369,15 @@ export interface IScholarshipRequirement {
   updated_at: Date;
 }
 
+export interface IScholarshipRequirementB {
+  id: number;
+  name: string;
+  reference: string;
+  requirement_type: string;
+  status: number;
+  created_at: Date;
+}
+
 export interface ISponsorships {
   id: string;
   scholarship_id: string;
@@ -396,17 +408,44 @@ export interface ISponsorshipConditions {
 
 export interface IScholarshipApplication {
   id: string;
-  user_id: string;
-  title: string;
-  description: string;
-  image: string;
-  amount: number;
-  frequency: string;
-  winners: number;
+  scholarship_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  code?: string;
+  phone_number: string;
+  education_level: string;
+  address: string;
+  country: string;
   state: string;
+  area: string;
+  city: string;
+  facebook: string;
+  linkedin: string;
+  twitter: string;
+  website: string;
+  essay: string;
+  link: string;
+  document: string;
+  image: string;
+  filenames: string;
+  created_at: Date;
+  updated_at?: Date;
+  phone: number;
+  address_id: number;
+  document_reference: string;
+  user: string;
   status: number;
-  currency: string;
-  application_deadline: Date;
+  social: number;
+}
+
+export interface ISocial {
+  id: number;
+  type: string;
+  link: string;
+  status: number;
+  handle: string;
+  user_id: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -416,6 +455,8 @@ export interface ILink {
   link: string;
   status: number;
   trigger: string;
+  entity: string;
+  entity_id: string;
   reference: string;
   organisation: number;
   user: string;

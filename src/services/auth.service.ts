@@ -104,6 +104,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
         name: ` ${user.first_name}`,
         website: 'https://joinsteward.com/',
         email: 'support@joinsteward.com',
+        userId: user.id,
       },
     });
 

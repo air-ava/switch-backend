@@ -140,7 +140,8 @@ export const Sanitizer = {
 
   sanitizeEligibility(payload: IScholarshipEligibility): any {
     if (!payload) return null;
-    const { password, status, linkRequirements, fileRequirements, ...rest } = Sanitizer.jsonify(payload);
+    const { password, status, Requirements, ...rest } = Sanitizer.jsonify(payload);
+    const { linkRequirements, fileRequirements } = Sanitizer.sanitizeSortRequirements(Requirements);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
@@ -148,6 +149,25 @@ export const Sanitizer = {
       linkRequirements: linkRequirements && Sanitizer.sanitizeAllArray(linkRequirements, Sanitizer.sanitizeRequirements),
     };
     return sanitized;
+  },
+
+  sanitizeSortRequirements(payload: any[]): any {
+    if (!Array.isArray(payload)) return [];
+    const response: any = {
+      linkRequirements: [],
+      fileRequirements: [],
+    };
+    payload.forEach((value: any) => {
+      if (value.requirement_type === 'file') {
+        if (!response.fileRequirements.length) response.fileRequirements = [value];
+        else response.fileRequirements.push(value);
+      }
+      if (value.requirement_type === 'link') {
+        if (!response.linkRequirements.length) response.linkRequirements = [value];
+        else response.linkRequirements.push(value);
+      }
+    });
+    return response;
   },
 
   sanitizePhoneNumber(payload: IPhoneNumber): any {

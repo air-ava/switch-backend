@@ -92,6 +92,9 @@ export class ScholarshipApplication {
   @Column('int', { default: 1 })
   status: number;
 
+  @Column('int', { default: 1 })
+  social: number;
+
   @ManyToOne('Scholarship', 'scholarship_applications')
   @JoinColumn({ name: 'scholarship_id', referencedColumnName: 'id' })
   Scholarship: IScholarship;

@@ -137,7 +137,7 @@ export const findOrCreateAddress = async (payload: findAndCreateAddressDTO): Pro
     country,
     state,
     city,
-    active: true,
+    // active: true,
   };
   const existingAddress = await getOneAddressREPO(query, []);
   if (existingAddress) return sendObjectResponse('Address retrieved successfully', existingAddress);

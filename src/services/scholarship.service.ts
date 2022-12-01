@@ -1,18 +1,23 @@
 import * as bcrypt from 'bcrypt';
 import { log } from 'winston';
 import randomstring from 'randomstring';
-import { findMultipleScholarships, findScholarship, saveScholarshipREPO } from '../database/repositories/scholarship.repo';
+import { findMultipleScholarships, findScholarship, findScholarships, saveScholarshipREPO } from '../database/repositories/scholarship.repo';
 import { findScholarshipEligibility, saveScholarshipEligibilityREPO } from '../database/repositories/scholarshipEligibility.repo';
 import { findUser, saveAUser } from '../database/repositories/user.repo';
 import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { createAsset } from './assets.service';
-import { findOrCreatePhoneNumber } from './helper.service';
+import { findOrCreateAddress, findOrCreatePhoneNumber } from './helper.service';
 import { saveSponsorshipsREPO } from '../database/repositories/sponsorship.repo';
 import { saveSponsorshipConditionsREPO } from '../database/repositories/sponsorshipConditions.repo';
 import { createSchorlashipValidator } from '../validators/scholarship.validator';
 import { saveSchoolsREPO } from '../database/repositories/schools.repo';
 import { saveScholarshipRequirementREPO } from '../database/repositories/scholarshipRequirement.repo';
+import { response } from 'express';
+import { saveScholarshipApplicationREPO } from '../database/repositories/scholarshipApplication.repo';
+import { saveSocialREPO } from '../database/repositories/social.repo';
+import { IUser } from '../database/modelInterfaces';
+import { saveLinkREPO } from '../database/repositories/link.repo';
 
 export const createSchorlaship = async (data: {
   image: string;
@@ -217,6 +222,104 @@ export const addSponsors = async (data: {
   return sendObjectResponse('Scholarship Sponsorship created successfully', response);
 };
 
+export const scholarshipApplication = async (data: {
+  scholarship_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: {
+    localFormat: string;
+    countryCode: string;
+  };
+  education_level: string;
+  address: {
+    street: string;
+    country: string;
+    state: string;
+    city: string;
+    area: string;
+  };
+  socials: { type: string; url: string }[];
+  requirements: {
+    essay: string;
+    links: { link_criteria_id: string; url: string }[];
+    files: { file_criteria_id: string; url: string }[];
+  };
+}): Promise<any> => {
+  const { education_level, socials, requirements, address, scholarship_id, email, phone_number: reqPhone, ...rest } = data;
+  const { essay, links, files } = requirements;
+
+  const existingScholarship = await findScholarship({ id: scholarship_id }, []);
+  if (!existingScholarship) throw Error('Sorry, Scholarship does not exist');
+
+  const organisation = existingScholarship.org_id;
+
+  let userAlreadyExist = await findUser({ email }, [], ['phoneNumber', 'Address']);
+  if (!userAlreadyExist) {
+    const passwordHash = bcrypt.hashSync(email, 8);
+
+    userAlreadyExist = await saveAUser({ email, user_type: 'scholar', ...rest, password: passwordHash });
+  }
+  // check if scholarship has bee applied to by scholar
+  const {
+    data: { id: phone_number },
+  } = await findOrCreatePhoneNumber(reqPhone);
+
+
+  if (userAlreadyExist && !userAlreadyExist.phoneNumber) {
+    const { countryCode: code, localFormat: phone } = reqPhone;
+    userAlreadyExist = await saveAUser({ id: userAlreadyExist.id, phone_number, code, phone });
+  }
+
+  const gottenAddress = await findOrCreateAddress({ ...address });
+  await Promise.all(socials.map(({ type, url }) => saveSocialREPO({ type, link: url, user_id: (userAlreadyExist as IUser).id })));
+
+  if (userAlreadyExist && !userAlreadyExist.Address) {
+    userAlreadyExist = await saveAUser({ id: userAlreadyExist.id, address_id: gottenAddress.data.id });
+  }
+
+  const application = await saveScholarshipApplicationREPO({
+    user: (userAlreadyExist as IUser).id,
+    scholarship_id,
+    phone: phone_number,
+    essay,
+    education_level,
+    address_id: gottenAddress.data.id,
+  });
+
+  await Promise.all(
+    files.map(({ file_criteria_id, url }) =>
+      createAsset({
+        imagePath: url,
+        user: (userAlreadyExist as IUser).id,
+        trigger: 'scholarship_applications',
+        organisation,
+        reference: application.id,
+        entity: 'scholarship_requirement',
+        entity_id: file_criteria_id,
+      }),
+    ),
+  );
+
+  await Promise.all(
+    links.map(({ link_criteria_id, url }) =>
+      saveLinkREPO({
+        link: url,
+        trigger: 'scholarship_applications',
+        organisation,
+        reference: application.id,
+        user: (userAlreadyExist as IUser).id,
+        entity: 'scholarship_requirement',
+        entity_id: link_criteria_id,
+      }),
+    ),
+  );
+
+  // application = saveScholarshipApplicationREPO({ id: application.id, });
+  // todo: send email to the sponsor and organization
+  return sendObjectResponse('Scholarship Sponsorship created successfully', application);
+};
+
 export const getScholarships = async (): Promise<any> => {
   try {
     const existingCompany = await findMultipleScholarships(
@@ -248,17 +351,7 @@ export const getCompanyScholarships = async (user_id: string, org_id: number): P
     const existingCompany = await findMultipleScholarships(
       { user_id, org_id },
       [],
-      [
-        'Status',
-        'Currency',
-        'Eligibility',
-        'Eligibility.linkRequirements',
-        'Eligibility.fileRequirements',
-        'User',
-        'Sponsorships.User',
-        'Sponsorships',
-        'Applications',
-      ],
+      ['Status', 'Currency', 'Eligibility', 'Eligibility.Requirements', 'User', 'Sponsorships.User', 'Sponsorships', 'Applications'],
     );
     if (!existingCompany.length) throw Error('Sorry, no business has been created');
 
@@ -274,17 +367,7 @@ export const getScholarship = async (code: string): Promise<any> => {
     const existingCompany = await findScholarship(
       { id: code },
       [],
-      [
-        'Status',
-        'Currency',
-        'Eligibility',
-        'Eligibility.linkRequirements',
-        'Eligibility.fileRequirements',
-        'User',
-        'Sponsorships.User',
-        'Sponsorships',
-        'Applications',
-      ],
+      ['Status', 'Currency', 'Eligibility', 'Eligibility.Requirements', 'User', 'Sponsorships.User', 'Sponsorships', 'Applications'],
     );
     if (!existingCompany) throw Error('Sorry, no business has been created');
 

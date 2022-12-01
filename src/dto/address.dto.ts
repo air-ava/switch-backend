@@ -4,8 +4,8 @@ export interface createAddressDTO {
   state: string;
   area: string;
   city: string;
-  reference: string;
-  userId: number;
+  reference?: string;
+  userId?: number;
   default?: boolean;
   is_business?: boolean;
 }

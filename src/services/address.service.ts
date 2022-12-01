@@ -8,7 +8,7 @@ import { getAddressesREPO } from '../database/repositories/address.repo';
 import { getOneBuinessREPO } from '../database/repositories/business.repo';
 import { STATUSES } from '../database/models/status.model';
 
-export const createAddress = async (data: createAddressDTO): Promise<theResponse> => {
+export const createAddress = async (data: createAddressDTO | any): Promise<theResponse> => {
   const validation = createAddressValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 

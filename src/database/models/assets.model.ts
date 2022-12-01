@@ -30,6 +30,12 @@ export class Assets {
   @Column()
   trigger: string;
 
+  @Column({ nullable: true })
+  entity: string;
+
+  @Column({ nullable: true })
+  entity_id: string;
+
   @Column()
   url: string;
 

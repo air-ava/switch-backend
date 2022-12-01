@@ -64,9 +64,6 @@ export class ScholarshipEligibility {
   @OneToMany(() => Link, (link) => link.Scholarship)
   Links: ILink[];
 
-  @OneToMany(() => ScholarshipRequirement, (requirement) => requirement.Link)
-  linkRequirements: IScholarshipRequirement[];
-
-  @OneToMany(() => ScholarshipRequirement, (requirement) => requirement.File)
-  fileRequirements: IScholarshipRequirement[];
+  @OneToMany(() => ScholarshipRequirement, (requirement) => requirement.Requirements)
+  Requirements: IScholarshipRequirement[];
 }

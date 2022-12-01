@@ -6,12 +6,14 @@ export const createAsset = async (data: {
   imagePath: string;
   organisation?: number;
   user?: string;
+  entity_id?: string;
+  entity?: string;
   name?: string;
   reference?: string;
   trigger?: string;
   video?: boolean;
 }): Promise<any> => {
-  const { organisation, user, video, name: assetName, reference, trigger } = data;
+  const { organisation, user, entity, entity_id, video, name: assetName, reference, trigger } = data;
   const options = {
     use_filename: false,
     unique_filename: true,
@@ -28,6 +30,8 @@ export const createAsset = async (data: {
     ...(user && { user }),
     ...(reference && { reference }),
     ...(trigger && { trigger }),
+    ...(entity_id && { entity_id }),
+    ...(entity && { entity }),
     file_type,
     file_format,
     bytes,

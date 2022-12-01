@@ -151,13 +151,13 @@ html(lang='en', xmlns:v='urn:schemas-microsoft-com:vml', style="font-family: 'Ae
             p(style="font-family: 'Aeonik', Arial, Helvetica, sans-serif")
               | You registered an account on #{name}&apos;s alumni community. Before being able to use your account, you need to verify that this is your email address by clicking on the button below:
             p(style="font-family: 'Aeonik', Arial, Helvetica, sans-serif; padding-top: 8px; padding-bottom: 8px")
-              a(href=`https://demo.joinsteward.com?code=${code}`, style="font-family: 'Aeonik', Arial, Helvetica, sans-serif; color: blue; text-decoration-line: none")
+              a(href=`https://demo.joinsteward.com/reset-password/${userId}?code=${code}`, style="font-family: 'Aeonik', Arial, Helvetica, sans-serif; color: blue; text-decoration-line: none")
                 span.hover-opacity-80(style="font-family: 'Aeonik', Arial, Helvetica, sans-serif; border-radius: 8px; background-color: #000; padding-left: 32.5px; padding-right: 32.5px; padding-top: 10px; padding-bottom: 10px; color: #fff; transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms")                 Verify your email        
             p(style="font-family: 'Aeonik', Arial, Helvetica, sans-serif")
               | or by clicking this link:
               br(style="font-family: 'Aeonik', Arial, Helvetica, sans-serif")
-              a(href=`https://demo.joinsteward.com?code=${code}`, style="font-family: 'Aeonik', Arial, Helvetica, sans-serif; color: blue")
-                | https://demo.joinsteward.com?code#{code}
+              a(href=`https://demo.joinsteward.com/reset-password/${userId}?code=${code}&`, style="font-family: 'Aeonik', Arial, Helvetica, sans-serif; color: blue")
+                | https://demo.joinsteward.com/reset-password/#{userId}?code=#{code}
             p(style="font-family: 'Aeonik', Arial, Helvetica, sans-serif")
               | This link will verify your email address, and then you&apos;ll officially be a part of #{name}&apos;s alumni community.
             p(style="font-family: 'Aeonik', Arial, Helvetica, sans-serif")
