@@ -73,7 +73,7 @@ export const Sanitizer = {
 
   sanitizeRequirements(payload: ICurrency) {
     if (!payload) return null;
-    const { id, status, Status, ...rest } = Sanitizer.jsonify(payload);
+    const { status, Status, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
