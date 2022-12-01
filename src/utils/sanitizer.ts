@@ -130,10 +130,12 @@ export const Sanitizer = {
 
   sanitizeApplication(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { status, ...rest } = Sanitizer.jsonify(payload);
+    const { status, Links, Assets, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      files: Assets && Sanitizer.sanitizeAllArray(Assets, Sanitizer.sanitizeAsset),
+      links: Links && Sanitizer.sanitizeAllArray(Assets, Sanitizer.sanitizeLink),
     };
     return sanitized;
   },

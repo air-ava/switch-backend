@@ -1,5 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IPhoneNumber, IScholarship, IStatus, IUser } from '../modelInterfaces';
+import { IAssets, ILink, IPhoneNumber, IScholarship, IStatus, IUser } from '../modelInterfaces';
+import { Assets } from './assets.model';
+import { Link } from './link.model';
 // import { Addresses } from './Addresses';
 // import { Orders } from './Order';
 
@@ -102,6 +104,12 @@ export class ScholarshipApplication {
   @OneToOne('Status', 'scholarship_applications')
   @JoinColumn({ name: 'status', referencedColumnName: 'id' })
   Status: IStatus;
+
+  @OneToMany(() => Assets, (asset) => asset.Application)
+  Assets: IAssets[];
+
+  @OneToMany(() => Link, (link) => link.Application)
+  Links: ILink[];
 
   //   @OneToOne('PhoneNumbers', 'scholarship_applications')
   //   @JoinColumn({ name: 'phone' })

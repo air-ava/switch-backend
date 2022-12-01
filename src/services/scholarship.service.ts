@@ -13,7 +13,6 @@ import { saveSponsorshipConditionsREPO } from '../database/repositories/sponsors
 import { createSchorlashipValidator } from '../validators/scholarship.validator';
 import { saveSchoolsREPO } from '../database/repositories/schools.repo';
 import { saveScholarshipRequirementREPO } from '../database/repositories/scholarshipRequirement.repo';
-import { response } from 'express';
 import { saveScholarshipApplicationREPO } from '../database/repositories/scholarshipApplication.repo';
 import { saveSocialREPO } from '../database/repositories/social.repo';
 import { IUser } from '../database/modelInterfaces';
@@ -265,7 +264,6 @@ export const scholarshipApplication = async (data: {
     data: { id: phone_number },
   } = await findOrCreatePhoneNumber(reqPhone);
 
-
   if (userAlreadyExist && !userAlreadyExist.phoneNumber) {
     const { countryCode: code, localFormat: phone } = reqPhone;
     userAlreadyExist = await saveAUser({ id: userAlreadyExist.id, phone_number, code, phone });
@@ -320,23 +318,22 @@ export const scholarshipApplication = async (data: {
   return sendObjectResponse('Scholarship Sponsorship created successfully', application);
 };
 
-export const getScholarships = async (): Promise<any> => {
+export const getScholarships = async (notPublic = false): Promise<any> => {
   try {
-    const existingCompany = await findMultipleScholarships(
-      {},
-      [],
-      [
-        'Status',
-        'Currency',
-        'Eligibility',
-        'Eligibility.linkRequirements',
-        'Eligibility.fileRequirements',
-        'User',
-        'Sponsorships.User',
-        'Sponsorships',
-        'Applications',
-      ],
-    );
+    const relations = [
+      'Status',
+      'Currency',
+      'Eligibility',
+      'Eligibility.Requirements',
+      'User',
+      'Sponsorships.User',
+      'Sponsorships',
+      'Applications',
+    ];
+    if (notPublic) {
+      relations.push('Applications');
+    }
+    const existingCompany = await findMultipleScholarships({}, [], relations);
     if (!existingCompany.length) throw Error('Sorry, no business has been created');
 
     return sendObjectResponse('Business retrieved successfully', existingCompany);
@@ -351,7 +348,7 @@ export const getCompanyScholarships = async (user_id: string, org_id: number): P
     const existingCompany = await findMultipleScholarships(
       { user_id, org_id },
       [],
-      ['Status', 'Currency', 'Eligibility', 'Eligibility.Requirements', 'User', 'Sponsorships.User', 'Sponsorships', 'Applications'],
+      ['Applications.Assets', 'Applications.Links', 'Status', 'Currency', 'Eligibility', 'Eligibility.Requirements', 'User', 'Sponsorships.User', 'Sponsorships', 'Applications'],
     );
     if (!existingCompany.length) throw Error('Sorry, no business has been created');
 
