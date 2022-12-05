@@ -1,4 +1,4 @@
-import { IsNull, MoreThan } from 'typeorm';
+/* eslint-disable no-console */
 import { getQueryRunner } from '../database/helpers/db';
 /**
  * check and lock product row
@@ -12,11 +12,10 @@ import { theResponse } from '../utils/interface';
 import { decrementQuantity, getOneProductREPO } from '../database/repositories/product.repo';
 import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
 import { randomstringGeenerator } from '../utils/utils';
-import { createTransactionREPO } from '../database/repositories/transaction.repo';
 import { businessChecker } from './helper.service';
 import { createOrderREPO } from '../database/repositories/order.repo';
 import { completeCartREPO, getOneCartREPO } from '../database/repositories/cart.repo';
-import { getCarteForCheckout, getCartProductsREPO, getTotalCartedProduct } from '../database/repositories/cartProduct.repo';
+import { getCarteForCheckout, getTotalCartedProduct } from '../database/repositories/cartProduct.repo';
 import { completeCheckoutDTO } from '../dto/checkout.dto';
 import { completeCheckoutValidator } from '../validators/checkout.validator';
 
@@ -61,21 +60,21 @@ export const checkout = async (data: completeCheckoutDTO): Promise<theResponse> 
       }),
     );
 
-    createTransactionREPO(
-      {
-        reference: txReference,
-        description: `cart: ${cartReference}`,
-        purpose: `cart-checkout`,
-        processor_reference,
-        processor: 'paystack',
-        response,
-        amount,
-        txn_type: 'debit',
-        shopper,
-        business: business.id,
-      },
-      queryRunner,
-    );
+    // createTransactionREPO(
+    //   {
+    //     reference: txReference,
+    //     description: `cart: ${cartReference}`,
+    //     purpose: `cart-checkout`,
+    //     processor_reference,
+    //     processor: 'paystack',
+    //     response,
+    //     amount,
+    //     txn_type: 'debit',
+    //     shopper,
+    //     business: business.id,
+    //   },
+    //   queryRunner,
+    // );
 
     await createOrderREPO(
       {

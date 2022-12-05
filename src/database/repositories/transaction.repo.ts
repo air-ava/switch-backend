@@ -2,6 +2,23 @@ import { QueryRunner, InsertResult, getRepository, UpdateResult } from 'typeorm'
 import { ITransactions } from '../modelInterfaces';
 import { Transactions } from '../models/transaction.model';
 
+export const saveTransaction = (
+  transaction_details: Omit<ITransactions, 'id' | 'created_at' | 'updated_at'> & { t: QueryRunner },
+): Promise<InsertResult> => {
+  const { t } = transaction_details;
+  return t ? t.manager.insert(Transactions, transaction_details) : getRepository(Transactions).insert(transaction_details);
+};
+
+export const getTransactionByExternalRef = (external_reference: string, t?: QueryRunner): Promise<{ existingtransaction: string }[]> => {
+  return t
+    ? t.manager.query(
+        `SELECT metadata -> 'external_reference' as existingTransaction FROM transactions WHERE metadata ->> 'external_reference' = '${external_reference}'`,
+      )
+    : getRepository(Transactions).query(
+        `SELECT metadata -> 'external_reference' as existingTransaction FROM transactions WHERE metadata ->> 'external_reference' = '${external_reference}'`,
+      );
+};
+
 export const createTransactionREPO = (
   queryParams: Omit<ITransactions, 'id' | 'created_at' | 'updated_at'>,
   transaction?: QueryRunner,

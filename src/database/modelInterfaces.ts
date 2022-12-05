@@ -264,16 +264,13 @@ export interface IProduct {
 
 export interface ITransactions {
   id: number;
+  user_id: string;
   reference: string;
   description?: string;
   purpose: string;
-  processor_reference: string;
-  processor: string;
-  response: string;
   amount: number;
   txn_type: 'debit' | 'credit';
-  shopper: number;
-  business: number;
+  metadata: { [key: string]: number | string };
   created_at: Date;
   updated_at: Date;
 }
@@ -462,4 +459,45 @@ export interface ILink {
   user: string;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface ICard {
+  id: number;
+  user_id: string;
+  first6: string;
+  last4: string;
+  authorization: string;
+  issuer: string;
+  country: string;
+  type: string;
+  processor: string;
+  default: boolean;
+  currency: string;
+  status: number;
+  deleted_at: Date;
+  created_at: Date;
+}
+
+export interface ICardTransactions {
+  id: number;
+  tx_reference: string;
+  processor: string;
+  processor_response: string;
+  processor_transaction_id: string;
+  processor_transaction_reference: string;
+  updated_at: Date;
+  created_at: Date;
+}
+
+export interface ITransaction {
+  id: number;
+  user_id: number;
+  txn_type: 'debit' | 'credit';
+  amount: number;
+  purpose: string;
+  reference: string;
+  description: string;
+  metadata: { [key: string]: string | number };
+  created_at: Date | any;
+  updated_at?: Date;
 }

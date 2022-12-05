@@ -25,3 +25,6 @@ export const MAILTRAP_USER = throwIfUndefined('MAILTRAP_USER');
 export const MAILTRAP_PASS = throwIfUndefined('MAILTRAP_PASS');
 export const MAILTRAP_PORT = throwIfUndefined('MAILTRAP_PORT');
 export const MAILTRAP_HOST = throwIfUndefined('MAILTRAP_HOST');
+export const FLUTTERWAVE_ENCRYPTION_KEY = throwIfUndefined('FLUTTERWAVE_ENCRYPTION_KEY');
+export const FLUTTERWAVE_BASE_URL = throwIfUndefined('FLUTTERWAVE_BASE_URL');
+export const FLUTTERWAVE_SECRET_KEY = throwIfUndefined('FLUTTERWAVE_SECRET_KEY');

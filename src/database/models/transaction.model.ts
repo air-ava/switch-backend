@@ -30,6 +30,9 @@ export class Transactions {
   @Column()
   txn_type: 'debit' | 'credit';
 
+  @Column('json')
+  metadata: { [key: string]: string | number };
+
   @Column('int')
   shopper: number;
 

@@ -9,6 +9,7 @@ import addressRouter from './address.routes';
 import cartRouter from './cart.routes';
 import checkoutRouter from './checkout.routes';
 import userRouter from './user.routes';
+import webhookRouter from './webhook.routes';
 import miscillaneousRouter from './miscillaneous.routes';
 import scholarshipRouter from './scholarship.routes';
 import { validateSession } from '../middleware/auth.middleware';
@@ -20,6 +21,7 @@ router.get('/', (_, res) => res.json({ success: true, message: 'User gateway v1 
 
 router.use('/auth', authRouter);
 router.use('/public', publicRouter);
+router.use('/webhook', webhookRouter);
 router.use(validateSession);
 router.use('/user', userRouter);
 router.use('/business', businessRouter);
