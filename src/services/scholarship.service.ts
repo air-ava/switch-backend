@@ -13,7 +13,7 @@ import { saveSponsorshipConditionsREPO } from '../database/repositories/sponsors
 import { createSchorlashipValidator } from '../validators/scholarship.validator';
 import { saveSchoolsREPO } from '../database/repositories/schools.repo';
 import { saveScholarshipRequirementREPO } from '../database/repositories/scholarshipRequirement.repo';
-import { saveScholarshipApplicationREPO } from '../database/repositories/scholarshipApplication.repo';
+import { findScholarshipApplication, saveScholarshipApplicationREPO } from '../database/repositories/scholarshipApplication.repo';
 import { saveSocialREPO } from '../database/repositories/social.repo';
 import { IUser } from '../database/modelInterfaces';
 import { saveLinkREPO } from '../database/repositories/link.repo';
@@ -123,18 +123,6 @@ export const createSchorlashipEligibility = async (data: {
   const link_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
   const file_reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
 
-  // await Promise.all(
-  //   file_requirements.map(({ name, url }) =>
-  //     createAsset({ imagePath: url, user: userId, trigger: 'scholarship_eligibility', organisation, name, reference: asset_reference }),
-  //   ),
-  // );
-  await Promise.all(
-    link_requirements.map((item: string) => saveScholarshipRequirementREPO({ name: item, requirement_type: 'link', reference: link_reference })),
-  );
-  await Promise.all(
-    file_requirements.map((item: string) => saveScholarshipRequirementREPO({ name: item, requirement_type: 'file', reference: file_reference })),
-  );
-
   let school;
   if (specific_schools) {
     const { country, state, level, name } = eligible_schools;
@@ -155,6 +143,17 @@ export const createSchorlashipEligibility = async (data: {
     ...(school && { eligible_school: school.id }),
     ...rest,
   });
+
+  await Promise.all(
+    link_requirements.map((item: string) =>
+      saveScholarshipRequirementREPO({ name: item, requirement_type: 'link', trigger: response.id, reference: link_reference }),
+    ),
+  );
+  await Promise.all(
+    file_requirements.map((item: string) =>
+      saveScholarshipRequirementREPO({ name: item, requirement_type: 'file', trigger: response.id, reference: file_reference }),
+    ),
+  );
 
   return sendObjectResponse('Scholarship Eligibility created successfully', response);
 };
@@ -207,7 +206,7 @@ export const addSponsors = async (data: {
 
   const sponsor = await findSponsorships({ user: userAlreadyExist.id, scholarship_id }, [], ['Status', 'Scholarship']);
   if (sponsor) return sendObjectResponse('Scholarship Sponsorship created successfully', sponsor);
-  
+
   const response = await saveSponsorshipsREPO({
     frequency,
     minimum_amount: amount,
@@ -267,6 +266,9 @@ export const scholarshipApplication = async (data: {
   const {
     data: { id: phone_number },
   } = await findOrCreatePhoneNumber(reqPhone);
+
+  const existingApplication = await findScholarshipApplication({ user: userAlreadyExist.id, scholarship_id: existingScholarship.id }, []);
+  if (existingApplication) throw Error('You applied for this Scholarhip Already');
 
   if (userAlreadyExist && !userAlreadyExist.phoneNumber) {
     const { countryCode: code, localFormat: phone } = reqPhone;
@@ -382,4 +384,31 @@ export const getScholarship = async (code: string): Promise<any> => {
   }
 };
 
+export const getScholarshipApplication = async (code: string): Promise<any> => {
+  try {
+    // todo: add org_id
+    const existingApplication = await findScholarshipApplication(
+      { id: code },
+      [],
+      [
+        'User',
+        'Address',
+        'Scholarship',
+        'Scholarship.Eligibility',
+        'Scholarship.Eligibility.Requirements',
+        'Scholarship.Eligibility.Requirements.Links',
+        'Scholarship.Eligibility.Requirements.Assets',
+        'Assets',
+        'Links',
+        'phoneNumber',
+      ],
+    );
+    if (!existingApplication) throw Error('Sorry, no application found');
 
+    return sendObjectResponse('Business retrieved successfully', existingApplication);
+  } catch (e: any) {
+    // log(Log.fg.red, e);
+    console.log({ e });
+    return BadRequestException(e.message || 'Business retrieval failed, kindly try again');
+  }
+};

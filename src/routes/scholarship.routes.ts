@@ -3,6 +3,7 @@ import {
   addSponsorsCONTROLLER,
   createEligibilityCONTROLLER,
   createSchorlashipCONTROLLER,
+  getApplicationCONTROLLER,
   getScholarshipCONTROLLER,
   getScholarshipsCONTROLLER,
 } from '../controllers/scholarship.controller';
@@ -14,5 +15,6 @@ router.get('/:code', getScholarshipCONTROLLER);
 router.post('/', createSchorlashipCONTROLLER);
 router.post('/:code/eligibility', createEligibilityCONTROLLER);
 router.post('/:code/sponsor', addSponsorsCONTROLLER);
+router.get('/:code/application', getApplicationCONTROLLER);
 
 export default router;

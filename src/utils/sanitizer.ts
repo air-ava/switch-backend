@@ -1,3 +1,4 @@
+import { Application } from 'express';
 import {
   IBusiness,
   ICurrency,
@@ -9,6 +10,7 @@ import {
   IAssets,
   IScholarshipEligibility,
   IScholarshipApplication,
+  IScholarshipRequirement,
 } from '../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -71,9 +73,22 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  sanitizeRequirements(payload: ICurrency) {
+  sanitizeRequirements(payload: IScholarshipRequirement, extra?: string) {
     if (!payload) return null;
-    const { status, Status, ...rest } = Sanitizer.jsonify(payload);
+    const { status, Status, Links, Assets, ...rest } = Sanitizer.jsonify(payload);
+    
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      links: Links && Sanitizer.sanitizeSortLinksAssets(Links, 'reference', extra),
+      assets: Assets && Sanitizer.sanitizeSortLinksAssets(Assets, 'reference', extra),
+    };
+    return sanitized;
+  },
+
+  sanitizeApplicationLink(payload: ILink, extra?: string) {
+    if (!payload) return null;
+    const { id, status, Status,  ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
@@ -85,14 +100,14 @@ export const Sanitizer = {
     return Object.keys(object).find((key) => object[key] === value);
   },
 
-  sanitizeScholarship(payload: IScholarship) {
+  sanitizeScholarship(payload: IScholarship, extra?: string) {
     if (!payload) return null;
     const { status, Status, Currency, Eligibility, Sponsorships, Applications, User, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       currency: Currency && Sanitizer.sanitizeCurrency(Currency),
-      eligibility: Eligibility && Sanitizer.sanitizeEligibility(Eligibility),
+      eligibility: Eligibility && Sanitizer.sanitizeEligibility(Eligibility, extra),
       amount_raised: Sponsorships && Sanitizer.sanitizeAmount(Sponsorships, { currency: 'currency', amount: 'minimum_amount' }),
       sponsorships: Sponsorships && Sanitizer.sanitizeAllArray(Sponsorships, Sanitizer.sanitizeSponsorship),
       partner: User && Sanitizer.sanitizeUser(User),
@@ -101,9 +116,9 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  sanitizeAllArray(payload: any, object: any): any[] {
+  sanitizeAllArray(payload: any, object: any, extra?: string): any[] {
     if (!Array.isArray(payload)) return [];
-    return payload.map(object);
+    return payload.map((item) => object(item, extra && extra));
   },
 
   sanitizeUser(payload: IUser): any {
@@ -130,25 +145,28 @@ export const Sanitizer = {
 
   sanitizeApplication(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { status, Links, Assets, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, Links, Assets, Address, Scholarship, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
+      id,
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       files: Assets && Sanitizer.sanitizeAllArray(Assets, Sanitizer.sanitizeAsset),
       links: Links && Sanitizer.sanitizeAllArray(Assets, Sanitizer.sanitizeLink),
+      address: Address && Address,
+      scholarship: Scholarship && Sanitizer.sanitizeScholarship(Scholarship, id),
     };
     return sanitized;
   },
 
-  sanitizeEligibility(payload: IScholarshipEligibility): any {
+  sanitizeEligibility(payload: IScholarshipEligibility, extra?: string): any {
     if (!payload) return null;
     const { password, status, Requirements, ...rest } = Sanitizer.jsonify(payload);
     const { linkRequirements, fileRequirements } = Sanitizer.sanitizeSortRequirements(Requirements);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
-      fileRequirements: fileRequirements && Sanitizer.sanitizeAllArray(fileRequirements, Sanitizer.sanitizeRequirements),
-      linkRequirements: linkRequirements && Sanitizer.sanitizeAllArray(linkRequirements, Sanitizer.sanitizeRequirements),
+      fileRequirements: fileRequirements && Sanitizer.sanitizeAllArray(fileRequirements, Sanitizer.sanitizeRequirements, extra),
+      linkRequirements: linkRequirements && Sanitizer.sanitizeAllArray(linkRequirements, Sanitizer.sanitizeRequirements, extra),
     };
     return sanitized;
   },
@@ -167,6 +185,18 @@ export const Sanitizer = {
       if (value.requirement_type === 'link') {
         if (!response.linkRequirements.length) response.linkRequirements = [value];
         else response.linkRequirements.push(value);
+      }
+    });
+    return response;
+  },
+
+  sanitizeSortLinksAssets(payload: any[], key: string, extra?: string): any {
+    if (!Array.isArray(payload)) return [];
+    let response: any[] = [];
+    payload.forEach((value: any) => {
+      if (value[key] === extra) {
+        if (!response.length) response = [value];
+        else response.push(value);
       }
     });
     return response;

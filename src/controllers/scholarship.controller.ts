@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { log } from 'winston';
 import countries from '../miscillaneous/countries.json';
-import { addSponsors, createSchorlaship, createSchorlashipEligibility, getCompanyScholarships, getScholarship, getScholarships, scholarshipApplication } from '../services/scholarship.service';
+import { addSponsors, createSchorlaship, createSchorlashipEligibility, getCompanyScholarships, getScholarship, getScholarshipApplication, getScholarships, scholarshipApplication } from '../services/scholarship.service';
 import { oldSendObjectResponse } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { sanitizeAllArray, Sanitizer, sanitizeScholarship } from '../utils/sanitizer';
@@ -93,6 +93,18 @@ export const getScholarshipCONTROLLER: RequestHandler = async (req, res) => {
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
     return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeScholarship(data), true));
+  } catch (error) {
+    console.log({ error });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
+export const getApplicationCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const response = await getScholarshipApplication(req.params.code);
+    const responseCode = response.success === true ? 200 : 400;
+    const { data, message, error } = response;
+    return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
   } catch (error) {
     console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });

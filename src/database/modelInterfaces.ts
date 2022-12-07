@@ -376,6 +376,7 @@ export interface IScholarshipRequirement {
   name: string;
   reference: string;
   requirement_type: string;
+  trigger: string;
   status: number;
   created_at: Date;
   updated_at: Date;

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne } from 'typeorm';
-import { IScholarshipApplication, IScholarshipEligibility } from '../modelInterfaces';
+import { IScholarshipApplication, IScholarshipEligibility, IScholarshipRequirement } from '../modelInterfaces';
 
 @Entity('links')
 export class Link {
@@ -46,4 +46,8 @@ export class Link {
   @ManyToOne('ScholarshipApplication', 'links')
   @JoinColumn({ name: 'reference', referencedColumnName: 'id' })
   Application: IScholarshipApplication;
+
+  @ManyToOne('ScholarshipRequirement', 'links')
+  @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
+  Requirement: IScholarshipRequirement;
 }

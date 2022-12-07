@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IAssets, ILink, IPhoneNumber, IScholarship, IStatus, IUser } from '../modelInterfaces';
+import { IAddress, IAssets, ILink, IPhoneNumber, IScholarship, IStatus, IUser } from '../modelInterfaces';
 import { Assets } from './assets.model';
 import { Link } from './link.model';
 // import { Addresses } from './Addresses';
@@ -114,13 +114,17 @@ export class ScholarshipApplication {
   @OneToMany(() => Link, (link) => link.Application)
   Links: ILink[];
 
-  //   @OneToOne('PhoneNumbers', 'scholarship_applications')
-  //   @JoinColumn({ name: 'phone' })
-  //   phoneNumber: IPhoneNumber;
+  @OneToOne('Users', 'scholarship_applications')
+  @JoinColumn({ name: 'user', referencedColumnName: 'id' })
+  User: IUser;
 
-  //   @OneToOne('Address', 'scholarship_applications')
-  //   @JoinColumn({ name: 'address_id' })
-  //   Address: IAddress;
+  @OneToOne('PhoneNumbers', 'scholarship_applications')
+  @JoinColumn({ name: 'phone' })
+  phoneNumber: IPhoneNumber;
+
+  @OneToOne('Addresses', 'scholarship_applications')
+  @JoinColumn({ name: 'address_id' })
+  Address: IAddress;
 
   //   @ManyToOne('Users', 'scholarship_applications')
   //   @JoinColumn({ name: 'user', referencedColumnName: 'id' })
