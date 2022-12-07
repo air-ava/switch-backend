@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { IUser, IBusiness, ICurrency } from '../modelInterfaces';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
+import { ICurrency } from '../modelInterfaces';
 
 @Entity('transactions')
 export class Transactions {
@@ -8,7 +8,7 @@ export class Transactions {
 
   @Column()
   reference: string;
-  
+
   @Column()
   user_id: string;
 
