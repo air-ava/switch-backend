@@ -61,7 +61,7 @@ export class Scholarship {
 
   @Column()
   deadline_note: string;
-  
+
   @Column()
   other_rewards: string;
 
