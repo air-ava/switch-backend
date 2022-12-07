@@ -4,7 +4,7 @@ import { allBusinessCONTROLLER } from '../controllers/business.controller';
 import { countriesCONTROLLER } from '../controllers/miscillaneous.controller';
 import { viewAllProductCategoriesCONTROLLER, viewAllProductCONTROLLER } from '../controllers/product.controller';
 import { allBusinessAndProductsCONTROLLER, getPartnershipScholarshipCONTROLLER, getScholarshipsCONTROLLER } from '../controllers/public.controller';
-import { scholarshipApplicationCONTROLLER } from '../controllers/scholarship.controller';
+import { addSponsorsCONTROLLER, getScholarshipCONTROLLER, scholarshipApplicationCONTROLLER } from '../controllers/scholarship.controller';
 
 const router = express.Router();
 
@@ -41,7 +41,9 @@ router.get('/', allBusinessAndProductsCONTROLLER);
 router.get('/countries', countriesCONTROLLER);
 router.get('/partner/:slug', getPartnershipScholarshipCONTROLLER);
 router.get('/scholarship', getScholarshipsCONTROLLER);
+router.get('/scholarship/:code', getScholarshipCONTROLLER);
 router.post('/scholarship/:code/apply', scholarshipApplicationCONTROLLER);
+router.post('/scholarship/:code/sponsor', addSponsorsCONTROLLER);
 
 /**
  * @swagger

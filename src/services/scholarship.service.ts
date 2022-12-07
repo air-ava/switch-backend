@@ -8,7 +8,7 @@ import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '
 import { Log } from '../utils/logs';
 import { createAsset } from './assets.service';
 import { findOrCreateAddress, findOrCreatePhoneNumber } from './helper.service';
-import { saveSponsorshipsREPO } from '../database/repositories/sponsorship.repo';
+import { findSponsorships, saveSponsorshipsREPO } from '../database/repositories/sponsorship.repo';
 import { saveSponsorshipConditionsREPO } from '../database/repositories/sponsorshipConditions.repo';
 import { createSchorlashipValidator } from '../validators/scholarship.validator';
 import { saveSchoolsREPO } from '../database/repositories/schools.repo';
@@ -205,6 +205,9 @@ export const addSponsors = async (data: {
     userAlreadyExist = await saveAUser({ email, phone_number, code, phone, user_type: 'sponsor', ...rest, password: passwordHash });
   }
 
+  const sponsor = await findSponsorships({ user: userAlreadyExist.id, scholarship_id }, [], ['Status', 'Scholarship']);
+  if (sponsor) return sendObjectResponse('Scholarship Sponsorship created successfully', sponsor);
+  
   const response = await saveSponsorshipsREPO({
     frequency,
     minimum_amount: amount,
@@ -213,6 +216,7 @@ export const addSponsors = async (data: {
     scholarship_id,
     take_transaction_charge,
     ...(organisation && { organisation }),
+    ...(!organisation && { organisation: existingScholarship.org_id }),
     anonymous,
     payment_type,
     fees_paid_by: 'donor',
@@ -377,3 +381,5 @@ export const getScholarship = async (code: string): Promise<any> => {
     return BadRequestException(e.message || 'Business retrieval failed, kindly try again');
   }
 };
+
+

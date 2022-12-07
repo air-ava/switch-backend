@@ -48,7 +48,7 @@ export const createEligibilityCONTROLLER: RequestHandler = async (req, res) => {
 export const addSponsorsCONTROLLER: RequestHandler = async (req, res) => {
   try {
     // console.log({ user: req.user });
-    const payload = { ...req.body, userId: req.userId, organisation: req.user.organisation };
+    const payload = { ...req.body, ...(req.user && { userId: req.userId, organisation: req.user.organisation }) };
     const response = await addSponsors(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
