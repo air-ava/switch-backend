@@ -1,8 +1,10 @@
 import express from 'express';
-import { createPaymentCONTROLLER } from '../controllers/payment.controller';
+import { createPaymentCONTROLLER, listPaymentsCONTROLLER } from '../controllers/payment.controller';
 
 const router = express.Router();
 
 router.post('/', createPaymentCONTROLLER);
+router.get('/', listPaymentsCONTROLLER);
+router.get('/:code', createPaymentCONTROLLER);
 
 export default router;

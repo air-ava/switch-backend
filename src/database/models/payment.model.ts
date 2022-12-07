@@ -20,6 +20,12 @@ export class PendingPayments {
   recipient_id: string;
 
   @Column()
+  applied_to: string;
+
+  @Column()
+  applied_id: string;
+
+  @Column()
   description: string;
 
   @Column('int')

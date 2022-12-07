@@ -20,7 +20,7 @@ export const findPendingPayment = async (
       });
 };
 
-export const findMultiplePendingPaymentss = async (
+export const findMultiplePendingPayments = async (
   queryParam: Partial<IPendingPayments> | any,
   selectOptions: Array<keyof PendingPayments>,
   relationOptions?: any[],

@@ -284,6 +284,8 @@ export interface IPendingPayments {
   description: string;
   status: number;
   amount: number;
+  applied_to: string;
+  applied_id: string;
   created_at: Date;
   updated_at: Date;
 }
