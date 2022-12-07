@@ -8,6 +8,9 @@ export class CardTransactions {
   @Column('text')
   processor: string;
 
+  @Column()
+  user_id: string;
+
   @Column('text')
   tx_reference: string;
 

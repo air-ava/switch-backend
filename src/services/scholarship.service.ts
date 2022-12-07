@@ -320,16 +320,7 @@ export const scholarshipApplication = async (data: {
 
 export const getScholarships = async (notPublic = false): Promise<any> => {
   try {
-    const relations = [
-      'Status',
-      'Currency',
-      'Eligibility',
-      'Eligibility.Requirements',
-      'User',
-      'Sponsorships.User',
-      'Sponsorships',
-      'Applications',
-    ];
+    const relations = ['Status', 'Currency', 'Eligibility', 'Eligibility.Requirements', 'User', 'Sponsorships.User', 'Sponsorships', 'Applications'];
     if (notPublic) {
       relations.push('Applications');
     }
@@ -348,7 +339,18 @@ export const getCompanyScholarships = async (user_id: string, org_id: number): P
     const existingCompany = await findMultipleScholarships(
       { user_id, org_id },
       [],
-      ['Applications.Assets', 'Applications.Links', 'Status', 'Currency', 'Eligibility', 'Eligibility.Requirements', 'User', 'Sponsorships.User', 'Sponsorships', 'Applications'],
+      [
+        'Applications.Assets',
+        'Applications.Links',
+        'Status',
+        'Currency',
+        'Eligibility',
+        'Eligibility.Requirements',
+        'User',
+        'Sponsorships.User',
+        'Sponsorships',
+        'Applications',
+      ],
     );
     if (!existingCompany.length) throw Error('Sorry, no business has been created');
 

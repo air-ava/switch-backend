@@ -12,6 +12,7 @@ import userRouter from './user.routes';
 import webhookRouter from './webhook.routes';
 import miscillaneousRouter from './miscillaneous.routes';
 import scholarshipRouter from './scholarship.routes';
+import transactionsRouter from './transactions.routes';
 import { validateSession } from '../middleware/auth.middleware';
 import Settings from '../services/settings.service';
 
@@ -26,6 +27,7 @@ router.use(validateSession);
 router.use('/user', userRouter);
 router.use('/business', businessRouter);
 router.use('/scholarship', scholarshipRouter);
+router.use('/transactions', transactionsRouter);
 router.use('/product', productRouter);
 router.use('/address', addressRouter);
 router.use('/cart', cartRouter);

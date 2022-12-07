@@ -3,7 +3,7 @@ import { ITransactions } from '../modelInterfaces';
 import { Transactions } from '../models/transaction.model';
 
 export const saveTransaction = (
-  transaction_details: Omit<ITransactions, 'id' | 'created_at' | 'updated_at'> & { t: QueryRunner },
+  transaction_details: Omit<ITransactions, 'id' | 'created_at' | 'updated_at'> & { t?: QueryRunner },
 ): Promise<InsertResult> => {
   const { t } = transaction_details;
   return t ? t.manager.insert(Transactions, transaction_details) : getRepository(Transactions).insert(transaction_details);

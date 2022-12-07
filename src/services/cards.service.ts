@@ -1,7 +1,5 @@
 import joiDate from '@joi/date';
-import dateformat from 'dateformat';
 import Joi from 'joi';
-import { type } from 'os';
 import * as bcrypt from 'bcrypt';
 import randomstring from 'randomstring';
 import { QueryRunner } from 'typeorm';
@@ -27,6 +25,8 @@ import {
   validateCardChargeSCHEMA,
   verifyChargeFromWebhookSCHEMA,
 } from '../validators/cards.validator';
+import { updateScholarshipApplication } from '../database/repositories/scholarshipApplication.repo';
+import { statusOfTransaction } from '../utils/utils';
 
 const joi = Joi.extend(joiDate);
 
@@ -400,71 +400,44 @@ export const verifyChargeFromWebhook = async (payload: verifyWebhookChargeReq): 
   }
 };
 
-// export const setCardAsDefault = async (payload: fetchCardsDefaultPayloadReq): Promise<ControllerResponse> => {
-//   try {
-//     const { userMobile, cardId, type = 'user' } = payload;
+export const recordFLWWebhook = async (data: any): Promise<any> => {
+  const { metadata, ...response } = data;
+  const { user_id, type, type_id } = metadata;
+  const tx_reference = randomstring.generate({ length: 15, capitalization: 'lowercase', charset: 'alphanumeric' });
 
-//     const schema = joi.object(setCardAsDefaultSCHEMA);
-//     const validation = schema.validate({ userMobile, cardId, type });
-//     if (validation.error) throw Error(validation.error.message);
+  if (response['event.type'] === 'CARD_TRANSACTION')
+    await saveCardTransaction({
+      tx_reference,
+      user_id,
+      processor: 'flutterwave',
+      processor_response: response.status,
+      processor_transaction_id: response.id,
+      processor_transaction_reference: response.flwRef,
+    });
 
-//     await dbTransaction(async (queryRunner: QueryRunner) => {
-//       const cards = await fetchCards(
-//         {
-//           user_mobile: userMobile,
-//           wallet_type: type,
-//           deleted: false,
-//         },
-//         ['id', 'first6', 'last4', 'type', 'default'],
-//         queryRunner,
-//       );
+  await saveTransaction({
+    user_id,
+    amount: response.amount + response.charged_amount,
+    purpose: 'card_charge',
+    response: response.status,
+    metadata: {
+      processor_transaction_id: response.id,
+      external_reference: response.flwRef,
+      customer: response.customer,
+      card: response.entity,
+      type,
+      type_id,
+    },
+    reference: tx_reference,
+    description: `${response.entity.card6}******${response.entity.card_last4}`,
+    txn_type: 'credit',
+  });
 
-//       if (!cards.length) throw Error('Card does not exist');
+  const status = statusOfTransaction(response.status);
 
-//       const [specifiedCard] = cards.filter((card) => card.id === cardId);
-//       if (!specifiedCard) throw Error('Card does not exist');
-//       if (specifiedCard.default) throw Error('Card is already default');
+  if (status && type === 'scholarship_applications') {
+    updateScholarshipApplication({ id: type_id }, { payment_reference: tx_reference });
+  }
 
-//       const [currentDefaultCard] = cards.filter((card) => card.default);
-//       await Promise.all([
-//         changeCardDefaultStatus(currentDefaultCard.id, false, queryRunner),
-//         changeCardDefaultStatus(specifiedCard.id, true, queryRunner),
-//       ]);
-//     });
-
-//     return sendObjectResponse('Successfully updated default card');
-//   } catch (e: any) {
-//     return BadRequestException(e.message);
-//   }
-// };
-
-// export const deleteUserCard = async (payload: fetchCardsDefaultPayloadReq): Promise<ControllerResponse> => {
-//   try {
-//     const { userMobile, cardId, type = 'user' } = payload;
-
-//     const schema = joi.object(deleteUserCardSCHEMA);
-//     const validation = schema.validate({ userMobile, cardId, type });
-//     if (validation.error) throw Error(validation.error.message);
-
-//     await dbTransaction(async (queryRunner: QueryRunner) => {
-//       const userCards = await fetchCards(
-//         { user_mobile: userMobile, wallet_type: type, deleted: false },
-//         ['id', 'first6', 'last4', 'type', 'default'],
-//         queryRunner,
-//       );
-
-//       if (!userCards.length) throw Error('Card does not exist');
-
-//       const [selectedCard] = userCards.filter((card) => card.id === cardId);
-//       if (!selectedCard) throw Error('Card does not exist');
-
-//       if (userCards.length > 1 && selectedCard.default) throw Error('Please make another card default before deleting default card.');
-
-//       await deleteCard(cardId, queryRunner);
-//     });
-
-//     return sendObjectResponse('Successfully deleted card');
-//   } catch (e: any) {
-//     return BadRequestException(e.message);
-//   }
-// };
+  // todo: add third_part logs, use mongo db to store the payload
+};

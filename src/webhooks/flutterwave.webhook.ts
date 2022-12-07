@@ -1,4 +1,4 @@
-import { verifyChargeFromWebhook } from '../services/cards.service';
+import { recordFLWWebhook, verifyChargeFromWebhook } from '../services/cards.service';
 import { theResponse } from '../utils/interface';
 import logger from '../utils/logger';
 
@@ -9,8 +9,9 @@ export const completeTransaction = async (payload: any): Promise<any> => {
 
     let postmanRes;
     // WEBHOOK FOR CARD_TRANSACTION
-    if (payload.event === 'charge.completed' && payload['event.type'] === 'CARD_TRANSACTION') {
-      const response = await verifyChargeFromWebhook(payload.data);
+    // if (payload.event === 'charge.completed' && payload['event.type'] === 'CARD_TRANSACTION') {
+    if (payload['event.type'] === 'CARD_TRANSACTION') {
+      const response = await recordFLWWebhook(payload);
       postmanRes = response;
       logger.info(response);
     }

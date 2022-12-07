@@ -268,6 +268,8 @@ export interface ITransactions {
   reference: string;
   description?: string;
   purpose: string;
+  response?: string;
+  currency?: string;
   amount: number;
   txn_type: 'debit' | 'credit';
   metadata: { [key: string]: number | string };
@@ -431,6 +433,7 @@ export interface IScholarshipApplication {
   phone: number;
   address_id: number;
   document_reference: string;
+  payment_reference: string;
   user: string;
   status: number;
   social: number;
@@ -480,6 +483,7 @@ export interface ICard {
 
 export interface ICardTransactions {
   id: number;
+  user_id: string;
   tx_reference: string;
   processor: string;
   processor_response: string;

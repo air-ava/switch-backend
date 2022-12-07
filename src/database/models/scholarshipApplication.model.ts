@@ -89,6 +89,9 @@ export class ScholarshipApplication {
   document_reference: string;
 
   @Column()
+  payment_reference: string;
+
+  @Column()
   user: string;
 
   @Column('int', { default: 1 })

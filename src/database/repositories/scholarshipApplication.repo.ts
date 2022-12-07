@@ -1,4 +1,4 @@
-import { QueryRunner, getRepository, In } from 'typeorm';
+import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
 import { IScholarshipApplication } from '../modelInterfaces';
 import { ScholarshipApplication } from '../models/scholarshipApplication.model';
 
@@ -42,4 +42,14 @@ export const findMultipleScholarshipApplications = async (
 
 export const saveScholarshipApplicationREPO = (queryParams: Partial<IScholarshipApplication>, transaction?: QueryRunner): Promise<any> => {
   return transaction ? transaction.manager.save(ScholarshipApplication, queryParams) : getRepository(ScholarshipApplication).save(queryParams);
+};
+
+export const updateScholarshipApplication = (
+  queryParams: Pick<IScholarshipApplication, 'id'>,
+  updateFields: Partial<IScholarshipApplication>,
+  t?: QueryRunner,
+): Promise<UpdateResult> => {
+  return t
+    ? t.manager.update(ScholarshipApplication, queryParams, updateFields)
+    : getRepository(ScholarshipApplication).update(queryParams, updateFields);
 };

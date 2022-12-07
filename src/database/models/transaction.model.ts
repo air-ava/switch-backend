@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { IUser, IBusiness } from '../modelInterfaces';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
+import { IUser, IBusiness, ICurrency } from '../modelInterfaces';
 
 @Entity('transactions')
 export class Transactions {
@@ -8,6 +8,9 @@ export class Transactions {
 
   @Column()
   reference: string;
+  
+  @Column()
+  user_id: string;
 
   @Column()
   description?: string;
@@ -16,13 +19,10 @@ export class Transactions {
   purpose: string;
 
   @Column()
-  processor_reference: string;
-
-  @Column()
-  processor: string;
-
-  @Column()
   response: string;
+
+  @Column()
+  currency: string;
 
   @Column()
   amount: number;
@@ -33,23 +33,13 @@ export class Transactions {
   @Column('json')
   metadata: { [key: string]: string | number };
 
-  @Column('int')
-  shopper: number;
-
-  @Column('int')
-  business: number;
-
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne('Users', 'transactions')
-  @JoinColumn({ name: 'shopper' })
-  Shopper: IUser;
-
-  @ManyToOne('Business', 'transactions')
-  @JoinColumn({ name: 'business' })
-  Business: IBusiness;
+  @OneToOne('Currency', 'transactions')
+  @JoinColumn({ name: 'currency', referencedColumnName: 'short_code' })
+  Currency: ICurrency;
 }
