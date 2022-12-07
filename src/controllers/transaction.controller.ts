@@ -21,7 +21,7 @@ export const getTransactionCONTROLLER: RequestHandler = async (req, res) => {
     const response = await getTransaction({ user_id: req.userId, id: req.params.id });
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeScholarship(data), true));
+    return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
   } catch (error) {
     console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
