@@ -118,10 +118,8 @@ export interface IBusiness {
   phone_number: string;
   reference: string;
   owner: number;
-  // default: boolean;
   created_at: Date;
   updated_at: Date;
-  // Owner: IUser;
 }
 
 export interface IImage {
