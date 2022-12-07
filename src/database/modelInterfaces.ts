@@ -275,6 +275,19 @@ export interface ITransactions {
   updated_at: Date;
 }
 
+export interface IPendingPayments {
+  id: number;
+  org_id: number;
+  reference: string;
+  sender_id: string;
+  recipient_id: string;
+  description: string;
+  status: number;
+  amount: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface IAddresses {
   id: number;
   street: string;
