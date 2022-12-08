@@ -1,35 +1,62 @@
 import randomstring from 'randomstring';
 import { Not } from 'typeorm';
 import { STATUSES } from '../database/models/status.model';
+import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import { findPendingPayment, findMultiplePendingPayments, savePendingPaymentsREPO } from '../database/repositories/payments.repo';
+import { findScholarship } from '../database/repositories/scholarship.repo';
 import { findUser } from '../database/repositories/user.repo';
 import { sendObjectResponse } from '../utils/errors';
 import { sendEmail } from '../utils/mailtrap';
 
 export const createPendingPayment = async (data: any): Promise<any> => {
-  const { org_id, sender_id, recipient_id, description, amount, ...rest } = data;
+  const { org_id, sender_id, recipient_id, scholarship_id, description, amount, ...rest } = data;
 
-  const pendingPayment = await findPendingPayment({ sender_id, org_id, recipient_id, amount, status: Not(STATUSES.DELETED) }, []);
+  const scholarship = await findScholarship({ id: scholarship_id }, [], ['Organisation']);
+  if (!scholarship) throw Error('Sorry, Scholarship does not exist');
+
+  const organisation = scholarship.Organisation;
+
+  const pendingPayment = await findPendingPayment(
+    { sender_id, org_id: org_id || organisation.id, recipient_id, amount, status: Not(STATUSES.DELETED) },
+    [],
+  );
   if (pendingPayment) throw Error('Payment already exists');
 
   const recipient = await findUser({ id: recipient_id }, []);
   if (!recipient) throw Error('Recipient does not exist');
 
-  const reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
-  const payment = await savePendingPaymentsREPO({ org_id, reference, sender_id, recipient_id, description, amount, ...rest });
+  let scholar;
+  if (rest.applied_to === 'scholar') {
+    scholar = await findUser({ id: rest.applied_id }, []);
+    if (!scholar) throw Error('Scholar does not exist');
+  }
 
-  //   //  todo: send payment recipient_id
-  //   await sendEmail({
-  //     recipientEmail: recipient.email,
-  //     purpose: 'welcome_user',
-  //     templateInfo: {
-  //       code: reference,
-  //       name: ` ${recipient.first_name}`,
-  //       website: 'https://joinsteward.com/',
-  //       email: 'support@joinsteward.com',
-  //       userId: recipient.id,
-  //     },
-  //   });
+  const reference = randomstring.generate({ length: 5, capitalization: 'lowercase', charset: 'alphanumeric' });
+  const payment = await savePendingPaymentsREPO({
+    org_id: org_id || organisation.id,
+    reference,
+    sender_id,
+    recipient_id,
+    description,
+    amount,
+    ...rest,
+  });
+
+  //  todo: send payment recipient_id
+
+  await sendEmail({
+    recipientEmail: recipient.email,
+    purpose: 'payment_request',
+    templateInfo: {
+      code: reference,
+      name: ` ${recipient.first_name}`,
+      organisation_name: ` ${organisation.name}`,
+      description: `${description}`,
+      organisation_email: ` ${organisation.email}`,
+      scholarship_name: ` ${scholarship?.title}`,
+      scholar_full_name: `${scholar?.first_name} ${scholar?.last_name}`,
+    },
+  });
   return sendObjectResponse('Payment created successfully', payment);
 };
 

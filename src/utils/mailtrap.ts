@@ -5,11 +5,14 @@ import { MAILTRAP_PASS, MAILTRAP_USER, MAILTRAP_HOST, MAILTRAP_PORT } from './se
 const EMAIL_TEMPLATES_PATH = `${process.cwd()}/templates`;
 
 export const transporter = nodeMailer.createTransport({
-  host: 'smtp.mailtrap.io',
-  port: 2525,
-  //   secure: true,
-  //   tls: { ciphers: 'SSLv3' },
+  host: 'smtp.gmail.com',
+  port: 465,
   auth: { user: MAILTRAP_USER, pass: MAILTRAP_PASS },
+  // host: 'smtp.mailtrap.io',
+  // port: 2525,
+  // // secure: true,
+  // // tls: { ciphers: 'SSLv3' },
+  // auth: { user: MAILTRAP_USER, pass: MAILTRAP_PASS  },
 });
 
 export function getTemplateAndSubjectFromPurpose(purpose: string): { subject: string; template: string } {
@@ -28,6 +31,8 @@ export function getTemplateAndSubjectFromPurpose(purpose: string): { subject: st
       return { subject: 'Application Recieved', template: `${EMAIL_TEMPLATES_PATH}/application_recieved.pug` };
     case 'application_sent':
       return { subject: 'Thank you for your application', template: `${EMAIL_TEMPLATES_PATH}/application_sent.pug` };
+    case 'payment_request':
+      return { subject: 'Payment Request', template: `${EMAIL_TEMPLATES_PATH}/payment_request.pug` };
     case 'otp_validate':
       return { subject: 'OTP verification', template: `${EMAIL_TEMPLATES_PATH}/welcome.pug` };
     default:
