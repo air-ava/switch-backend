@@ -401,7 +401,7 @@ export const verifyChargeFromWebhook = async (payload: verifyWebhookChargeReq): 
 };
 
 export const recordFLWWebhook = async (data: any): Promise<any> => {
-  const { metadata, ...response } = data;
+  const { meta, ...response } = data;
   const { user_id, type, type_id } = metadata;
   const tx_reference = randomstring.generate({ length: 15, capitalization: 'lowercase', charset: 'alphanumeric' });
 
