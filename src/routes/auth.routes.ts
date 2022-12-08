@@ -4,6 +4,7 @@ import {
   loginCONTROLLER,
   newPasswordCONTROLLER,
   resendCONTROLLER,
+  resetPasswordCONTROLLER,
   signUpCONTROLLER,
   verifyCONTROLLER,
 } from '../controllers/auth.controller';
@@ -59,6 +60,7 @@ router.post('/forgot', forgotCONTROLLER);
 router.post('/change', newPasswordCONTROLLER);
 router.post('/resend/:email', resendCONTROLLER);
 router.post('/verify/:userId', verifyCONTROLLER);
+router.post('/reset/:code', resetPasswordCONTROLLER);
 
 export default router;
 

@@ -17,6 +17,7 @@ import { findScholarshipApplication, saveScholarshipApplicationREPO } from '../d
 import { saveSocialREPO } from '../database/repositories/social.repo';
 import { IUser } from '../database/modelInterfaces';
 import { saveLinkREPO } from '../database/repositories/link.repo';
+import { sendEmail } from '../utils/mailtrap';
 
 export const createSchorlaship = async (data: {
   image: string;
@@ -251,7 +252,7 @@ export const scholarshipApplication = async (data: {
   const { education_level, socials, requirements, address, scholarship_id, email, phone_number: reqPhone, ...rest } = data;
   const { essay, links, files } = requirements;
 
-  const existingScholarship = await findScholarship({ id: scholarship_id }, []);
+  const existingScholarship = await findScholarship({ id: scholarship_id }, [], ['Organisation']);
   if (!existingScholarship) throw Error('Sorry, Scholarship does not exist');
 
   const organisation = existingScholarship.org_id;
@@ -259,9 +260,20 @@ export const scholarshipApplication = async (data: {
   let userAlreadyExist = await findUser({ email }, [], ['phoneNumber', 'Address']);
   if (!userAlreadyExist) {
     const passwordHash = bcrypt.hashSync(email, 8);
+    const remember_token = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
 
-    userAlreadyExist = await saveAUser({ email, user_type: 'scholar', ...rest, password: passwordHash });
+    userAlreadyExist = await saveAUser({ email, remember_token, user_type: 'scholar', ...rest, password: passwordHash });
+    await sendEmail({
+      recipientEmail: userAlreadyExist.email,
+      purpose: 'welcome_user',
+      templateInfo: {
+        code: remember_token,
+        name: ` ${userAlreadyExist.first_name}`,
+        userId: userAlreadyExist.id,
+      },
+    });
   }
+  const userData = userAlreadyExist;
   // check if scholarship has bee applied to by scholar
   const {
     data: { id: phone_number },
@@ -319,8 +331,38 @@ export const scholarshipApplication = async (data: {
     ),
   );
 
+  console.log({
+    userData,
+    scholarship_name: existingScholarship.title,
+    applicant_name: userData.first_name,
+    applicant_email: userData.email,
+    business_name: existingScholarship.Organisation.name,
+  });
   // application = saveScholarshipApplicationREPO({ id: application.id, });
   // todo: send email to the sponsor and organization
+  // * send email to buiness
+  await sendEmail({
+    recipientEmail: userData.email,
+    purpose: 'application_recieved',
+    templateInfo: {
+      scholarship_name: existingScholarship.title,
+      applicant_name: userData.first_name,
+      applicant_email: userData.email,
+      business_name: existingScholarship.Organisation.name,
+    },
+  });
+
+  // * send email to applicant
+  await sendEmail({
+    recipientEmail: userData.email,
+    purpose: 'application_sent',
+    templateInfo: {
+      scholarship_name: existingScholarship.title,
+      applicant_name: userData.first_name,
+      business_name: existingScholarship.Organisation.name,
+    },
+  });
+
   return sendObjectResponse('Scholarship Sponsorship created successfully', application);
 };
 

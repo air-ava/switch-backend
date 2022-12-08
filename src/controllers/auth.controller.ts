@@ -79,7 +79,7 @@ export const newPasswordCONTROLLER: RequestHandler = async (req, res) => {
 
 export const resetPasswordCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await resetPassword({ password: req.body.password, id: req.userId });
+    const response = await resetPassword({ password: req.body.password, id: req.userId || req.params.code });
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {

@@ -23,7 +23,11 @@ export function getTemplateAndSubjectFromPurpose(purpose: string): { subject: st
     case 'account_email_activate':
       return { subject: 'Activate your Account', template: `${EMAIL_TEMPLATES_PATH}/activation.pug` };
     case 'welcome_user':
-      return { subject: 'Welcome to Steward', template: `${EMAIL_TEMPLATES_PATH}/email-verification.pug` };
+      return { subject: 'Welcome to Steward', template: `${EMAIL_TEMPLATES_PATH}/welcome_email_verification.pug` };
+    case 'application_recieved':
+      return { subject: 'Application Recieved', template: `${EMAIL_TEMPLATES_PATH}/application_recieved.pug` };
+    case 'application_sent':
+      return { subject: 'Thank you for your application', template: `${EMAIL_TEMPLATES_PATH}/application_sent.pug` };
     case 'otp_validate':
       return { subject: 'OTP verification', template: `${EMAIL_TEMPLATES_PATH}/welcome.pug` };
     default:
