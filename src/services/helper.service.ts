@@ -24,6 +24,7 @@ import {
 import { STATUSES } from '../database/models/status.model';
 import { getOneAssetsREPO, createAssetsREPO } from '../database/repositories/assets.repo';
 import { getOneOrganisationREPO, createOrganisationREPO } from '../database/repositories/organisation.repo';
+import { getSchool } from '../database/repositories/schools.repo';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
@@ -177,7 +178,8 @@ export const findOrCreateOrganizaton = async (payload: findAndCreateOrganisation
 
   const { business_name: name, organisation_email: email, slug } = payload;
   const existingOrganisation = await getOneOrganisationREPO({ name, status: STATUSES.ACTIVE }, []);
-  if (existingOrganisation && existingOrganisation.email === email) return sendObjectResponse('Organisation retrieved successfully', existingOrganisation);
+  if (existingOrganisation && existingOrganisation.email === email)
+    return sendObjectResponse('Organisation retrieved successfully', existingOrganisation);
   if (existingOrganisation && existingOrganisation.name === name) throw Error('Business name already exists');
 
   await createOrganisationREPO({ name, email, slug });
@@ -186,4 +188,18 @@ export const findOrCreateOrganizaton = async (payload: findAndCreateOrganisation
   if (!createdOrganisation) throw Error('Sorry, problem with Organisation creation');
 
   return sendObjectResponse('Organisation created successfully', createdOrganisation);
+};
+
+export const findSchoolWithOrganization = async (payload: { owner: string; email: string }): Promise<theResponse> => {
+  // const { error } = ImageValidator.validate(payload);
+  // if (error) return ResourceNotFoundError(error);
+
+  const { owner, email } = payload;
+  const existingOrganisation = await getOneOrganisationREPO({ owner, email, status: STATUSES.ACTIVE, type: 'school' }, []);
+  if (!existingOrganisation) throw Error('Organization not found');
+
+  const foundSchool = await getSchool({ organization_id: existingOrganisation.id, name: existingOrganisation.name }, []);
+  if (!foundSchool) throw Error('School not found');
+
+  return sendObjectResponse('Organisation retrieved successfully', { organisation: existingOrganisation, school: foundSchool });
 };

@@ -1,8 +1,8 @@
-import { QueryRunner, getRepository, In } from 'typeorm';
+import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
 import { ISchools } from '../modelInterfaces';
 import { Schools } from '../models/school.model';
 
-export const findSchools = async (
+export const getSchool = async (
   queryParam: Partial<ISchools> | any,
   selectOptions: Array<keyof Schools>,
   relationOptions?: any[],
@@ -20,7 +20,7 @@ export const findSchools = async (
       });
 };
 
-export const findMultipleSchoolss = async (
+export const listSchools = async (
   queryParam: Partial<ISchools> | any,
   selectOptions: Array<keyof Schools>,
   relationOptions?: any[],
@@ -42,4 +42,8 @@ export const findMultipleSchoolss = async (
 
 export const saveSchoolsREPO = (queryParams: Partial<ISchools>, transaction?: QueryRunner): Promise<any> => {
   return transaction ? transaction.manager.save(Schools, queryParams) : getRepository(Schools).save(queryParams);
+};
+
+export const updateSchool = (queryParams: Pick<ISchools, 'id'>, updateFields: Partial<ISchools>, t?: QueryRunner): Promise<UpdateResult> => {
+  return t ? t.manager.update(Schools, queryParams, updateFields) : getRepository(Schools).update(queryParams, updateFields);
 };

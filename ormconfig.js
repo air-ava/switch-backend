@@ -12,10 +12,12 @@ module.exports = {
   entities: [join(__dirname, 'build/database/models/**/*.js')],
   migrations: [join(__dirname, 'build/database/migrations/**/*.js')],
   subscribers: [join(__dirname, 'build/database/subscriber/**/*.js')],
+  seeds: ['build/database/seeder/**/*.js'],
   cli: {
     entitiesDir: 'src/database/models',
     migrationsDir: 'src/database/migrations',
     subscribersDir: 'src/database/subscriber',
+    seedsDir: 'src/database/seeder',
   },
   extra: {
     max: 25,

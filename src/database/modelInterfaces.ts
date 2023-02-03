@@ -82,6 +82,21 @@ export interface IUser {
   address_id: number;
 }
 
+export interface IIndividual {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar: number;
+  job_title: number;
+  status: number;
+  metadata: string;
+  school_id: number;
+  phone_number: number;
+  address_id: number;
+  created_at: Date;
+  updated_at: Date;
+}
 export interface IPhoneNumber {
   id: number;
   countryCode: string;
@@ -139,7 +154,12 @@ export interface ISchools {
   state: string;
   name: string;
   education_level: string;
+  email: string;
+  description: string;
   status: number;
+  organisation_id?: number;
+  phone_number?: number;
+  address_id?: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -340,6 +360,17 @@ export interface IOrder {
   processed_at: Date;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface IQuestionnaire {
+  id: number;
+  question: number;
+  answer_text: string;
+  answer_boolean: boolean;
+  user_id: number;
+  title_id: number;
+  created_at: Date;
+  updated_at?: Date;
 }
 
 export interface ICurrencyRate {

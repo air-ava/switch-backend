@@ -27,6 +27,7 @@ router.use('/webhook', webhookRouter);
 router.use(validateSession);
 router.use('/user', userRouter);
 router.use('/business', businessRouter);
+router.use('/school', businessRouter);
 router.use('/scholarship', scholarshipRouter);
 router.use('/transactions', transactionsRouter);
 router.use('/payments', paymentsRouter);

@@ -402,7 +402,7 @@ export const verifyChargeFromWebhook = async (payload: verifyWebhookChargeReq): 
 
 export const recordFLWWebhook = async (data: any): Promise<any> => {
   const { meta, ...response } = data;
-  const { user_id, type, type_id } = metadata;
+  const { user_id, type, type_id } = meta;
   const tx_reference = randomstring.generate({ length: 15, capitalization: 'lowercase', charset: 'alphanumeric' });
 
   if (response['event.type'] === 'CARD_TRANSACTION')

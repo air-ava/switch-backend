@@ -61,6 +61,7 @@ router.post('/change', newPasswordCONTROLLER);
 router.post('/resend/:email', resendCONTROLLER);
 router.post('/verify/:userId', verifyCONTROLLER);
 router.post('/reset/:code', resetPasswordCONTROLLER);
+router.post('/verify', verifyCONTROLLER);
 
 export default router;
 

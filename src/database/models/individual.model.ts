@@ -1,34 +1,34 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { IUser, IBusiness, IAddresses, IAddress, IOrganisation, IPhoneNumber } from '../modelInterfaces';
 
-@Entity('schools')
-export class Schools {
+@Entity('individual')
+export class Individual {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  country: string;
+  firstName: string;
 
   @Column()
-  state: string;
-
-  @Column()
-  name: string;
-
-  @Column()
-  education_level: string;
+  lastName: string;
 
   @Column()
   email: string;
 
-  @Column()
-  description: string;
-
-  @Column()
-  status: number;
+  @Column('int')
+  avatar: number;
 
   @Column('int')
-  organisation_id: number;
+  job_title: number;
+
+  @Column('int')
+  status: number;
+
+  @Column()
+  metadata: string;
+
+  @Column('int')
+  school_id: number;
 
   @Column('int')
   phone_number: number;
@@ -50,7 +50,7 @@ export class Schools {
   @JoinColumn({ name: 'address_id' })
   Address: IAddress;
 
-  @OneToOne('Organisation', 'schools')
-  @JoinColumn({ name: 'organisation_id', referencedColumnName: 'id' })
+  @OneToOne('Schools', 'individual')
+  @JoinColumn({ name: 'school_id', referencedColumnName: 'id' })
   Organisation: IOrganisation;
 }

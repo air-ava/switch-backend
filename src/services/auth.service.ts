@@ -1,3 +1,4 @@
+import { ISchools } from './../database/modelInterfaces';
 /* eslint-disable array-callback-return */
 import * as bcrypt from 'bcrypt';
 import randomstring from 'randomstring';
@@ -34,6 +35,8 @@ import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
 import { STATUSES } from '../database/models/status.model';
 import { createOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
+import { saveSchoolsREPO } from '../database/repositories/schools.repo';
+import { saveIndividual } from '../database/repositories/individual.repo';
 // import { IEmailMessage } from '../database/modelInterfaces';
 
 export const createUser = async (data: createUserDTO): Promise<theResponse> => {
@@ -64,15 +67,20 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     // todo: put the token in redis and expire it
     const remember_token = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
     const slug = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
-    const userTypeCheck = user_type === 'partner';
+    const userTypeCheck = user_type === 'school';
     const passwordHash = bcrypt.hashSync(password, 8);
 
     let organisation: any;
+    let school: any;
     if (userTypeCheck) {
       organisation = await findOrCreateOrganizaton({
         business_name,
         organisation_email,
         slug,
+      });
+      school = await saveSchoolsREPO({
+        name: business_name,
+        organisation_id: organisation.data.id,
       });
     }
 
@@ -94,7 +102,17 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     if (!user) throw Error(`Sorry, Error creating Account`);
     await createPassword({ user: user.id, password: passwordHash });
 
-    if (userTypeCheck) await updateOrganisationREPO({ id: organisation.data.id }, { owner: user.id });
+    const { first_name: firstName, last_name: lastName } = rest
+    if (userTypeCheck) {
+      await updateOrganisationREPO({ id: organisation.data.id }, { owner: user.id });
+      await saveIndividual({
+        email,
+        ...(phone_number && { phone_number }),
+        firstName,
+        lastName,
+        school_id: school.id,
+      });
+    }
 
     await sendEmail({
       recipientEmail: user.email,

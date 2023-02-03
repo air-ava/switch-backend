@@ -2,30 +2,30 @@
 import joi from 'joi';
 
 const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]*)(?=.*[!@#$%^&*_-])(?=.{8,})');
-export const registerValidator = joi
-  .object()
-  .keys({
-    phone_number: joi
-      .object({
-        countryCode: joi.string().valid('234').max(3).message('Your region is wrong for the phone number now').required(),
-        localFormat: joi.string().length(11).message('Wrong Phone number format').required(),
-      })
-      .optional(),
-    email: joi.string().email().required(),
-    password: joi.string().pattern(passwordRegex).required(),
-    country: joi.string().valid('NG', 'UG').required(),
-    user_type: joi.string().valid('sponsor', 'partner', 'scholar', 'steward').required(),
-    // is_business: joi.boolean().allow(null),
-    first_name: joi.string().min(3).message('First Name must have more than 3 Characters').required(),
-    last_name: joi.string().min(3).message('Last Name must have more than 3 Characters').required(),
-  })
-  .when('.user_type', {
-    is: 'partner',
-    then: joi.object({
-      business_name: joi.string().required(),
-      organisation_email: joi.string().email().required(),
-    }),
-  });
+export const registerValidator = joi.object().keys({
+  phone_number: joi
+    .object({
+      countryCode: joi.string().valid('234').max(3).message('Your region is wrong for the phone number now').required(),
+      localFormat: joi.string().length(11).message('Wrong Phone number format').required(),
+    })
+    .optional(),
+  email: joi.string().email().required(),
+  password: joi.string().pattern(passwordRegex).required(),
+  country: joi.string().valid('NG', 'UG').required(),
+  user_type: joi.string().valid('school', 'vendor').required(),
+  // is_business: joi.boolean().allow(null),
+  first_name: joi.string().min(3).message('First Name must have more than 3 Characters').required(),
+  last_name: joi.string().min(3).message('Last Name must have more than 3 Characters').required(),
+  business_name: joi.string().required(),
+  organisation_email: joi.string().email().required(),
+});
+// .when('.user_type', {
+//   is: 'partner',
+//   then: joi.object({
+//     business_name: joi.string().required(),
+//     organisation_email: joi.string().email().required(),
+//   }),
+// });
 
 export const userAuthValidator = joi.object().keys({
   email: joi.string().email().required(),
