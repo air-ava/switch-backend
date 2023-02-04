@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { IQuestions } from '../modelInterfaces';
 
 @Entity('questionnaire')
 export class Questionnaire {
@@ -6,7 +7,7 @@ export class Questionnaire {
   id: number;
 
   @Column()
-  question: number;
+  question_id: number;
 
   @Column()
   answer_text: string;
@@ -15,14 +16,15 @@ export class Questionnaire {
   answer_boolean: boolean;
 
   @Column()
-  user_id: number;
-
-  @Column()
-  title_id: number;
+  user_id: string;
 
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
   updated_at?: Date;
+
+  @OneToOne('Questions', 'questionnaire')
+  @JoinColumn({ name: 'question_id' })
+  Question: IQuestions;
 }

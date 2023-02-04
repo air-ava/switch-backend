@@ -42,11 +42,11 @@ export class Individual {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToOne('PhoneNumbers', 'schools')
+  @OneToOne('PhoneNumbers', 'individual')
   @JoinColumn({ name: 'phone_number' })
   phoneNumber: IPhoneNumber;
 
-  @OneToOne('Addresses', 'schools')
+  @OneToOne('Addresses', 'individual')
   @JoinColumn({ name: 'address_id' })
   Address: IAddress;
 

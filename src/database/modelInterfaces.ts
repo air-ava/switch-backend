@@ -365,10 +365,10 @@ export interface IOrder {
 
 export interface IQuestionnaire {
   id: number;
-  question: number;
+  question_id: number;
   answer_text: string;
   answer_boolean: boolean;
-  user_id: number;
+  user_id: string;
   title_id: number;
   created_at: Date;
   updated_at?: Date;
