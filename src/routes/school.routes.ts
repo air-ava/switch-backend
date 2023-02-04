@@ -1,16 +1,12 @@
 import express from 'express';
-import {
-  createBusinessCONTROLLER,
-  getBusinessCONTROLLER,
-  updateBusinessCONTROLLER,
-  viewAllBusinessCONTROLLER,
-} from '../controllers/business.controller';
+import { schoolInfoCONTROLLER, schoolContactCONTROLLER, schoolOwnerCONTROLLER } from '../controllers/school.controller';
 
 const router = express.Router();
 
-router.post('/info', createBusinessCONTROLLER);
-router.patch('/update/:ref', updateBusinessCONTROLLER);
-router.get('/:ref', getBusinessCONTROLLER);
-router.get('/', viewAllBusinessCONTROLLER);
+router.post('/info', schoolInfoCONTROLLER);
+router.post('/contact', schoolContactCONTROLLER);
+router.post('/owner', schoolOwnerCONTROLLER);
+// router.get('/:ref', getBusinessCONTROLLER);
+// router.get('/questionnaire', viewAllBusinessCONTROLLER);
 
 export default router;

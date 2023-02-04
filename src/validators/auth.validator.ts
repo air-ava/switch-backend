@@ -11,7 +11,7 @@ export const registerValidator = joi.object().keys({
     .optional(),
   email: joi.string().email().required(),
   password: joi.string().pattern(passwordRegex).required(),
-  country: joi.string().valid('NG', 'UG').required(),
+  country: joi.string().valid('NG', 'UG').optional(),
   user_type: joi.string().valid('school', 'vendor').required(),
   // is_business: joi.boolean().allow(null),
   first_name: joi.string().min(3).message('First Name must have more than 3 Characters').required(),
