@@ -13,8 +13,9 @@ export const schoolInfoCONTROLLER: RequestHandler = async (req, res) => {
     const response = await updateSchoolInfo(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
-  } catch (error) {
-    return res.status(500).json({ success: false, error: errorMessages.schoolInfo, data: error });
+  } catch (error: any) {
+    console.log({ error });
+    return res.status(500).json({ success: false, error: error.message || errorMessages.schoolInfo, data: error });
   }
 };
 

@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express';
 // eslint-disable-next-line prettier/prettier
 import authRouter from './auth.routes';
 import businessRouter from './business.routes';
+import schoolRouter from './school.routes';
 import productRouter from './product.routes';
 import publicRouter from './public.routes';
 import addressRouter from './address.routes';
@@ -27,7 +28,7 @@ router.use('/webhook', webhookRouter);
 router.use(validateSession);
 router.use('/user', userRouter);
 router.use('/business', businessRouter);
-router.use('/school', businessRouter);
+router.use('/school', schoolRouter);
 router.use('/scholarship', scholarshipRouter);
 router.use('/transactions', transactionsRouter);
 router.use('/payments', paymentsRouter);

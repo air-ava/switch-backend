@@ -206,6 +206,7 @@ export interface IOrganisation {
   bio: string;
   status: number;
   logo: string;
+  type: string;
   phone_number: string;
   owner: string;
   slug: string;

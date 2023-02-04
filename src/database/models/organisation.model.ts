@@ -21,6 +21,9 @@ export class Organisation {
   @Column('int')
   status: number;
 
+  @Column()
+  type: string;
+
   @Column({ nullable: true })
   logo: string;
 

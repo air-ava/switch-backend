@@ -15,16 +15,11 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
 
   const { user, schoolName, organisationName, schoolEmail, schoolType, schoolDescription } = data;
 
-  //   const queryRunner = await getQueryRunner();
   try {
-    // await queryRunner.startTransaction();
-
-    // await queryRunner.commitTransaction();
-
     const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, email: user.email, status: STATUSES.ACTIVE, type: 'school' }, []);
     if (!existingOrganisation) throw Error('Organization not found');
-
-    const foundSchool = await getSchool({ organization_id: existingOrganisation.id, name: existingOrganisation.name }, []);
+    
+    const foundSchool = await getSchool({ organisation_id: existingOrganisation.id, name: existingOrganisation.name }, []);
     if (!foundSchool) throw Error('School not found');
 
     await updateSchool(
@@ -41,8 +36,11 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
 
     return sendObjectResponse('School Information successfully updated');
   } catch (e: any) {
+    console.log({ e });
+    throw new Error(e.message || 'Updating School Info failed, kindly try again');
+    
     // await queryRunner.rollbackTransaction();
-    return BadRequestException('Updating School Info failed, kindly try again');
+    // return BadRequestException('Updating School Info failed, kindly try again');
   } finally {
     // await queryRunner.release();
   }
