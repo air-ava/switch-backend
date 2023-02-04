@@ -44,7 +44,7 @@ export const forgotPasswordValidator = joi.object().keys({
 
 export const verifyUserValidator = joi.object().keys({
   id: joi.string().required(),
-  token: joi.string().length(8).required(),
+  token: joi.string().length(6).required(),
 });
 
 export const newPasswordValidator = joi.object().keys({
