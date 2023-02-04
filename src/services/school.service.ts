@@ -1,8 +1,9 @@
+/* eslint-disable array-callback-return */
 import { IUser } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { updateIndividual } from '../database/repositories/individual.repo';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
-import { getSchool, updateSchool } from '../database/repositories/schools.repo';
+import { getSchool, listSchools, updateSchool } from '../database/repositories/schools.repo';
 import { sendObjectResponse, BadRequestException } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import Settings from './settings.service';
@@ -18,9 +19,15 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   try {
     const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, email: user.email, status: STATUSES.ACTIVE, type: 'school' }, []);
     if (!existingOrganisation) throw Error('Organization not found');
-    
-    const foundSchool = await getSchool({ organisation_id: existingOrganisation.id, name: existingOrganisation.name }, []);
-    if (!foundSchool) throw Error('School not found');
+
+    let foundSchool: { [key: string]: any } = {};
+    const schools = await listSchools({ organisation_id: existingOrganisation.id }, []);
+    if (!schools.length) throw Error('School not found');
+
+    schools.map((school) => {
+      if (schoolName === school.name) foundSchool = school;
+    });
+    if (!foundSchool) foundSchool = schools[schools.length - 1];
 
     await updateSchool(
       { id: foundSchool.id },
@@ -32,17 +39,11 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
       },
     );
 
-    await updateOrganisationREPO({ id: existingOrganisation.data.id }, { name: organisationName });
+    await updateOrganisationREPO({ id: existingOrganisation.id }, { name: organisationName });
 
     return sendObjectResponse('School Information successfully updated');
   } catch (e: any) {
-    console.log({ e });
     throw new Error(e.message || 'Updating School Info failed, kindly try again');
-    
-    // await queryRunner.rollbackTransaction();
-    // return BadRequestException('Updating School Info failed, kindly try again');
-  } finally {
-    // await queryRunner.release();
   }
 };
 
@@ -81,6 +82,7 @@ export const updateSchoolContact = async (data: {
 
     return sendObjectResponse('School Contact Information successfully updated');
   } catch (e: any) {
+    console.log(e);
     // await queryRunner.rollbackTransaction();
     return BadRequestException('Updating School Contact Information failed, kindly try again');
   } finally {
