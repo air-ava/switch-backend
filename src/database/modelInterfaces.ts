@@ -374,6 +374,23 @@ export interface IQuestionnaire {
   updated_at?: Date;
 }
 
+export interface IQuestions {
+  id: number;
+  question: string;
+  type: 'text' | 'radio' | 'checkbox';
+  title_id: number;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface IQuestionnaireTitle {
+  id: number;
+  title: string;
+  trigger: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
 export interface ICurrencyRate {
   id: number;
   currency: string;

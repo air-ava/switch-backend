@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { updateOrganisationOwner, updateSchoolContact, updateSchoolInfo } from '../services/school.service';
+import { getQuestions, updateOrganisationOwner, updateSchoolContact, updateSchoolInfo } from '../services/school.service';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
@@ -34,6 +34,28 @@ export const schoolOwnerCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
     const response = await updateOrganisationOwner(payload);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error) {
+    return res.status(500).json({ success: false, error: errorMessages.schoolOwner, data: error });
+  }
+};
+
+export const accountUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload = { ...req.body };
+    const response = await getQuestions(payload);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error) {
+    return res.status(500).json({ success: false, error: errorMessages.schoolOwner, data: error });
+  }
+};
+
+export const answerUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload = { ...req.body };
+    const response = await getQuestions(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {

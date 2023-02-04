@@ -9,6 +9,8 @@ import { theResponse } from '../utils/interface';
 import Settings from './settings.service';
 import { findOrCreateAddress, findOrCreatePhoneNumber, findSchoolWithOrganization } from './helper.service';
 import { answerQuestionnaire } from '../database/repositories/questions.repo';
+import { listQuestionnaire } from '../database/repositories/questionTitle.repo';
+import { createBusinessValidator } from '../validators/business.validator';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   //   const validation = createBusinessValidator.validate(data);
@@ -179,7 +181,14 @@ export const updateOrganisationOwner = async (data: {
 //   } catch (e: any) {
 //     // await queryRunner.rollbackTransaction();
 //     return BadRequestException('Updating School Owner Information failed, kindly try again');
-//   } finally {
-//     // await queryRunner.release();
 //   }
 // };
+
+export const getQuestions = async ({ process }: { process: string }): Promise<theResponse> => {
+    // const validation = createBusinessValidator.validate(data);
+  //   if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const response = await listQuestionnaire({ trigger: process }, [], ['Questions']);
+  if (!response.length) throw Error('School not found');
+  return sendObjectResponse('School Owner Information successfully updated', response);
+};
