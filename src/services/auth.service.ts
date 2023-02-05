@@ -227,14 +227,14 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
 
   const { id, token: remember_token } = data;
   try {
-    const userAlreadyExist = await findUser({ id }, [], []);
+    const userAlreadyExist = id ? await findUser({ id }, [], []) : await findUser({ remember_token }, [], []);
     if (!userAlreadyExist) throw Error(`User Not Found`);
     if (userAlreadyExist.remember_token !== remember_token) throw Error(`Wrong Token`);
 
     await verifyUser(
       {
         remember_token,
-        id,
+        ...(id && { id }),
       },
       { email_verified_at: new Date(Date.now()) },
     );

@@ -42,7 +42,7 @@ export const verifyCONTROLLER: RequestHandler = async (req, res) => {
     const { token } = req.body;
     const payload = {
       token: token || String(req.query.code),
-      id: req.userId || String(req.params.userId),
+      id: req.userId || req.params.userId,
     };
     const response = await verifyAccount(payload);
     const responseCode = response.success === true ? 200 : 400;
