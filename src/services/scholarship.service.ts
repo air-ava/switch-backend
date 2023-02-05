@@ -260,7 +260,7 @@ export const scholarshipApplication = async (data: {
   let userAlreadyExist = await findUser({ email }, [], ['phoneNumber', 'Address']);
   if (!userAlreadyExist) {
     const passwordHash = bcrypt.hashSync(email, 8);
-    const remember_token = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+    const remember_token = randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' });
 
     userAlreadyExist = await saveAUser({ email, remember_token, user_type: 'scholar', ...rest, password: passwordHash });
     await sendEmail({

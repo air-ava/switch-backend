@@ -159,7 +159,7 @@ export const resendVerifyToken = async (email: string): Promise<theResponse> => 
     const user = await findUser({ email }, []);
     if (!user) throw Error('Account Not Found');
 
-    const remember_token = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+    const remember_token = randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' });
     updateUser({ id: user.id }, { remember_token });
 
     await sendEmail({
@@ -184,6 +184,7 @@ export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
   try {
     const { data: user, success, error, message } = await userAuth({ ...data, addPhone: true });
     if (!success) throw Error(error);
+    if (!user.email_verified_at) throw Error('This account has not been verified');
 
     const token = generateToken(user);
 
