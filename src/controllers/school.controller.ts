@@ -43,8 +43,7 @@ export const schoolOwnerCONTROLLER: RequestHandler = async (req, res) => {
 
 export const accountUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const payload = { ...req.body };
-    const response = await getQuestions(payload);
+    const response = await getQuestions({ process: String(req.query.process) });
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {

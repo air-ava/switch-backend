@@ -39,7 +39,12 @@ export const loginCONTROLLER: RequestHandler = async (req, res) => {
 
 export const verifyCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await verifyAccount({ token: String(req.query.code), id: String(req.params.userId) });
+    const { token } = req.body;
+    const payload = {
+      token: token || String(req.query.code),
+      id: req.userId || String(req.params.userId),
+    };
+    const response = await verifyAccount(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error) {
