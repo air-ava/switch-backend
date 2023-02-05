@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { answerQuestionnaireService, getQuestions, getSchoolDetails, updateOrganisationOwner, updateSchoolContact, updateSchoolInfo } from '../services/school.service';
+import { answerQuestionnaireService, getQuestions, getSchoolDetails, updateOrganisationOwner, updateSchoolContact, updateSchoolDetails, updateSchoolInfo } from '../services/school.service';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
@@ -70,6 +70,19 @@ export const getSchoolCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const payload = { user: req.user };
     const response = await getSchoolDetails(payload);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: errorMessages.schoolProfile, data: error });
+  }
+};
+
+export const updateSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload = { ...req.body, user: req.user };
+    const response = await updateSchoolDetails(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error: any) {

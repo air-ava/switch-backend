@@ -36,6 +36,9 @@ export class Schools {
   @Column('int')
   address_id: number;
 
+  @Column('int')
+  logo: number;
+
   @CreateDateColumn()
   created_at: Date;
 

@@ -80,6 +80,7 @@ export interface IUser {
   created_at: Date;
   updated_at?: Date;
   address_id: number;
+  avatar: number;
 }
 
 export interface IIndividual {
@@ -157,6 +158,7 @@ export interface ISchools {
   email: string;
   description: string;
   status: number;
+  logo: number;
   organisation_id?: number;
   phone_number?: number;
   address_id?: number;

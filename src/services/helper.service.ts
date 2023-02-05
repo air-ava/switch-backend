@@ -195,7 +195,7 @@ export const findSchoolWithOrganization = async (payload: { owner: string; email
   // if (error) return ResourceNotFoundError(error);
 
   const { owner, email } = payload;
-  const existingOrganisation = await getOneOrganisationREPO({ owner, email, status: STATUSES.ACTIVE, type: 'school' }, []);
+  const existingOrganisation = await getOneOrganisationREPO({ owner, ...(email && { email }), status: STATUSES.ACTIVE, type: 'school' }, []);
   if (!existingOrganisation) throw Error('Organization not found');
 
   const foundSchool = await getSchool(

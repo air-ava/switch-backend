@@ -331,13 +331,6 @@ export const scholarshipApplication = async (data: {
     ),
   );
 
-  console.log({
-    userData,
-    scholarship_name: existingScholarship.title,
-    applicant_name: userData.first_name,
-    applicant_email: userData.email,
-    business_name: existingScholarship.Organisation.name,
-  });
   // application = saveScholarshipApplicationREPO({ id: application.id, });
   // todo: send email to the sponsor and organization
   // * send email to buiness

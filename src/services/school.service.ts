@@ -1,8 +1,7 @@
-import { IQuestions } from './../database/modelInterfaces';
+import { STATUSES } from '../database/models/status.model';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable array-callback-return */
 import { IUser } from '../database/modelInterfaces';
-import { STATUSES } from '../database/models/status.model';
 import { updateIndividual } from '../database/repositories/individual.repo';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool, listSchools, updateSchool } from '../database/repositories/schools.repo';
@@ -12,22 +11,13 @@ import Settings from './settings.service';
 import { findOrCreateAddress, findOrCreatePhoneNumber, findSchoolWithOrganization } from './helper.service';
 import { answerQuestionnaire, findQuestionnaire } from '../database/repositories/questionnaire.repo';
 import { listQuestionnaire } from '../database/repositories/questionTitle.repo';
-import { createBusinessValidator } from '../validators/business.validator';
 import { getQuestionnaire } from '../validators/schools.validator';
-import { mapAnArray, toTitle } from '../utils/utils';
-import {
-  answerBooleanQuestionsDTO,
-  answerDTO,
-  answerQuestionsDTO,
-  answerQuestionServiceDTO,
-  answerQuestionTitlesDTO,
-  answerTextQuestionsDTO,
-  questionsDTO,
-} from '../dto/school.dto';
+import { toTitle } from '../utils/utils';
+import { answerBooleanQuestionsDTO, answerQuestionServiceDTO, answerTextQuestionsDTO } from '../dto/school.dto';
 import { getQuestion } from '../database/repositories/question.repo';
-import { boolean } from 'joi';
 import { Sanitizer } from '../utils/sanitizer';
 import { updateUser } from '../database/repositories/user.repo';
+import { createAsset } from './assets.service';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   //   const validation = createBusinessValidator.validate(data);
@@ -207,7 +197,15 @@ export const answerQuestionService = async ({ question, user, choice }: answerQu
 
 export const answerQuestionnaireService = async ({ answers, user }: { answers: answerQuestionServiceDTO[]; user: string }): Promise<any> => {
   try {
-    return Promise.all(answers.map(({ question, choice }: answerQuestionServiceDTO) => answerQuestionService({ question, user, choice })));
+    const {
+      data: { school },
+    } = await findSchoolWithOrganization({ owner: user });
+
+    console.log({ school });
+    await Promise.all(answers.map(({ question, choice }: answerQuestionServiceDTO) => answerQuestionService({ question, user, choice })));
+
+    await updateSchool({ id: school.id }, { status: STATUSES.UNVERIFIED });
+    return sendObjectResponse('Onboarding completed successfully');
   } catch (error: any) {
     return BadRequestException(error.message);
   }
@@ -227,7 +225,60 @@ export const getSchoolDetails = async (data: any) => {
   }
 };
 
-// todo: answer checkbox questions
-// todo: answer radio questions
-// todo: answer text questions
-// todo: answer questionnaire
+export const updateSchoolDetails = async (data: any) => {
+  const { user, logo, phone_number: reqPhone, address, schoolName, organisationName, schoolEmail, schoolType, schoolDescription } = data;
+  const { country, state } = address;
+
+  try {
+    const {
+      data: { school, organisation },
+    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
+
+    const payload: any = {};
+    if (reqPhone) {
+      const {
+        data: { id: phone_number },
+      } = await findOrCreatePhoneNumber(reqPhone);
+      payload.phone_number = phone_number;
+    }
+
+    if (address) {
+      const gottenAddress = await findOrCreateAddress({ ...address });
+      payload.country = country;
+      payload.state = state;
+      payload.address_id = gottenAddress.data.id;
+    }
+
+    if (logo) {
+      const createdAsset = await createAsset({
+        imagePath: logo,
+        user: user.id,
+        trigger: 'update_school_details',
+        organisation: organisation.id,
+        entity: 'school',
+        entity_id: school.id,
+      });
+      payload.logo = createdAsset.data.id;
+    }
+
+    await updateOrganisationREPO({ id: organisation.id }, { name: organisationName });
+    await updateSchool(
+      { id: school.id },
+      {
+        ...(schoolName && { name: schoolName }),
+        ...(schoolEmail && { email: schoolEmail }),
+        ...(schoolDescription && { description: schoolDescription }),
+        ...(schoolType && { education_level: schoolType.toString() }),
+        ...payload,
+      },
+    );
+
+    const foundSchool = await getSchool({ id: school.id }, [], ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner']);
+    if (!foundSchool) throw Error('School not found');
+
+    return sendObjectResponse('School update completed successfully', Sanitizer.sanitizeSchool(foundSchool));
+  } catch (e: any) {
+    return BadRequestException(e.message);
+  }
+};

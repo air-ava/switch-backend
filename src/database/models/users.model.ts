@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IAddress, IPhoneNumber } from '../modelInterfaces';
+import { IAddress, IAssets, IPhoneNumber } from '../modelInterfaces';
 // import { Addresses } from './Addresses';
 // import { Orders } from './Order';
 
@@ -140,6 +140,9 @@ export class Users {
   @Column('int')
   address_id: number;
 
+  @Column('int')
+  avatar: number;
+
   // @Column('boolean')
   // is_business: boolean;
 
@@ -159,4 +162,8 @@ export class Users {
   @OneToOne('Addresses', 'users')
   @JoinColumn({ name: 'address_id' })
   Address: IAddress;
+
+  @OneToOne('Assets', 'users')
+  @JoinColumn({ name: 'avatar' })
+  Avatar: IAssets;
 }

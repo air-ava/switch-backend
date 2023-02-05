@@ -28,7 +28,7 @@ import {
 } from '../dto/auth.dto';
 import { findUser, createAUser, updateUser, verifyUser } from '../database/repositories/user.repo';
 import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
-import { sanitizeBusinesses, sanitizeUser } from '../utils/sanitizer';
+import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
 import { generateToken } from '../utils/jwt';
 import { getBusinessesREPO, getOneBuinessREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
@@ -189,7 +189,7 @@ export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
     const token = generateToken(user);
 
     return sendObjectResponse('Login successful', {
-      user: sanitizeUser(user),
+      user: Sanitizer.sanitizeUser(user),
       token,
     });
   } catch (e: any) {
