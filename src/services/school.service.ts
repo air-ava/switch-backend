@@ -26,6 +26,8 @@ import {
 } from '../dto/school.dto';
 import { getQuestion } from '../database/repositories/question.repo';
 import { boolean } from 'joi';
+import { Sanitizer } from '../utils/sanitizer';
+import { updateUser } from '../database/repositories/user.repo';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   //   const validation = createBusinessValidator.validate(data);
@@ -146,6 +148,8 @@ export const updateOrganisationOwner = async (data: {
       },
     );
 
+    updateUser({ id: user.id }, { phone_number, job_title: Settings.get('JOB_TITLES')[job_title] });
+
     return sendObjectResponse('School Owner Information successfully updated');
   } catch (e: any) {
     // await queryRunner.rollbackTransaction();
@@ -206,6 +210,20 @@ export const answerQuestionnaireService = async ({ answers, user }: { answers: a
     return Promise.all(answers.map(({ question, choice }: answerQuestionServiceDTO) => answerQuestionService({ question, user, choice })));
   } catch (error: any) {
     return BadRequestException(error.message);
+  }
+};
+
+export const getSchoolDetails = async (data: any) => {
+  const { user } = data;
+
+  try {
+    const {
+      data: { school },
+    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+
+    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool(school));
+  } catch (e: any) {
+    return BadRequestException(e.message);
   }
 };
 

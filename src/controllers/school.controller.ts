@@ -1,11 +1,12 @@
 import { RequestHandler } from 'express';
-import { answerQuestionnaireService, getQuestions, updateOrganisationOwner, updateSchoolContact, updateSchoolInfo } from '../services/school.service';
+import { answerQuestionnaireService, getQuestions, getSchoolDetails, updateOrganisationOwner, updateSchoolContact, updateSchoolInfo } from '../services/school.service';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
   schoolContact: 'Could not add school Contact',
   schoolOwner: 'Could not add school Owner Details',
   useCase: 'Could not complete use case',
+  schoolProfile: 'Could not get school profile',
 };
 
 export const schoolInfoCONTROLLER: RequestHandler = async (req, res) => {
@@ -62,5 +63,18 @@ export const answerUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, 
       ? res.status(400).json({ success: false, error: error.message })
       : res.status(500).json({ success: false, error: errorMessages.useCase, data: error });
     // return res.status(500).json({ success: false, error: error.message || errorMessages.schoolOwner, data: error });
+  }
+};
+
+export const getSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload = { user: req.user };
+    const response = await getSchoolDetails(payload);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: errorMessages.schoolProfile, data: error });
   }
 };

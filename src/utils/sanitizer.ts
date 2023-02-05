@@ -76,7 +76,7 @@ export const Sanitizer = {
   sanitizeRequirements(payload: IScholarshipRequirement, extra?: string) {
     if (!payload) return null;
     const { status, Status, Links, Assets, ...rest } = Sanitizer.jsonify(payload);
-    
+
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
@@ -88,7 +88,7 @@ export const Sanitizer = {
 
   sanitizeApplicationLink(payload: ILink, extra?: string) {
     if (!payload) return null;
-    const { id, status, Status,  ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, Status, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
@@ -123,9 +123,50 @@ export const Sanitizer = {
 
   sanitizeUser(payload: IUser): any {
     if (!payload) return null;
-    const { password, phone_number, remember_token, phoneNumber, ...rest } = Sanitizer.jsonify(payload);
+    const {
+      password,
+      phone_number,
+      remember_token,
+      phoneNumber,
+      image,
+      title,
+      employer,
+      job_title,
+      industry_skills,
+      job_status,
+      country,
+      state,
+      area,
+      city,
+      bio,
+      provider,
+      provider_id,
+      facebook,
+      linkedin,
+      twitter,
+      website,
+      slug,
+      address,
+      instagram,
+      logo,
+      organisation_email,
+      organisation_headline,
+      organisation_bio,
+      organisation_code,
+      organisation_phone,
+      organisation_address,
+      organisation_country,
+      organisation_state,
+      organisation_area,
+      organisation_city,
+      email_verified_at,
+      address_id,
+      phone,
+      ...rest
+    } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
+      emailVerified: !!email_verified_at,
       ...(phoneNumber && { phone_number: phoneNumber.internationalFormat }),
       phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
     };
@@ -222,6 +263,37 @@ export const Sanitizer = {
     const { status, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
+
+  sanitizeAddress(payload: IAssets): any {
+    if (!payload) return null;
+    const { status, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
+
+  sanitizeOrganization(payload: IAssets): any {
+    if (!payload) return null;
+    const { status, Owner, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      owner: Owner && Sanitizer.sanitizeUser(Owner),
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
+
+  sanitizeSchool(payload: IAssets): any {
+    if (!payload) return null;
+    const { status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      address: Address && Sanitizer.sanitizeAddress(Address),
+      phoneNumber: phoneNumber && Sanitizer.sanitizePhoneNumber(phoneNumber),
+      organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
   },
