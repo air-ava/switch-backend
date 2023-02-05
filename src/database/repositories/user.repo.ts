@@ -53,10 +53,6 @@ export const updateUser = (queryParams: Pick<IUser, 'id'>, updateFields: Partial
   return t ? t.manager.update(Users, queryParams, updateFields) : getRepository(Users).update(queryParams, updateFields);
 };
 
-export const verifyUser = (
-  queryParams: Pick<IUser, 'id' | 'remember_token'>,
-  updateFields: Partial<IUser>,
-  t?: QueryRunner,
-): Promise<UpdateResult> => {
+export const verifyUser = (queryParams: Partial<IUser>, updateFields: Partial<IUser>, t?: QueryRunner): Promise<UpdateResult> => {
   return t ? t.manager.update(Users, queryParams, updateFields) : getRepository(Users).update(queryParams, updateFields);
 };

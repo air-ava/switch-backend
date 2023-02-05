@@ -190,7 +190,7 @@ export const findOrCreateOrganizaton = async (payload: findAndCreateOrganisation
   return sendObjectResponse('Organisation created successfully', createdOrganisation);
 };
 
-export const findSchoolWithOrganization = async (payload: { owner: string; email: string }): Promise<theResponse> => {
+export const findSchoolWithOrganization = async (payload: { owner: string; email?: string }): Promise<theResponse> => {
   // const { error } = ImageValidator.validate(payload);
   // if (error) return ResourceNotFoundError(error);
 

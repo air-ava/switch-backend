@@ -12,7 +12,7 @@ export interface businessLoginDTO {
 }
 
 export interface verifyUserDTO {
-  id: string;
+  id?: string;
   token: string;
 }
 
