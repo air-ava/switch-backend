@@ -25,6 +25,9 @@ export class Schools {
   description: string;
 
   @Column()
+  website: string;
+
+  @Column()
   status: number;
 
   @Column('int')

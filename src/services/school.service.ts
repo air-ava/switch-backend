@@ -23,7 +23,7 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   //   const validation = createBusinessValidator.validate(data);
   //   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { user, schoolName, organisationName, schoolEmail, schoolType, schoolDescription } = data;
+  const { user, schoolName, organisationName, schoolEmail, schoolType, schoolDescription, schoolWebsite } = data;
 
   try {
     const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, email: user.email, status: STATUSES.ACTIVE, type: 'school' }, []);
@@ -45,6 +45,7 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
         email: schoolEmail,
         description: schoolDescription,
         education_level: schoolType,
+        website: schoolWebsite,
       },
     );
 
@@ -226,7 +227,18 @@ export const getSchoolDetails = async (data: any) => {
 };
 
 export const updateSchoolDetails = async (data: any) => {
-  const { user, logo, phone_number: reqPhone, address, schoolName, organisationName, schoolEmail, schoolType, schoolDescription } = data;
+  const {
+    user,
+    logo,
+    phone_number: reqPhone,
+    address,
+    schoolName,
+    schoolWebsite,
+    organisationName,
+    schoolEmail,
+    schoolType,
+    schoolDescription,
+  } = data;
   const { country, state } = address;
 
   try {
@@ -269,6 +281,7 @@ export const updateSchoolDetails = async (data: any) => {
         ...(schoolName && { name: schoolName }),
         ...(schoolEmail && { email: schoolEmail }),
         ...(schoolDescription && { description: schoolDescription }),
+        ...(schoolWebsite && { website: schoolWebsite }),
         ...(schoolType && { education_level: schoolType.toString() }),
         ...payload,
       },

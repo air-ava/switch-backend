@@ -157,6 +157,7 @@ export interface ISchools {
   education_level: string;
   email: string;
   description: string;
+  website: string;
   status: number;
   logo: number;
   organisation_id?: number;
