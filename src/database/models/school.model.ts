@@ -23,6 +23,9 @@ export class Schools {
 
   @Column()
   description: string;
+  
+  @Column()
+  document_reference: string;
 
   @Column()
   website: string;

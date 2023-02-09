@@ -54,10 +54,14 @@ export class Assets {
   @ManyToOne('ScholarshipEligibility', 'assets')
   @JoinColumn({ name: 'reference', referencedColumnName: 'asset_reference' })
   Scholarship: IScholarshipEligibility;
-  
+
   @ManyToOne('ScholarshipApplication', 'assets')
   @JoinColumn({ name: 'reference', referencedColumnName: 'id' })
   Application: IScholarshipApplication;
+
+  @ManyToOne('Documents', 'assets')
+  @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
+  Document: IScholarshipApplication;
 
   @ManyToOne('ScholarshipRequirement', 'assets')
   @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })

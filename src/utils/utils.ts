@@ -25,6 +25,7 @@ export const findObjectValue = (object: any, path: string) => {
   let sanitizedObject = jsonify(object);
   // eslint-disable-next-line no-plusplus
   for (let index = 0; index < args.length; index++) {
+    // eslint-disable-next-line no-prototype-builtins
     if (!sanitizedObject.hasOwnProperty(args[index])) return;
     sanitizedObject = sanitizedObject[args[index]];
   }
@@ -88,7 +89,7 @@ export const mapAnArray = (arr: any[], key: string) => {
   });
 };
 
-export const createObjectFromArray = (payload: any, key: string, value: any, path: string) => {
+export const createObjectFromArray = (payload: any, key: string, value: any, path?: string) => {
   if (!Array.isArray(payload)) return null;
   const response: { [key: string]: any } = {};
   payload.forEach((item) => {

@@ -47,6 +47,10 @@ export class Link {
   @JoinColumn({ name: 'reference', referencedColumnName: 'id' })
   Application: IScholarshipApplication;
 
+  @ManyToOne('Documents', 'links')
+  @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
+  Document: IScholarshipApplication;
+
   @ManyToOne('ScholarshipRequirement', 'links')
   @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
   Requirement: IScholarshipRequirement;

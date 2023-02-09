@@ -157,12 +157,48 @@ export interface ISchools {
   education_level: string;
   email: string;
   description: string;
+  document_reference: string;
   website: string;
   status: number;
   logo: number;
   organisation_id?: number;
   phone_number?: number;
   address_id?: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IDocumentRequirement {
+  id: number;
+  requirement_type: 'link' | 'number' | 'file' | 'text';
+  required: boolean;
+  status: number;
+  name: string;
+  type: string;
+  process: string;
+  country: string;
+  description: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IDocuments {
+  id: number;
+  reference: string;
+  type: string;
+  metadata: string;
+  status: number;
+  number: string;
+  asset_id: string;
+  link_id: number;
+  processor: string;
+  response: string;
+  country: string;
+  trigger: string;
+  entity: string;
+  entity_id: string;
+  expiry_date?: Date;
+  issuing_date?: Date;
   created_at: Date;
   updated_at: Date;
 }
