@@ -115,7 +115,7 @@ export const updateOrganisationOwner = async (data: {
   //   if (validation.error) return ResourceNotFoundError(validation.error);
 
   const { job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
-
+  
   try {
     const {
       data: { school: foundSchool },
@@ -135,11 +135,11 @@ export const updateOrganisationOwner = async (data: {
         firstName,
         lastName,
         phone_number,
-        job_title: Settings.get('JOB_TITLES')[job_title],
+        job_title: Settings.get('JOB_TITLES')[job_title] || undefined,
       },
     );
 
-    updateUser({ id: user.id }, { phone_number, job_title: Settings.get('JOB_TITLES')[job_title] });
+    updateUser({ id: user.id }, { phone_number, job_title: Settings.get('JOB_TITLES')[job_title] ? job_title : undefined });
 
     return sendObjectResponse('School Owner Information successfully updated');
   } catch (e: any) {
@@ -201,11 +201,9 @@ export const answerQuestionnaireService = async ({ answers, user }: { answers: a
     const {
       data: { school },
     } = await findSchoolWithOrganization({ owner: user });
-
-    console.log({ school });
     await Promise.all(answers.map(({ question, choice }: answerQuestionServiceDTO) => answerQuestionService({ question, user, choice })));
 
-    await updateSchool({ id: school.id }, { status: STATUSES.UNVERIFIED });
+    await updateSchool({ id: school.id }, { status: STATUSES.VERIFIED });
     return sendObjectResponse('Onboarding completed successfully');
   } catch (error: any) {
     return BadRequestException(error.message);

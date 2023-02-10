@@ -131,7 +131,6 @@ export const Sanitizer = {
       image,
       title,
       employer,
-      job_title,
       industry_skills,
       job_status,
       country,
@@ -164,16 +163,23 @@ export const Sanitizer = {
       phone,
       Avatar,
       Address,
+      School,
+      Organisation,
       ...rest
     } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
+      schoolOnboardingStatus: School
+        ? Sanitizer.getStatusById(STATUSES, School.status).toLowerCase()
+        : Sanitizer.getStatusById(STATUSES, `${STATUSES.UNVERIFIED}`).toLowerCase(),
       avatar: Avatar && Sanitizer.sanitizeAsset(Avatar),
       address: Address && Sanitizer.sanitizeAddress(Address),
       emailVerified: !!email_verified_at,
       email_verified_at,
       ...(phoneNumber && { phone_number: phoneNumber.internationalFormat }),
       phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
+      school: School && Sanitizer.sanitizeSchool(School),
+      organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
     };
     return sanitized;
   },

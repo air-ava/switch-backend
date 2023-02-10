@@ -1,6 +1,11 @@
+import { IOrganisation } from './../database/modelInterfaces';
 // eslint-disable-next-line prettier/prettier
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
+import { IUser } from '../database/modelInterfaces';
+import { STATUSES } from '../database/models/status.model';
+import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
+import { getSchool } from '../database/repositories/schools.repo';
 import { findUser } from '../database/repositories/user.repo';
 import { BadRequestException } from '../utils/errors';
 // eslint-disable-next-line prettier/prettier
@@ -36,7 +41,16 @@ export const validateSession: RequestHandler = async (req, res, next) => {
 
   req.userId = String(extractedData.id);
   const user = await findUser({ id: extractedData.id }, []);
-  if (!user) return BadRequestException(`Currency doesn't exists`);
+  if (!user) return BadRequestException(`User doesn't exists`);
+  const organisation = await getOneOrganisationREPO({ id: (user as IUser).organisation }, []);
+  if (organisation) {
+    req.organisation = organisation as any;
+    if (organisation) {
+      const school = await getSchool({ organisation_id: organisation.id }, []);
+      if (school) req.school = school as any;
+    }
+  }
+
   req.user = user;
   return next();
 };

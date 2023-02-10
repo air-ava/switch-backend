@@ -17,6 +17,38 @@ declare namespace Express {
       created_at: Date;
       updated_at?: Date;
     };
+    organisation: {
+      id: string;
+      name: string;
+      email: string;
+      bio: string;
+      status: number;
+      logo: string;
+      type: string;
+      phone_number: string;
+      owner: string;
+      slug: string;
+      created_at: Date;
+      updated_at: Date;
+    };
+    school: {
+      id: string;
+      country: string;
+      state: string;
+      name: string;
+      education_level: string;
+      email: string;
+      description: string;
+      document_reference: string;
+      website: string;
+      status: number;
+      logo: number;
+      organisation_id?: number;
+      phone_number?: number;
+      address_id?: number;
+      created_at: Date;
+      updated_at: Date;
+    };
   }
 }
 

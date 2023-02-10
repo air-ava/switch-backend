@@ -1,4 +1,4 @@
-import { ISchools } from './../database/modelInterfaces';
+import { ISchools, IUser } from './../database/modelInterfaces';
 /* eslint-disable array-callback-return */
 import * as bcrypt from 'bcrypt';
 import randomstring from 'randomstring';
@@ -34,8 +34,8 @@ import { getBusinessesREPO, getOneBuinessREPO } from '../database/repositories/b
 import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
 import { STATUSES } from '../database/models/status.model';
-import { createOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
-import { saveSchoolsREPO } from '../database/repositories/schools.repo';
+import { createOrganisationREPO, getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
+import { getSchool, saveSchoolsREPO } from '../database/repositories/schools.repo';
 import { saveIndividual } from '../database/repositories/individual.repo';
 // import { IEmailMessage } from '../database/modelInterfaces';
 
@@ -141,12 +141,21 @@ export const userAuth = async (data: userAuthDTO): Promise<theResponse> => {
   const { email, password, addPhone } = data;
 
   try {
-    const userAlreadyExist = await findUser({ email }, [], [addPhone && 'phoneNumber']);
+    const userAlreadyExist: any = await findUser({ email }, [], [addPhone && 'phoneNumber']);
     if (!userAlreadyExist) throw Error(`Your credentials are incorrect`);
     // if (!userAlreadyExist.enabled) throw Error('Your account has been disabled');
     if (!userAlreadyExist.password) throw Error('Kindly set password');
 
     if (!bcrypt.compareSync(password, userAlreadyExist.password)) throw Error('Your credentials are incorrect');
+
+    const organisation = await getOneOrganisationREPO({ id: userAlreadyExist.organisation }, []);
+    if (organisation) {
+      userAlreadyExist.Organisation = organisation as any;
+      if (organisation) {
+        const school = await getSchool({ organisation_id: organisation.id }, []);
+        if (school) userAlreadyExist.School = school as any;
+      }
+    }
 
     return sendObjectResponse('User Authenticated', userAlreadyExist);
   } catch (e: any) {

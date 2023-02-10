@@ -75,6 +75,7 @@ export interface IUser {
   organisation_state: string;
   organisation_area: string;
   organisation_city: string;
+  organisation: number;
   remember_token: string | null;
   email_verified_at?: Date;
   created_at: Date;
