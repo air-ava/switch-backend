@@ -168,9 +168,6 @@ export const Sanitizer = {
       ...rest
     } = Sanitizer.jsonify(payload);
 
-    console.log({
-      School
-    })
     const sanitized = {
       ...rest,
       ...(School && { schoolOnboardingStatus: Sanitizer.getStatusById(STATUSES, School.status).toLowerCase() }),
