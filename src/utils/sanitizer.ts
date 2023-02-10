@@ -167,11 +167,13 @@ export const Sanitizer = {
       Organisation,
       ...rest
     } = Sanitizer.jsonify(payload);
+
+    console.log({
+      School
+    })
     const sanitized = {
       ...rest,
-      schoolOnboardingStatus: School
-        ? Sanitizer.getStatusById(STATUSES, School.status).toLowerCase()
-        : Sanitizer.getStatusById(STATUSES, `${STATUSES.UNVERIFIED}`).toLowerCase(),
+      ...(School && { schoolOnboardingStatus: Sanitizer.getStatusById(STATUSES, School.status).toLowerCase() }),
       avatar: Avatar && Sanitizer.sanitizeAsset(Avatar),
       address: Address && Sanitizer.sanitizeAddress(Address),
       emailVerified: !!email_verified_at,
