@@ -70,4 +70,9 @@ export const Repo = {
       : getRepository(Wallets).update({ id: walletId }, { transaction_pin: pin });
   },
   
+  // async updateWalletTransactionPin({ walletId, pin, t }: { walletId: number; pin: string; t?: QueryRunner }): Promise<UpdateResult> {
+  //   return t
+  //     ? t.manager.update(Wallets, { id: walletId }, { transaction_pin: pin })
+  //     : getRepository(Wallets).update({ id: walletId }, { transaction_pin: pin });
+  // },
 };

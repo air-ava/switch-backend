@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import randomstring from 'randomstring';
 import * as bcrypt from 'bcrypt';
 import { findCurrency } from '../database/repositories/curencies.repo';
@@ -6,6 +7,7 @@ import { ControllerResponse } from '../utils/interface';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { getQueryRunner } from '../database/helpers/db';
 import { getSchool } from '../database/repositories/schools.repo';
+import { IUser } from '../database/modelInterfaces';
 
 export const Service: any = {
   /**
@@ -61,7 +63,7 @@ export const Service: any = {
     return sendObjectResponse('Account successfully created');
   },
 
-  async setWalletPin(userMobile: string, transactionPin: string, type?: 'business' | 'user'): Promise<ControllerResponse> {
+  async setWalletPin(user: IUser, transactionPin: string, type?: 'permanent' | 'temporary'): Promise<ControllerResponse> {
     // const schema = joi.object(setWalletPinSchema);
     // const validation = schema.validate({ userMobile, transactionPin, type });
 
@@ -74,7 +76,11 @@ export const Service: any = {
 
     const t = await getQueryRunner();
     try {
-      const walletArray = await WalletREPO.findWallets({ user_mobile: userMobile, type: type || 'user' }, ['id', 'transaction_pin'], t);
+      const walletArray = await WalletREPO.findWallets(
+        { userId: user.id, type: type || 'permanent', entity: 'school' },
+        ['id', 'transaction_pin'],
+        t,
+      );
       if (walletArray.length === 0) {
         await t.rollbackTransaction();
         return {
@@ -143,5 +149,77 @@ export const Service: any = {
     // const ConvertedWalletCase = await Promise.all(wallets.map(async (wallet) => toCamelCase(await getFlutterwaveAccountWithWalletInfo(wallet))));
 
     return sendObjectResponse('School wallet retrieved successfully', wallet);
+  },
+
+  async updateWalletPin({
+    user,
+    oldPin,
+    newPin,
+    type = 'permanent',
+  }: {
+    user: IUser;
+    oldPin: string;
+    newPin: string;
+    type?: 'permanent' | 'temporary';
+  }): Promise<ControllerResponse> {
+    // const schema = joi.object(updateWalletPinSchema);
+    // const validation = schema.validate({ userMobile, oldPin, newPin, type });
+
+    // if (validation.error) {
+    //   return {
+    //     success: false,
+    //     error: validation.error.message,
+    //   };
+    // }
+
+    const t = await getQueryRunner();
+    try {
+      const walletArray = await WalletREPO.findWallets({ userId: user.id, type }, ['id', 'transaction_pin'], t);
+      if (walletArray.length === 0) {
+        return {
+          success: false,
+          error: 'There is no wallet for this user.',
+        };
+      }
+      const allWalletsHavePin = walletArray.find((wallet) => !wallet.transaction_pin);
+      if (allWalletsHavePin) {
+        await t.rollbackTransaction();
+        return {
+          success: false,
+          error: 'Please set transaction PIN before attempting to update.',
+        };
+      }
+
+      const walletHolder: { wallet_id: number; pin: string }[] = [];
+      walletArray.map((wallet) => {
+        if (!bcrypt.compareSync(oldPin, wallet.transaction_pin)) walletHolder.push({ wallet_id: wallet.id, pin: wallet.transaction_pin });
+      });
+
+      if (walletHolder.length > 1) {
+        await t.rollbackTransaction();
+        return {
+          success: false,
+          error: 'Provided PIN is incorrect',
+        };
+      }
+
+      await Promise.all(
+        walletArray.map((wallet) => {
+          WalletREPO.updateWalletTransactionPin({ walletId: wallet.id, pin: bcrypt.hashSync(newPin, 10), t });
+        }),
+      );
+
+      await t.commitTransaction();
+
+      return {
+        success: true,
+        message: 'Successfully updated PIN.',
+      };
+    } catch (error) {
+      await t.rollbackTransaction();
+      throw error;
+    } finally {
+      await t.release();
+    }
   },
 };
