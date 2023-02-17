@@ -239,6 +239,24 @@ export interface IScholarship {
   currencyId: ICurrency;
 }
 
+export interface IWallets {
+  id: number;
+  userId: string;
+  currency: string;
+  type: 'temporary' | 'permanent';
+  entity: string;
+  entity_id: string;
+  balance: number;
+  ledger_balance: number;
+  uniquePaymentId: string;
+  has_updated_unique_payment_id: boolean;
+  transaction_pin: string;
+  status: number;
+  expiry_date?: Date;
+  transaction_webhook_url: string;
+  created_at: Date;
+}
+
 export interface IOrganisation {
   id: number;
   name: string;

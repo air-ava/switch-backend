@@ -1,4 +1,3 @@
-import { ISchools, IUser } from './../database/modelInterfaces';
 /* eslint-disable array-callback-return */
 import * as bcrypt from 'bcrypt';
 import randomstring from 'randomstring';
@@ -15,7 +14,7 @@ import {
   userAuthValidator,
   verifyUserValidator,
 } from '../validators/auth.validator';
-import { BadRequestException, oldSendObjectResponse, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
 import {
   businessLoginDTO,
   changePasswordDTO,
@@ -30,13 +29,14 @@ import { findUser, createAUser, updateUser, verifyUser } from '../database/repos
 import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
 import { generateToken } from '../utils/jwt';
-import { getBusinessesREPO, getOneBuinessREPO } from '../database/repositories/business.repo';
+import { getBusinessesREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
 import { STATUSES } from '../database/models/status.model';
-import { createOrganisationREPO, getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
+import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool, saveSchoolsREPO } from '../database/repositories/schools.repo';
 import { saveIndividual } from '../database/repositories/individual.repo';
+import { Service as WalletService } from './wallet.service';
 // import { IEmailMessage } from '../database/modelInterfaces';
 
 export const createUser = async (data: createUserDTO): Promise<theResponse> => {
@@ -104,7 +104,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     await createPassword({ user: user.id, password: passwordHash });
 
     console.log({ user });
-    const { first_name: firstName, last_name: lastName } = rest
+    const { first_name: firstName, last_name: lastName } = rest;
     if (userTypeCheck) {
       await updateOrganisationREPO({ id: organisation.data.id }, { owner: user.id });
       await saveIndividual({
@@ -176,7 +176,7 @@ export const resendVerifyToken = async (email: string): Promise<theResponse> => 
       purpose: 'welcome_user',
       templateInfo: {
         code: remember_token,
-        name: ` ${user.first_name}`
+        name: ` ${user.first_name}`,
       },
     });
 
@@ -191,7 +191,7 @@ export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
   if (validation.error) return ResourceNotFoundError(validation.error);
 
   try {
-    const { data: user, success, error, message } = await userAuth({ ...data, addPhone: true });
+    const { data: user, success, error } = await userAuth({ ...data, addPhone: true });
     if (!success) throw Error(error);
     if (!user.email_verified_at) throw Error('This account has not been verified');
 
@@ -240,6 +240,9 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
     if (!userAlreadyExist) throw Error(`User Not Found`);
     if (userAlreadyExist.remember_token !== remember_token) throw Error(`Wrong Token`);
 
+    const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, []);
+    if (!school) throw Error(`School not found`);
+
     await verifyUser(
       {
         remember_token,
@@ -248,10 +251,16 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
       { email_verified_at: new Date(Date.now()) },
     );
 
-    const token = generateToken(userAlreadyExist);
-    return sendObjectResponse('user verified', {
-      token,
+    await WalletService.createDollarWallet({
+      user: userAlreadyExist,
+      currency: 'UGX',
+      type: 'permanent',
+      entity: 'school',
+      entityId: school.id,
     });
+
+    const token = generateToken(userAlreadyExist);
+    return sendObjectResponse('user verified', { token });
   } catch (e: any) {
     console.log({ e });
     return BadRequestException(e.message);

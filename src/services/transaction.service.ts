@@ -28,3 +28,8 @@ export const getTransaction = async (data: any): Promise<any> => {
     return BadRequestException(e.message || 'Transaction retrieval failed, kindly try again');
   }
 };
+
+// addNoteToTransaction
+// addDocumentToTransaction
+// creditWallet
+// debitWallet
