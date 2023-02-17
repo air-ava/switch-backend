@@ -339,19 +339,34 @@ export interface IProduct {
   updated_at: Date;
 }
 
+// export interface ITransactions {
+//   id: number;
+//   user_id: string;
+//   reference: string;
+//   description?: string;
+//   purpose: string;
+//   response?: string;
+//   currency?: string;
+//   amount: number;
+//   txn_type: 'debit' | 'credit';
+//   metadata: { [key: string]: number | string };
+//   created_at: Date;
+//   updated_at: Date;
+// }
+
 export interface ITransactions {
   id: number;
-  user_id: string;
-  reference: string;
-  description?: string;
-  purpose: string;
-  response?: string;
-  currency?: string;
-  amount: number;
+  walletId: number;
+  userId: string;
   txn_type: 'debit' | 'credit';
-  metadata: { [key: string]: number | string };
+  amount: number;
+  purpose: string;
+  reference: string;
+  description: string;
+  balance_before: number;
+  balance_after: number;
+  metadata: { [key: string]: string | number };
   created_at: Date;
-  updated_at: Date;
 }
 
 export interface IPendingPayments {

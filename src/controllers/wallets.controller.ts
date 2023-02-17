@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import { oldSendObjectResponse } from '../utils/errors';
 import { Service as WalletService } from '../services/wallet.service';
+import { getQueryRunner } from '../database/helpers/db';
 
 export const getWalletCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -40,6 +41,31 @@ export const updateWalletPinCONTROLLER: RequestHandler = async (req, res) => {
     return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
   } catch (error) {
     console.log({ error });
+    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
+export const fundWalletPinCONTROLLER: RequestHandler = async (req, res) => {
+  const t = await getQueryRunner();
+  try {
+    const payload: any = {
+      user: req.user,
+      amount: req.body.amount,
+      description: req.body.description,
+      t,
+    };
+
+    const { success, data: wallet } = await WalletService.getSchoolWallet({ user: req.user, t });
+    payload.wallet_id = wallet.id;
+
+    const response = await WalletService.creditWallet(payload);
+    await t.commitTransaction();
+    const responseCode = response.success === true ? 200 : 400;
+    const { data, message, error } = response;
+    return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
+  } catch (error) {
+    console.log({ error });
+    await t.rollbackTransaction();
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };

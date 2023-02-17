@@ -216,19 +216,19 @@ export const validateCardCharge = async (payload: validateChargeReq): Promise<va
         }
       }
 
-      await saveTransaction({
-        user_id,
-        amount: Number(verificationResult.data.data.amount) * 100,
-        purpose: verificationResult.data.data.meta.purpose,
-        metadata: {
-          processor_transaction_id: verificationResult.data.data.id,
-          external_reference: verificationResult.data.data.flw_ref,
-        },
-        reference,
-        description: `${card.first_6digits}******${card.last_4digits}`,
-        txn_type: 'credit',
-        t: queryRunner,
-      });
+      // await saveTransaction({
+      //   user_id,
+      //   amount: Number(verificationResult.data.data.amount) * 100,
+      //   purpose: verificationResult.data.data.meta.purpose,
+      //   metadata: {
+      //     processor_transaction_id: verificationResult.data.data.id,
+      //     external_reference: verificationResult.data.data.flw_ref,
+      //   },
+      //   reference,
+      //   description: `${card.first_6digits}******${card.last_4digits}`,
+      //   txn_type: 'credit',
+      //   t: queryRunner,
+      // });
 
       return sendObjectResponse('Transaction successful', {
         reference: verificationResult.data.data.tx_ref,
@@ -295,19 +295,19 @@ export const chargeSavedCardForFunding = async (payload: fundFromSavedCardReq): 
         queryRunner,
       );
 
-      await saveTransaction({
-        user_id,
-        amount,
-        purpose: 'card_charge',
-        metadata: {
-          processor_transaction_id: chargeResponse.data.data.id,
-          external_reference: chargeResponse.data.data.flw_ref,
-        },
-        reference: tx_reference,
-        description: `${chargeResponse.data.data.card.first_6digits}******${chargeResponse.data.data.card.last_4digits}`,
-        txn_type: 'credit',
-        t: queryRunner,
-      });
+      // await saveTransaction({
+      //   user_id,
+      //   amount,
+      //   purpose: 'card_charge',
+      //   metadata: {
+      //     processor_transaction_id: chargeResponse.data.data.id,
+      //     external_reference: chargeResponse.data.data.flw_ref,
+      //   },
+      //   reference: tx_reference,
+      //   description: `${chargeResponse.data.data.card.first_6digits}******${chargeResponse.data.data.card.last_4digits}`,
+      //   txn_type: 'credit',
+      //   t: queryRunner,
+      // });
 
       return sendObjectResponse('Charge successful');
     });
@@ -377,19 +377,19 @@ export const verifyChargeFromWebhook = async (payload: verifyWebhookChargeReq): 
 
         const existingTransaction = await getTransactionByExternalRef(verificationResult.data.data.flw_ref, queryRunner);
         if (!existingTransaction.length) {
-          await saveTransaction({
-            user_id,
-            amount: Number(verificationResult.data.data.amount) * 100,
-            purpose,
-            metadata: {
-              processor_transaction_id: verificationResult.data.data.id,
-              external_reference: verificationResult.data.data.flw_ref,
-            },
-            reference: randomstring.generate({ length: 15, capitalization: 'lowercase', charset: 'alphanumeric' }),
-            description: `${card.first_6digits}******${card.last_4digits}`,
-            txn_type: 'credit',
-            t: queryRunner,
-          });
+          // await saveTransaction({
+          //   user_id,
+          //   amount: Number(verificationResult.data.data.amount) * 100,
+          //   purpose,
+          //   metadata: {
+          //     processor_transaction_id: verificationResult.data.data.id,
+          //     external_reference: verificationResult.data.data.flw_ref,
+          //   },
+          //   reference: randomstring.generate({ length: 15, capitalization: 'lowercase', charset: 'alphanumeric' }),
+          //   description: `${card.first_6digits}******${card.last_4digits}`,
+          //   txn_type: 'credit',
+          //   t: queryRunner,
+          // });
         }
       }
 
@@ -415,23 +415,23 @@ export const recordFLWWebhook = async (data: any): Promise<any> => {
       processor_transaction_reference: response.flwRef,
     });
 
-  await saveTransaction({
-    user_id,
-    amount: response.amount + response.charged_amount,
-    purpose: 'card_charge',
-    response: response.status,
-    metadata: {
-      processor_transaction_id: response.id,
-      external_reference: response.flwRef,
-      customer: response.customer,
-      card: response.entity,
-      type,
-      type_id,
-    },
-    reference: tx_reference,
-    description: `${response.entity.card6}******${response.entity.card_last4}`,
-    txn_type: 'credit',
-  });
+  // await saveTransaction({
+  //   user_id,
+  //   amount: response.amount + response.charged_amount,
+  //   purpose: 'card_charge',
+  //   response: response.status,
+  //   metadata: {
+  //     processor_transaction_id: response.id,
+  //     external_reference: response.flwRef,
+  //     customer: response.customer,
+  //     card: response.entity,
+  //     type,
+  //     type_id,
+  //   },
+  //   reference: tx_reference,
+  //   description: `${response.entity.card6}******${response.entity.card_last4}`,
+  //   txn_type: 'credit',
+  // });
 
   const status = statusOfTransaction(response.status);
 

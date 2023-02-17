@@ -1,5 +1,6 @@
 /* eslint-disable array-callback-return */
 import randomstring from 'randomstring';
+import { v4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
 import { findCurrency } from '../database/repositories/curencies.repo';
 import { BadRequestException, sendObjectResponse } from '../utils/errors';
@@ -8,6 +9,8 @@ import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { getQueryRunner } from '../database/helpers/db';
 import { getSchool } from '../database/repositories/schools.repo';
 import { IUser } from '../database/modelInterfaces';
+import { QueryRunner } from 'typeorm';
+import { saveTransaction } from '../database/repositories/transaction.repo';
 
 export const Service: any = {
   /**
@@ -131,7 +134,7 @@ export const Service: any = {
     // if (validation.error) return BadRequestException(validation.error.message);
 
     // TODO :- CHANGE WALLET DETAIL
-    const { user } = payload;
+    const { user, t } = payload;
 
     const school = await getSchool({ organisation_id: user.organisation }, []);
     if (!school) throw Error(`School not found`);
@@ -144,6 +147,7 @@ export const Service: any = {
         entity_id: school.id,
       },
       [],
+      t && t,
     );
 
     // const ConvertedWalletCase = await Promise.all(wallets.map(async (wallet) => toCamelCase(await getFlutterwaveAccountWithWalletInfo(wallet))));
@@ -221,5 +225,63 @@ export const Service: any = {
     } finally {
       await t.release();
     }
+  },
+
+  async creditWallet({
+    amount,
+    user,
+    wallet_id,
+    purpose = 'Funding:Wallet',
+    reference = v4(),
+    description,
+    metadata,
+    t,
+  }: {
+    amount: number;
+    user: IUser;
+    wallet_id: number;
+    purpose: string;
+    reference?: string;
+    description: string;
+    metadata: { [key: string]: number | string };
+    t: QueryRunner;
+  }): Promise<ControllerResponse> {
+    const wallet = await WalletREPO.findWallet({ userId: user.id, id: wallet_id }, ['id', 'balance'], t);
+    if (!wallet) {
+      return {
+        success: false,
+        error: 'Wallet does not exist',
+      };
+    }
+    await WalletREPO.incrementBalance(wallet.id, amount, t);
+    console.log({
+      wallet_id: wallet.id,
+      amount,
+      balance_after: Number(wallet.balance) + Number(amount),
+      balance_before: Number(wallet.balance),
+      purpose,
+      metadata,
+      reference,
+      description,
+      txn_type: 'credit',
+    });
+    await saveTransaction({
+      walletId: wallet.id,
+      userId: user.id,
+      amount,
+      balance_after: Number(wallet.balance) + Number(amount),
+      balance_before: Number(wallet.balance),
+      purpose,
+      metadata,
+      reference,
+      description,
+      txn_type: 'credit',
+      t,
+    });
+    // await checkIfDebtExistOnWallet({ walletId: wallet.id });
+    return {
+      success: true,
+      message: 'Successfully credited wallet',
+    };
   },
 };

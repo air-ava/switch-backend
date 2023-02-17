@@ -69,10 +69,20 @@ export const Repo = {
       ? t.manager.update(Wallets, { id: walletId }, { transaction_pin: pin })
       : getRepository(Wallets).update({ id: walletId }, { transaction_pin: pin });
   },
-  
-  // async updateWalletTransactionPin({ walletId, pin, t }: { walletId: number; pin: string; t?: QueryRunner }): Promise<UpdateResult> {
-  //   return t
-  //     ? t.manager.update(Wallets, { id: walletId }, { transaction_pin: pin })
-  //     : getRepository(Wallets).update({ id: walletId }, { transaction_pin: pin });
-  // },
+
+  async incrementBalance(id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> {
+    return t ? t.manager.increment(Wallets, { id }, 'balance', amount) : getRepository(Wallets).increment({ id }, 'balance', amount);
+  },
+
+  async decrementBalance(id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> {
+    return t ? t.manager.decrement(Wallets, { id }, 'balance', amount) : getRepository(Wallets).decrement({ id }, 'balance', amount);
+  },
+
+  async incrementLedgerBalance(id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> {
+    return t ? t.manager.increment(Wallets, { id }, 'ledger_balance', amount) : getRepository(Wallets).increment({ id }, 'ledger_balance', amount);
+  },
+
+  async decrementLedgerBalance(id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> {
+    return t ? t.manager.decrement(Wallets, { id }, 'ledger_balance', amount) : getRepository(Wallets).decrement({ id }, 'ledger_balance', amount);
+  },
 };

@@ -10,7 +10,7 @@ export class Transactions {
   reference: string;
 
   @Column()
-  user_id: string;
+  walletId: number;
 
   @Column()
   description?: string;
@@ -19,10 +19,16 @@ export class Transactions {
   purpose: string;
 
   @Column()
-  response: string;
+  userId: string;
 
   @Column()
-  currency: string;
+  balance_before: number;
+
+  @Column()
+  balance_after: number;
+
+  // @Column()
+  // currency: string;
 
   @Column()
   amount: number;
@@ -39,7 +45,7 @@ export class Transactions {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToOne('Currency', 'transactions')
-  @JoinColumn({ name: 'currency', referencedColumnName: 'short_code' })
-  Currency: ICurrency;
+  // @OneToOne('Currency', 'transactions')
+  // @JoinColumn({ name: 'currency', referencedColumnName: 'short_code' })
+  // Currency: ICurrency;
 }
