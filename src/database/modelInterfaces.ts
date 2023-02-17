@@ -361,6 +361,8 @@ export interface ITransactions {
   txn_type: 'debit' | 'credit';
   amount: number;
   purpose: string;
+  note: string;
+  document_reference: string;
   reference: string;
   description: string;
   balance_before: number;

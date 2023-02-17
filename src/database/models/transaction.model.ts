@@ -22,6 +22,12 @@ export class Transactions {
   userId: string;
 
   @Column()
+  note: string;
+
+  @Column()
+  document_reference: string;
+
+  @Column()
   balance_before: number;
 
   @Column()

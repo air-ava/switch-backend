@@ -31,6 +31,16 @@ export class createTransactionsTable1676340079684 implements MigrationInterface 
             isNullable: false,
           },
           {
+            name: 'note',
+            type: 'varchar',
+            isNullable: false,
+          },
+          {
+            name: 'document_reference',
+            type: 'varchar',
+            isNullable: false,
+          },
+          {
             name: 'reference',
             type: 'varchar',
             isNullable: false,

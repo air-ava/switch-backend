@@ -254,17 +254,6 @@ export const Service: any = {
       };
     }
     await WalletREPO.incrementBalance(wallet.id, amount, t);
-    console.log({
-      wallet_id: wallet.id,
-      amount,
-      balance_after: Number(wallet.balance) + Number(amount),
-      balance_before: Number(wallet.balance),
-      purpose,
-      metadata,
-      reference,
-      description,
-      txn_type: 'credit',
-    });
     await saveTransaction({
       walletId: wallet.id,
       userId: user.id,
