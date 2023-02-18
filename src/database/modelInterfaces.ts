@@ -367,7 +367,7 @@ export interface ITransactions {
   description: string;
   balance_before: number;
   balance_after: number;
-  channel: string;
+  channel?: string;
   metadata: { [key: string]: string | number };
   created_at: Date;
 }
