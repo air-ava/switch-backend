@@ -1,5 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Unique, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { ITransaction } from '../modelInterfaces';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Unique, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
+import { ITransaction, IUser } from '../modelInterfaces';
 
 @Entity('wallets')
 @Unique(['id', 'userId', 'currency', 'type', 'entity', 'entity_id'])
@@ -55,4 +55,8 @@ export class Wallets {
 
   @OneToMany('Transactions', 'wallet')
   transactions: ITransaction[];
+
+  @OneToOne('Users', 'wallets')
+  @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
+  User: IUser;
 }

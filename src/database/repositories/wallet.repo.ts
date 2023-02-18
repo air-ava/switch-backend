@@ -38,7 +38,12 @@ export const Repo = {
         });
   },
 
-  async findWallet(queryParam: Partial<IWallets | any>, selectOptions: Array<keyof Wallets>, t?: QueryRunner): Promise<Wallets | undefined | any> {
+  async findWallet(
+    queryParam: Partial<IWallets | any>,
+    selectOptions: Array<keyof Wallets>,
+    t?: QueryRunner,
+    relationOptions?: any[],
+  ): Promise<Wallets | undefined | any> {
     return t
       ? t.manager.findOne(Wallets, {
           where: queryParam,
@@ -48,6 +53,7 @@ export const Repo = {
       : getRepository(Wallets).findOne({
           where: queryParam,
           ...(selectOptions.length && { select: selectOptions.concat(['transaction_pin', 'uniquePaymentId']) }),
+          ...(relationOptions && { relations: relationOptions }),
         });
   },
 

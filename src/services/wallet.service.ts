@@ -136,9 +136,11 @@ export const Service: any = {
     // TODO :- CHANGE WALLET DETAIL
     const { user, t } = payload;
 
-    const school = await getSchool({ organisation_id: user.organisation }, []);
+    const school = await getSchool({ organisation_id: user.organisation }, [], ['User']);
     if (!school) throw Error(`School not found`);
 
+    const relation = [];
+    if (!t) relation.push('User');
     const wallet = await WalletREPO.findWallet(
       {
         // username, userMobile, type || 'user'
@@ -148,6 +150,7 @@ export const Service: any = {
       },
       [],
       t && t,
+      relation,
     );
 
     // const ConvertedWalletCase = await Promise.all(wallets.map(async (wallet) => toCamelCase(await getFlutterwaveAccountWithWalletInfo(wallet))));

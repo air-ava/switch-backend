@@ -209,6 +209,31 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizeWallet(payload: IScholarshipApplication): any {
+    if (!payload) return null;
+    const { id, userId, User, status, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      id,
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      owner: User && Sanitizer.sanitizeUser(User),
+    };
+    return sanitized;
+  },
+
+  sanitizeTransaction(payload: IScholarshipApplication): any {
+    if (!payload) return null;
+    const { id, userId, User, status, Wallet, walletId, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      id,
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      payer: User && Sanitizer.sanitizeUser(User),
+      wallet: User && Sanitizer.sanitizeWallet(Wallet),
+    };
+    return sanitized;
+  },
+
   sanitizeEligibility(payload: IScholarshipEligibility, extra?: string): any {
     if (!payload) return null;
     const { password, status, Requirements, ...rest } = Sanitizer.jsonify(payload);

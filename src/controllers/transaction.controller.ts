@@ -9,7 +9,7 @@ export const listTransactionsCONTROLLER: RequestHandler = async (req, res) => {
     const response = await listTransactions({ userId: req.userId });
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, data));
+    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeTransaction)));
   } catch (error) {
     console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
-import { ICurrency } from '../modelInterfaces';
+import { ICurrency, IUser, IWallets } from '../modelInterfaces';
 
 @Entity('transactions')
 export class Transactions {
@@ -50,6 +50,14 @@ export class Transactions {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne('Users', 'transactions')
+  @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
+  User: IUser;
+
+  @OneToOne('Wallets', 'transactions')
+  @JoinColumn({ name: 'walletId', referencedColumnName: 'id' })
+  Wallet: IWallets;
 
   // @OneToOne('Currency', 'transactions')
   // @JoinColumn({ name: 'currency', referencedColumnName: 'short_code' })

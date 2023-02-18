@@ -24,7 +24,6 @@ export const listSchools = async (
   queryParam: Partial<ISchools> | any,
   selectOptions: Array<keyof Schools>,
   relationOptions?: any[],
-
   t?: QueryRunner,
 ): Promise<Schools[]> => {
   return t

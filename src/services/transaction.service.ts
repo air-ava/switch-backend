@@ -6,7 +6,7 @@ import { Log } from '../utils/logs';
 export const listTransactions = async (data: any): Promise<any> => {
   const { userId } = data;
   try {
-    const existingTransactions = await getTransactionsREPO({ userId }, []);
+    const existingTransactions = await getTransactionsREPO({ userId }, [], ['User', 'Wallet']);
     if (!existingTransactions.length) throw Error('Sorry, no transaction has been created');
 
     return sendObjectResponse('Transactions retrieved successfully', existingTransactions);
@@ -19,7 +19,7 @@ export const listTransactions = async (data: any): Promise<any> => {
 export const getTransaction = async (data: any): Promise<any> => {
   const { userId, id } = data;
   try {
-    const existingTransaction = await getOneTransactionREPO({ userId, id }, []);
+    const existingTransaction = await getOneTransactionREPO({ userId, id }, [], ['User']);
     if (!existingTransaction) throw Error('Transaction not found');
 
     return sendObjectResponse('Transaction retrieved successfully', existingTransaction);
