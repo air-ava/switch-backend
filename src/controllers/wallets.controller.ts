@@ -6,7 +6,7 @@ import { Sanitizer } from '../utils/sanitizer';
 
 export const getWalletCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await WalletService.getSchoolWallet({ user: req.user });
+    const response = await WalletService.getSchoolWallet({ user: req.user, type: 'fetchWallet' });
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
     return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeWallet(data), true));
@@ -47,12 +47,15 @@ export const updateWalletPinCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const fundWalletPinCONTROLLER: RequestHandler = async (req, res) => {
+  let purpose = 'Funding:Wallet';
+  if (req.query.type === 'school-fees') purpose = 'Payment:School-Fees';
   const t = await getQueryRunner();
   try {
     const payload: any = {
       user: req.user,
       amount: req.body.amount,
       description: req.body.description,
+      purpose,
       t,
     };
 

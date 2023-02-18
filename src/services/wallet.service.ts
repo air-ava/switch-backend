@@ -134,13 +134,13 @@ export const Service: any = {
     // if (validation.error) return BadRequestException(validation.error.message);
 
     // TODO :- CHANGE WALLET DETAIL
-    const { user, t } = payload;
+    const { user, type, t } = payload;
 
-    const school = await getSchool({ organisation_id: user.organisation }, [], ['User']);
+    const school = await getSchool({ organisation_id: user.organisation }, []);
     if (!school) throw Error(`School not found`);
 
     const relation = [];
-    if (!t) relation.push('User');
+    if (!t && type === 'fetchWallet') relation.push('User');
     const wallet = await WalletREPO.findWallet(
       {
         // username, userMobile, type || 'user'
