@@ -239,8 +239,8 @@ export const Sanitizer = {
     const { totalIn, totalOut, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
-      totalIn: totalIn || 0,
-      totalOut: totalOut || 0,
+      totalIn: totalIn || '0',
+      totalOut: totalOut || '0',
     };
     return sanitized;
   },
