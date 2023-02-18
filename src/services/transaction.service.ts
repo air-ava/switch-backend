@@ -4,9 +4,11 @@ import { sendObjectResponse, BadRequestException } from '../utils/errors';
 import { Log } from '../utils/logs';
 
 export const listTransactions = async (data: any): Promise<any> => {
-  const { userId } = data;
+  const { userId, type } = data;
+  let purpose = '';
+  if (type === 'school-fees') purpose = 'Payment:School-Fees';
   try {
-    const existingTransactions = await getTransactionsREPO({ userId }, [], ['User', 'Wallet']);
+    const existingTransactions = await getTransactionsREPO({ userId, ...(purpose && { purpose }) }, [], ['User', 'Wallet']);
     // if (!existingTransactions.length) throw Error('Sorry, no transaction has been created');
 
     return sendObjectResponse('Transactions retrieved successfully', existingTransactions);

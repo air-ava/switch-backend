@@ -77,10 +77,12 @@ export const getTransactionsREPO = (
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        order: { created_at: 'DESC' },
       })
     : getRepository(Transactions).find({
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        order: { created_at: 'DESC' },
       });
 };

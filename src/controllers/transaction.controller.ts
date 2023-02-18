@@ -6,7 +6,7 @@ import { Sanitizer } from '../utils/sanitizer';
 
 export const listTransactionsCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await listTransactions({ userId: req.userId });
+    const response = await listTransactions({ userId: req.userId, type: req.query.purpose });
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
     return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeTransaction)));
