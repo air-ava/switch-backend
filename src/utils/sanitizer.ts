@@ -223,13 +223,15 @@ export const Sanitizer = {
 
   sanitizeTransaction(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { id, userId, User, status, Wallet, walletId, ...rest } = Sanitizer.jsonify(payload);
+    const { id, userId, User, status, Wallet, walletId, document_reference, Reciepts, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
       ...rest,
+      recieptReference: document_reference,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       payer: User && Sanitizer.sanitizeUser(User),
       wallet: User && Sanitizer.sanitizeWallet(Wallet),
+      reciepts: Reciepts && Sanitizer.sanitizeAllArray(Reciepts, Sanitizer.sanitizeAsset),
     };
     return sanitized;
   },

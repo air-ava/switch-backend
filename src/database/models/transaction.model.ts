@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
-import { ICurrency, IUser, IWallets } from '../modelInterfaces';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
+import { IAssets, ICurrency, IUser, IWallets } from '../modelInterfaces';
+import { Assets } from './assets.model';
 
 @Entity('transactions')
 export class Transactions {
@@ -58,6 +59,9 @@ export class Transactions {
   @OneToOne('Wallets', 'transactions')
   @JoinColumn({ name: 'walletId', referencedColumnName: 'id' })
   Wallet: IWallets;
+
+  @OneToMany(() => Assets, (asset) => asset.Transaction)
+  Reciepts: IAssets[];
 
   // @OneToOne('Currency', 'transactions')
   // @JoinColumn({ name: 'currency', referencedColumnName: 'short_code' })

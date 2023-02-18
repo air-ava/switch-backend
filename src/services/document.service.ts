@@ -97,7 +97,7 @@ export const Service: any = {
       const createdAsset = await createAsset({
         imagePath: document,
         user: user.id,
-        trigger: 'onboarding:add_documents',
+        trigger: `${process}:add_documents`,
         reference,
         organisation: organisation.id,
         entity,
@@ -108,7 +108,7 @@ export const Service: any = {
     if (requirement_type === 'link') {
       const createdAsset = await saveLinkREPO({
         link: document,
-        trigger: 'onboarding:add_documents',
+        trigger: `${process}:add_documents`,
         organisation: organisation.id,
         reference,
         user: user.id,
