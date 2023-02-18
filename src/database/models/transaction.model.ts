@@ -33,8 +33,8 @@ export class Transactions {
   @Column()
   balance_after: number;
 
-  // @Column()
-  // currency: string;
+  @Column()
+  channel: string;
 
   @Column()
   amount: number;
