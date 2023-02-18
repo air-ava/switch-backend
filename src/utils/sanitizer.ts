@@ -234,6 +234,17 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizeDashboardStats(payload: IScholarshipApplication): any {
+    if (!payload) return null;
+    const { totalIn, totalOut, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      totalIn: totalIn || 0,
+      totalOut: totalOut || 0,
+    };
+    return sanitized;
+  },
+
   sanitizeEligibility(payload: IScholarshipEligibility, extra?: string): any {
     if (!payload) return null;
     const { password, status, Requirements, ...rest } = Sanitizer.jsonify(payload);

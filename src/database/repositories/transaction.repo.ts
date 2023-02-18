@@ -86,3 +86,19 @@ export const getTransactionsREPO = (
         order: { created_at: 'DESC' },
       });
 };
+
+export const getTotalCredited = (userId: string): Promise<{ total: number } | undefined> => {
+  return getRepository(Transactions)
+    .createQueryBuilder('transaction')
+    .select('SUM(transaction.amount)', 'totalIn')
+    .where('transaction.txn_type = :txn_type AND transaction.userId = :userId', { txn_type: 'credit', userId })
+    .getRawOne();
+};
+
+export const getTotalDebited = (userId: string): Promise<{ total: number } | undefined> => {
+  return getRepository(Transactions)
+    .createQueryBuilder('transaction')
+    .select('SUM(transaction.amount)', 'totalOut')
+    .where('transaction.txn_type = :txn_type AND transaction.userId = :userId', { txn_type: 'debit', userId })
+    .getRawOne();
+};
