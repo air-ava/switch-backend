@@ -1,16 +1,21 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-plusplus */
 /* eslint-disable array-callback-return */
 import randomstring from 'randomstring';
 import { v4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
+import { QueryRunner } from 'typeorm';
 import { findCurrency } from '../database/repositories/curencies.repo';
 import { BadRequestException, sendObjectResponse } from '../utils/errors';
-import { ControllerResponse } from '../utils/interface';
+import { ControllerResponse, theResponse } from '../utils/interface';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { getQueryRunner } from '../database/helpers/db';
 import { getSchool } from '../database/repositories/schools.repo';
 import { IUser } from '../database/modelInterfaces';
-import { QueryRunner } from 'typeorm';
 import { saveTransaction } from '../database/repositories/transaction.repo';
+import { STATUSES } from '../database/models/status.model';
+import Settings from './settings.service';
+import { sumOfArray } from '../utils/utils';
 
 export const Service: any = {
   /**
@@ -275,5 +280,157 @@ export const Service: any = {
       success: true,
       message: 'Successfully credited wallet',
     };
+  },
+
+  async debitWallet({
+    amount,
+    user,
+    wallet_id,
+    purpose = 'Withdraw:Wallet',
+    reference = v4(),
+    description,
+    metadata,
+    transactionPin,
+    t,
+  }: {
+    amount: number;
+    user: IUser;
+    wallet_id: number;
+    purpose: string;
+    reference?: string;
+    description: string;
+    metadata: { [key: string]: number | string };
+    transactionPin?: string;
+    t: QueryRunner;
+  }): Promise<ControllerResponse> {
+    const wallet = await WalletREPO.findWallet({ status: STATUSES.ACTIVE, userId: user.id, id: wallet_id }, ['id', 'balance', 'transaction_pin'], t);
+    if (!wallet) {
+      return {
+        success: false,
+        error: 'Wallet does not exist',
+      };
+    }
+    if (transactionPin && !wallet.transaction_pin) {
+      return {
+        success: false,
+        error: 'Please set transaction PIN.',
+      };
+    }
+
+    if (transactionPin && !bcrypt.compareSync(transactionPin, wallet.transaction_pin)) {
+      return {
+        success: false,
+        error: 'Provided PIN is incorrect',
+      };
+    }
+
+    if (Number(wallet.balance) < Number(amount)) {
+      return {
+        success: false,
+        error: 'Insufficient balance',
+      };
+    }
+
+    await WalletREPO.decrementBalance(wallet.id, Number(amount), t);
+
+    await saveTransaction({
+      walletId: wallet.id,
+      userId: user.id,
+      amount,
+      balance_after: Number(wallet.balance) - Number(amount),
+      balance_before: Number(wallet.balance),
+      purpose,
+      metadata,
+      reference,
+      description,
+      txn_type: 'debit',
+      t,
+    });
+    return {
+      success: true,
+      message: 'Transfer successful',
+    };
+  },
+
+  async debitTransactionFees({
+    wallet_id,
+    reference,
+    user,
+    description,
+    feesNames,
+    transactionAmount,
+    t,
+  }: {
+    wallet_id: number;
+    reference: string;
+    user: IUser;
+    description: string;
+    feesNames: string[];
+    transactionAmount: number;
+    t: QueryRunner;
+  }): Promise<ControllerResponse> {
+    const feesConfig = Settings.get('TRANSACTION_FEES');
+    const arrayOfFees = await Promise.all(
+      feesNames.map((fee) => {
+        return Service.generateFee(feesConfig[fee], transactionAmount);
+      }),
+    );
+    const allFees = sumOfArray(arrayOfFees, 'fee');
+    // const debitFees = await Promise.all(
+    //   arrayOfFees.map(({ purpose, fee: amount }) => {
+    //     return Service.debitWallet({
+    //       user,
+    //       description,
+    //       purpose,
+    //       amount,
+    //       reference,
+    //       wallet_id,
+    //       t,
+    //     });
+    //   }),
+    // );
+    const checkArray = [];
+    const checkArrayError = [];
+    for (let index = 0; index < arrayOfFees.length; index++) {
+      const { purpose, fee: amount } = arrayOfFees[index];
+      const debitedWalletResponse = await Service.debitWallet({
+        user,
+        description,
+        purpose,
+        amount,
+        reference,
+        wallet_id,
+        t,
+      });
+      checkArray.push(debitedWalletResponse.success);
+      if (debitedWalletResponse.success) checkArrayError.push(debitedWalletResponse.error);
+    }
+    if (!checkArray.includes(true)) return { success: false, error: checkArrayError[0] };
+    return sendObjectResponse('message', allFees);
+  },
+
+  async generateFee(
+    feeConfig: {
+      purpose: string;
+      percent?: number;
+      ceiling?: number;
+      floor?: number;
+      flat?: number;
+    },
+    amount: number,
+  ): Promise<{ purpose: string; fee: number }> {
+    const { purpose, percent, ceiling, floor, flat } = feeConfig;
+    const message = 'Fee generation completed';
+
+    let fee = 0;
+    if (percent) {
+      fee = (Number(percent) / 100) * Number(amount);
+      if (floor && fee < floor) fee = floor;
+      if (ceiling && fee > ceiling) fee = ceiling;
+      return { purpose, fee };
+      // return ;
+    }
+    if (flat) fee = flat;
+    return { purpose, fee };
   },
 };

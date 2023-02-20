@@ -24,7 +24,6 @@ export const listTransactions = async (data: any): Promise<any> => {
   if (type === 'school-fees') purpose = 'Payment:School-Fees';
   try {
     const existingTransactions = await getTransactionsREPO({ userId, ...(purpose && { purpose }) }, [], ['User', 'Wallet', 'Reciepts']);
-    // if (!existingTransactions.length) throw Error('Sorry, no transaction has been created');
 
     return sendObjectResponse('Transactions retrieved successfully', existingTransactions);
   } catch (e: any) {

@@ -46,6 +46,10 @@ export const sumOfArray = (items: any[], element: string): number => {
   return items.reduce((acc: any, curr: any) => Number(acc) + Number(curr[element]), 0);
 };
 
+export const sumAnArrayOfNumbers = (items: any[]): number => {
+  return items.reduce((acc: any, curr: any) => Number(acc) + Number(curr), 0);
+};
+
 export const sumOfTwoCoulumnsArray = (items: any[], elementOne: string, elementTwo: string): number => {
   return items.reduce((acc: any, curr: any) => {
     return acc + curr[elementOne] * curr[elementTwo];

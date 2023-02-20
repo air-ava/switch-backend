@@ -4,7 +4,21 @@ import { JobTitle } from '../database/models/jobTitle.model';
 import { findSettingsREPO } from '../database/repositories/settings.repo';
 import { Sanitizer } from '../utils/sanitizer';
 
-const settings: any = {};
+const settings: any = {
+  TRANSACTION_FEES: {
+    'credit-fees': {
+      purpose: 'Fees:Credit',
+      amount: 0,
+    },
+    'school-fees': {
+      purpose: 'Fees:School-Payment',
+      percent: 0.5,
+      ceiling: 8000,
+      floor: 1000,
+      flat: 0,
+    },
+  },
+};
 
 // eslint-disable-next-line consistent-return
 const mapper = (payload: { [key: string]: any }, key: string, value: string, response: any) => {

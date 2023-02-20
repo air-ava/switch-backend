@@ -1,3 +1,5 @@
+import { FindOperator } from "typeorm";
+
 export interface IAddress {
   id: number;
   user_mobile: string;
@@ -360,7 +362,7 @@ export interface ITransactions {
   userId: string;
   txn_type: 'debit' | 'credit';
   amount: number;
-  purpose: string;
+  purpose: string | FindOperator<string> | any;
   note: string;
   document_reference: string;
   reference: string;

@@ -54,7 +54,7 @@ export const getOneTransactionREPO = (
 
 export const updateTransactionREPO = (
   queryParams: Partial<ITransactions>,
-  updateFields: Partial<ITransactions>,
+  updateFields: Partial<ITransactions | any>,
   t?: QueryRunner,
 ): Promise<UpdateResult> => {
   return t ? t.manager.update(Transactions, queryParams, updateFields) : getRepository(Transactions).update(queryParams, updateFields);
