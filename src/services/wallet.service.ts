@@ -376,19 +376,6 @@ export const Service: any = {
       }),
     );
     const allFees = sumOfArray(arrayOfFees, 'fee');
-    // const debitFees = await Promise.all(
-    //   arrayOfFees.map(({ purpose, fee: amount }) => {
-    //     return Service.debitWallet({
-    //       user,
-    //       description,
-    //       purpose,
-    //       amount,
-    //       reference,
-    //       wallet_id,
-    //       t,
-    //     });
-    //   }),
-    // );
     const checkArray = [];
     const checkArrayError = [];
     for (let index = 0; index < arrayOfFees.length; index++) {
@@ -420,7 +407,6 @@ export const Service: any = {
     amount: number,
   ): Promise<{ purpose: string; fee: number }> {
     const { purpose, percent, ceiling, floor, flat } = feeConfig;
-    const message = 'Fee generation completed';
 
     let fee = 0;
     if (percent) {

@@ -8,7 +8,12 @@ const settings: any = {
   TRANSACTION_FEES: {
     'credit-fees': {
       purpose: 'Fees:Credit',
-      amount: 0,
+      flat: 0,
+    },
+    'debit-fees': {
+      purpose: 'Fees:Debit',
+      percent: 0.5,
+      ceiling: 5000,
     },
     'school-fees': {
       purpose: 'Fees:School-Payment',
