@@ -231,8 +231,36 @@ export const Sanitizer = {
       recieptReference: document_reference,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       payer: User && Sanitizer.sanitizeUser(User),
-      wallet: User && Sanitizer.sanitizeWallet(Wallet),
+      wallet: Wallet && Sanitizer.sanitizeWallet(Wallet),
       reciepts: Reciepts && Sanitizer.sanitizeAllArray(Reciepts, Sanitizer.sanitizeAsset),
+    };
+    return sanitized;
+  },
+
+  sanitizeStudent(payload: IScholarshipApplication): any {
+    if (!payload) return null;
+    const { id, status, User, userId, School, schoolId, uniqueStudentId, Classes, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      id,
+      ...rest,
+      studentId: uniqueStudentId,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      user: User && Sanitizer.sanitizeUser(User),
+      school: School && Sanitizer.sanitizeSchool(School),
+      classes: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
+    };
+    return sanitized;
+  },
+
+  sanitizeStudentClass(payload: IScholarshipApplication): any {
+    if (!payload) return null;
+    const { id, status, ClassLevel, classId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      id,
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      student: Student && Sanitizer.sanitizeStudent(Student),
+      classLevel: ClassLevel && Sanitizer.sanitizeSchool(ClassLevel),
     };
     return sanitized;
   },

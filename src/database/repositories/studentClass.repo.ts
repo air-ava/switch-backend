@@ -43,6 +43,10 @@ export const saveStudentClassREPO = (queryParams: Partial<IStudentClass>, transa
   return transaction ? transaction.manager.save(StudentClass, queryParams) : getRepository(StudentClass).save(queryParams);
 };
 
-export const updateStudentClass = (queryParams: Pick<IStudentClass, 'id'>, updateFields: Partial<IStudentClass>, t?: QueryRunner): Promise<UpdateResult> => {
+export const updateStudentClass = (
+  queryParams: Pick<IStudentClass, 'id'>,
+  updateFields: Partial<IStudentClass>,
+  t?: QueryRunner,
+): Promise<UpdateResult> => {
   return t ? t.manager.update(StudentClass, queryParams, updateFields) : getRepository(StudentClass).update(queryParams, updateFields);
 };

@@ -23,6 +23,7 @@ const settings: any = {
       flat: 0,
     },
   },
+  DEFAULT_STUDENT_EMAIL: '@studentsteward.com',
 };
 
 // eslint-disable-next-line consistent-return
