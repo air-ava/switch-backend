@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/countries', countriesCONTROLLER);
 router.get('/currencies', getCurrenciesCONTROLLER);
 router.post('/upload', uploadCONTROLLER);
-router.get('/education/level', educationLevelCONTROLLER);
 router.get('/class', listClassCONTROLLER);
+router.get('/education/level', educationLevelCONTROLLER);
 
 export default router;

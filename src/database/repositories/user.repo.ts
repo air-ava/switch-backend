@@ -22,6 +22,25 @@ export const findUser = async (
       });
 };
 
+export const listUser = async (
+  queryParam: Partial<IUser> | any,
+  selectOptions: Array<keyof Users>,
+  relationOptions?: any[],
+  t?: QueryRunner,
+): Promise<Users[]> => {
+  return t
+    ? t.manager.find(Users, {
+        where: queryParam,
+        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+        ...(relationOptions && { relations: relationOptions }),
+      })
+    : getRepository(Users).find({
+        where: queryParam,
+        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+        ...(relationOptions && { relations: relationOptions }),
+      });
+};
+
 export const createAUser = async (payload: {
   email: string;
   first_name: string;
