@@ -57,6 +57,7 @@ const Service = {
     await Promise.all([loadSettings(), loadJobTitles()]);
   },
   get(key: string): any {
+    loadSettings();
     return settings[key];
   },
 
