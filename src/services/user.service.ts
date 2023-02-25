@@ -79,7 +79,22 @@ export const fetchUserProfile = async (data: any): Promise<any> => {
     const userAlreadyExist = await findUser({ id: user.id }, [], ['phoneNumber', 'Address', 'Avatar']);
     if (!userAlreadyExist) throw Error('User not found');
 
-    return sendObjectResponse('User details updated successful', Sanitizer.sanitizeUser(userAlreadyExist));
+    return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeUser(userAlreadyExist));
+  } catch (e: any) {
+    return BadRequestException(e.message);
+  }
+};
+
+export const fetchUserBySlug = async (data: any): Promise<any> => {
+  // const validation = shopperLoginValidator.validate(data);
+  // if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { slug } = data;
+  try {
+    const userAlreadyExist = await findUser({ slug }, [], []);
+    if (!userAlreadyExist) throw Error('User not found');
+
+    return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeUser(userAlreadyExist));
   } catch (e: any) {
     return BadRequestException(e.message);
   }

@@ -26,6 +26,12 @@ export class createTransactionsTable1676340079684 implements MigrationInterface 
             isNullable: false,
           },
           {
+            name: 'status',
+            type: 'int',
+            default: 14,
+            isNullable: false,
+          },
+          {
             name: 'purpose',
             type: 'varchar',
             isNullable: false,
@@ -86,6 +92,7 @@ export class createTransactionsTable1676340079684 implements MigrationInterface 
             name: 'userId',
             type: 'varchar',
             isNullable: false,
+            collation: 'utf8mb4_unicode_ci',
           },
           {
             name: 'channel',

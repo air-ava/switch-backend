@@ -359,6 +359,7 @@ export interface IProduct {
 export interface ITransactions {
   id: number;
   walletId: number;
+  status?: number;
   userId: string;
   txn_type: 'debit' | 'credit';
   amount: number;
@@ -372,6 +373,17 @@ export interface ITransactions {
   channel?: string;
   metadata: { [key: string]: string | number };
   created_at: Date;
+}
+
+export interface IMobileMoneyTransactions {
+  id: number;
+  tx_reference: string;
+  status: number;
+  processor: string;
+  processor_transaction_id: string;
+  response?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface IPendingPayments {
@@ -645,4 +657,33 @@ export interface ITransaction {
   metadata: { [key: string]: string | number };
   created_at: Date | any;
   updated_at?: Date;
+}
+
+export interface IStudent {
+  id: number;
+  schoolId: number;
+  uniqueStudentId: string;
+  userId: string;
+  status: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IStudentClass {
+  id: number;
+  studentId: number;
+  classId: number;
+  status: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IClassLevel {
+  id: number;
+  education_level: string;
+  class: string;
+  class_short_name: string;
+  country: string;
+  created_at: Date;
+  updated_at: Date;
 }

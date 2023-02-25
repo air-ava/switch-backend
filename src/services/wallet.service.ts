@@ -367,7 +367,7 @@ export const Service: any = {
     description: string;
     feesNames: string[];
     transactionAmount: number;
-    t: QueryRunner;
+    t?: QueryRunner;
   }): Promise<ControllerResponse> {
     const feesConfig = Settings.get('TRANSACTION_FEES');
     const arrayOfFees = await Promise.all(
@@ -387,7 +387,7 @@ export const Service: any = {
         amount,
         reference,
         wallet_id,
-        t,
+        ...(t && { t }),
       });
       checkArray.push(debitedWalletResponse.success);
       if (debitedWalletResponse.success) checkArrayError.push(debitedWalletResponse.error);

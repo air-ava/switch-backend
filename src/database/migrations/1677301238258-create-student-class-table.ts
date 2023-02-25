@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 import { STATUSES } from '../models/status.model';
 
-export class createMobileMoneyTransactionsTable1676595248351 implements MigrationInterface {
+export class createStudentClassTable1677301238258 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'mobileMoneyTransactions',
+        name: 'student_class',
         columns: [
           {
             name: 'id',
@@ -15,31 +15,21 @@ export class createMobileMoneyTransactionsTable1676595248351 implements Migratio
             generationStrategy: 'increment',
           },
           {
-            name: 'processor',
-            type: 'varchar',
+            name: 'studentId',
+            type: 'int',
             isNullable: false,
           },
           {
-            name: 'processor_transaction_id',
-            type: 'varchar',
-            default: `'bayonic'`,
-            isNullable: false,
-          },
-          {
-            name: 'response',
-            type: 'varchar',
+            name: 'classId',
+            type: 'int',
             isNullable: true,
-          },
-          {
-            name: 'tx_reference',
-            type: 'varchar',
-            isNullable: false,
           },
           {
             name: 'status',
             type: 'int',
-            default: STATUSES.SUCCESS,
+            default: STATUSES.ACTIVE,
             isNullable: false,
+            comment: 'The status `ACTIVE` is for current class, `COMPLETED` for past classes',
           },
           {
             name: 'created_at',
@@ -59,6 +49,6 @@ export class createMobileMoneyTransactionsTable1676595248351 implements Migratio
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('mobileMoneyTransactions');
+    await queryRunner.dropTable('student-class');
   }
 }

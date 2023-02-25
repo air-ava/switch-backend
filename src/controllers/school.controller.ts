@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import { answerQuestionnaireService, getQuestions, getSchoolDetails, updateOrganisationOwner, updateSchoolContact, updateSchoolDetails, updateSchoolInfo } from '../services/school.service';
 import { Service as DocumentService } from '../services/document.service';
 
+
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
   schoolContact: 'Could not add school Contact',

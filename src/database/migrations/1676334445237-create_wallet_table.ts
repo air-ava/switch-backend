@@ -24,6 +24,7 @@ const addUserId = new TableColumn({
   name: 'userId',
   type: 'varchar',
   isNullable: false,
+  collation: 'utf8mb4_unicode_ci',
 });
 
 const addEntity = new TableColumn({
@@ -70,6 +71,7 @@ export class createWalletTable1676334445237 implements MigrationInterface {
             type: 'varchar',
             isPrimary: true,
             isNullable: false,
+            collation: 'utf8mb4_unicode_ci',
           },
           {
             name: 'currency',

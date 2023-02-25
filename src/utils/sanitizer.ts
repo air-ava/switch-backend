@@ -170,6 +170,7 @@ export const Sanitizer = {
 
     const sanitized = {
       ...rest,
+      reference: slug,
       ...(School && { schoolOnboardingStatus: Sanitizer.getStatusById(STATUSES, School.status).toLowerCase() }),
       avatar: Avatar && Sanitizer.sanitizeAsset(Avatar),
       address: Address && Sanitizer.sanitizeAddress(Address),

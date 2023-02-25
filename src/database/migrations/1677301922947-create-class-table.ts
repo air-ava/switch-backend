@@ -1,11 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { STATUSES } from '../models/status.model';
 
-export class createMobileMoneyTransactionsTable1676595248351 implements MigrationInterface {
+export class createClassTable1677301922947 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'mobileMoneyTransactions',
+        name: 'class_level',
         columns: [
           {
             name: 'id',
@@ -15,31 +14,25 @@ export class createMobileMoneyTransactionsTable1676595248351 implements Migratio
             generationStrategy: 'increment',
           },
           {
-            name: 'processor',
-            type: 'varchar',
-            isNullable: false,
-          },
-          {
-            name: 'processor_transaction_id',
-            type: 'varchar',
-            default: `'bayonic'`,
-            isNullable: false,
-          },
-          {
-            name: 'response',
+            name: 'education_level',
             type: 'varchar',
             isNullable: true,
           },
           {
-            name: 'tx_reference',
+            name: 'class',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
-            name: 'status',
-            type: 'int',
-            default: STATUSES.SUCCESS,
-            isNullable: false,
+            name: 'class_short_name',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'country',
+            type: 'varchar',
+            default: `'UGANDA'`,
+            isNullable: true,
           },
           {
             name: 'created_at',
@@ -59,6 +52,6 @@ export class createMobileMoneyTransactionsTable1676595248351 implements Migratio
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('mobileMoneyTransactions');
+    await queryRunner.dropTable('class');
   }
 }

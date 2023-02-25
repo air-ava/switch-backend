@@ -35,4 +35,6 @@ export const STATUSES = {
   PAID: 17,
   PROCESSING: 18,
   PROCESSED: 19,
+  INITIATED: 20,
+  COMPLETED: 21,
 };
