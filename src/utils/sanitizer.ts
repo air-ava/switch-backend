@@ -11,6 +11,7 @@ import {
   IScholarshipEligibility,
   IScholarshipApplication,
   IScholarshipRequirement,
+  IStudentClass,
 } from '../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -240,6 +241,7 @@ export const Sanitizer = {
   sanitizeStudent(payload: IScholarshipApplication): any {
     if (!payload) return null;
     const { id, status, User, userId, School, schoolId, uniqueStudentId, Classes, ...rest } = Sanitizer.jsonify(payload);
+    const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
     const sanitized = {
       id,
       ...rest,
@@ -247,6 +249,7 @@ export const Sanitizer = {
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       user: User && Sanitizer.sanitizeUser(User),
       school: School && Sanitizer.sanitizeSchool(School),
+      class: Classes && studentCurrentClass[0].ClassLevel,
       classes: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
     };
     return sanitized;

@@ -56,7 +56,7 @@ const Service = {
   
   async getStudent(criteria: any): Promise<theResponse> {
     const { studentId } = criteria;
-    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School']);
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
     if (!student) throw Error('Student not found');
     return sendObjectResponse('Student retrieved successfully', student);
   },
