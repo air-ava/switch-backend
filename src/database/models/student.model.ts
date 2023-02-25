@@ -35,7 +35,7 @@ export class Student {
 
   // @ManyToOne('StudentClass', 'students')
   // @JoinColumn({ name: 'studentId', referencedColumnName: 'id' })
-  // Student: StudentClass;
+  // StudentClasses: StudentClass;
 
   @OneToMany(() => StudentClass, (classLevel) => classLevel.Student)
   Classes: StudentClass[];
