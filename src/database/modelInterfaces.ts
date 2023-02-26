@@ -259,6 +259,22 @@ export interface IWallets {
   created_at: Date;
 }
 
+export interface IThirdPartyLogs {
+  id: number;
+  event: string;
+  message: string;
+  endpoint: string;
+  school: number;
+  endpoint_verb: string;
+  status_code: string;
+  provider_type: string;
+  provider: string;
+  payload: string;
+  reference: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface IOrganisation {
   id: number;
   name: string;
@@ -684,6 +700,18 @@ export interface IClassLevel {
   class: string;
   class_short_name: string;
   country: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ILienTransaction {
+  id: number;
+  amount: number;
+  status?: number;
+  walletId: number;
+  reference: string;
+  metadata: { [key: string]: string | number };
+  type?: string;
   created_at: Date;
   updated_at: Date;
 }

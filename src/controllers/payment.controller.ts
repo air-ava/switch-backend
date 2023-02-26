@@ -3,6 +3,8 @@ import { createPendingPayment, getPendingPayment, listPendingPayment } from '../
 import { getSchoolDetails } from '../services/school.service';
 import { fetchUserBySlug } from '../services/user.service';
 import { Service as BayonicService } from '../services/mobileMoney.service';
+import { getStudent } from '../database/repositories/student.repo';
+import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 
 export const createPaymentCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -58,18 +60,30 @@ export const getPaymentCONTROLLER: RequestHandler = async (req, res) => {
 export const initiatePaymentCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const schoolPayload = { user: req.user };
+    const { walletId, studentId } = req.body;
     const { data: school } = await getSchoolDetails(schoolPayload);
-    const { data: reciever } = await fetchUserBySlug({ slug: req.body.studentId });
+    let reciever;
+    if (studentId) {
+      const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
+      if (!student) throw new Error('Student not found');
+      reciever = student;
+    } else {
+      const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
+      if (!wallet) throw new Error('Wallet not found');
+      reciever = wallet.User;
+    }
+    // const { data: reciever } = await fetchUserBySlug({ slug: req.body.studentId });
 
     const query = {
       user: req.user,
       phoneNumber: req.body.phoneNumber,
       amount: req.body.amount,
-      student: reciever,
-      purpose: 'School-Fees',
+      ...(studentId && { student: reciever }),
+      ...(walletId && { reciever }),
+      purpose: studentId ? 'school-fees' : 'top-up',
       school,
     };
-    const response = await BayonicService.bayonicCollectionRequest(query);
+    const response = await BayonicService.initiateCollectionRequest(query);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error: any) {
@@ -79,4 +93,3 @@ export const initiatePaymentCONTROLLER: RequestHandler = async (req, res) => {
       : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
 };
-

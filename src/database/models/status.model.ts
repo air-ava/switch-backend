@@ -37,4 +37,5 @@ export const STATUSES = {
   PROCESSED: 19,
   INITIATED: 20,
   COMPLETED: 21,
+  NEW: 22,
 };

@@ -53,6 +53,13 @@ const Service = {
     const response = await listClassLevel({}, []);
     return sendObjectResponse('Classes retrieved successfully', response);
   },
+ 
+  // async listEducationLevels(): Promise<theResponse> {
+  //   const classLevels = await listClassLevel({}, []);
+
+  //   // const requirementDocs = await createObjectFromArray(classLevels, 'id', 'requirement_type');
+  //   return sendObjectResponse('Classes retrieved successfully', response);
+  // },
   
   async getStudent(criteria: any): Promise<theResponse> {
     const { studentId } = criteria;

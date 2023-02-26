@@ -30,3 +30,4 @@ export const FLUTTERWAVE_BASE_URL = throwIfUndefined('FLUTTERWAVE_BASE_URL');
 export const FLUTTERWAVE_SECRET_KEY = throwIfUndefined('FLUTTERWAVE_SECRET_KEY');
 export const BAYONIC_BASE_URL = throwIfUndefined('BAYONIC_BASE_URL');
 export const BAYONIC_KEY = throwIfUndefined('BAYONIC_KEY');
+export const STEWARD_BASE_URL = throwIfUndefined('STEWARD_BASE_URL');

@@ -244,6 +244,7 @@ export const Service: any = {
     description,
     metadata,
     t,
+    noTransaction = false,
   }: {
     amount: number;
     user: IUser;
@@ -253,6 +254,7 @@ export const Service: any = {
     description: string;
     metadata: { [key: string]: number | string };
     t: QueryRunner;
+    noTransaction: boolean;
   }): Promise<ControllerResponse> {
     const wallet = await WalletREPO.findWallet({ userId: user.id, id: wallet_id }, ['id', 'balance'], t);
     if (!wallet) {
@@ -262,19 +264,20 @@ export const Service: any = {
       };
     }
     await WalletREPO.incrementBalance(wallet.id, amount, t);
-    await saveTransaction({
-      walletId: wallet.id,
-      userId: user.id,
-      amount,
-      balance_after: Number(wallet.balance) + Number(amount),
-      balance_before: Number(wallet.balance),
-      purpose,
-      metadata,
-      reference,
-      description,
-      txn_type: 'credit',
-      t,
-    });
+    if (!noTransaction)
+      await saveTransaction({
+        walletId: wallet.id,
+        userId: user.id,
+        amount,
+        balance_after: Number(wallet.balance) + Number(amount),
+        balance_before: Number(wallet.balance),
+        purpose,
+        metadata,
+        reference,
+        description,
+        txn_type: 'credit',
+        t,
+      });
     // await checkIfDebtExistOnWallet({ walletId: wallet.id });
     return {
       success: true,
