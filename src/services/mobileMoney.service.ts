@@ -62,13 +62,13 @@ export const Service = {
       throw new Error(error || 'collection request failed');
     }
     const description = `${purpose} for ${initiator.first_name} ${initiator.last_name} at ${school.name}`;
-    // const { success_message, contact, id: collectRequestId, status } = data;
+    const { contact, id: collectRequestId, status } = data;
     // create contact for the payer
 
     await saveMobileMoneyTransaction({
       tx_reference: reference,
       status: Service.getBayonicStatus(status),
-      processor_transaction_id: data.id,
+      processor_transaction_id: collectRequestId,
     });
     await saveTransaction({
       walletId: wallet.id,
@@ -78,9 +78,9 @@ export const Service = {
       balance_before: Number(wallet.balance),
       purpose,
       metadata: {
-        collectRequestId: data.id,
+        collectRequestId,
         fundersPhone: data.phonenumber,
-        fundersNetwork: data.contact.network_name,
+        fundersNetwork: contact.network_name,
       },
       reference,
       status: STATUSES.PROCESSING,
@@ -96,9 +96,9 @@ export const Service = {
       metadata: {
         ...metadata,
         purpose,
-        collectRequestId: data.id,
+        collectRequestId,
         fundersPhone: data.phonenumber,
-        fundersNetwork: data.contact.network_name,
+        fundersNetwork: contact.network_name,
       },
       saveToTransaction: false,
     });

@@ -22,7 +22,7 @@ const Service = {
     const studentsFound = await listUser({ email: Like(`%${first_name}+${last_name}%`) }, []);
     if (studentsFound.length) studentEmail = `${first_name}+${last_name}${studentsFound.length + 1}${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
 
-    const uniqueStudentId = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+    const uniqueStudentId = randomstring.generate({ length: 9, charset: 'numeric' });
     const remember_token = randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' });
     const passwordHash = bcrypt.hashSync(`${first_name}${last_name}`, 8);
 
@@ -54,13 +54,6 @@ const Service = {
     return sendObjectResponse('Classes retrieved successfully', response);
   },
  
-  // async listEducationLevels(): Promise<theResponse> {
-  //   const classLevels = await listClassLevel({}, []);
-
-  //   // const requirementDocs = await createObjectFromArray(classLevels, 'id', 'requirement_type');
-  //   return sendObjectResponse('Classes retrieved successfully', response);
-  // },
-  
   async getStudent(criteria: any): Promise<theResponse> {
     const { studentId } = criteria;
     const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
