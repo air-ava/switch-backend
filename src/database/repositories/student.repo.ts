@@ -31,11 +31,13 @@ export const listStudent = async (
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        order: { created_at: 'DESC' },
       })
     : getRepository(Student).find({
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        order: { created_at: 'DESC' },
       });
 };
 
