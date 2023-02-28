@@ -5,7 +5,7 @@ export const africasTalkingCONTROLLER: RequestHandler = async (req, res): Promis
   res.set('Content-Type: text/plain');
   try {
     // check token here
-    // if (req.query.token !== AFRICA_TALKING_USSD_TOKEN) throw Error('Inavlid token supplied');
+    if (req.query.token !== AFRICA_TALKING_USSD_TOKEN) throw Error('Inavlid token supplied');
     const { phoneNumber, serviceCode, text, sessionId, networkCode } = req.body;
     const response = `CON Welcome to Steward School Fees Payment
         Enter Student Code`;
