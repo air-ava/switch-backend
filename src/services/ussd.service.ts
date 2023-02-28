@@ -23,6 +23,7 @@ const Service = {
   },
 
   async sessionHandler(criteria: any): Promise<theResponse> {
+    console.log({ criteria });
     const { phoneNumber, serviceCode, text, sessionId, networkCode } = criteria;
     const paths = text?.split('*');
 
