@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { createPendingPayment, getPendingPayment, listPendingPayment } from '../services/payment.service';
+import { buildCollectionRequestPayload, createPendingPayment, getPendingPayment, listPendingPayment } from '../services/payment.service';
 import { getSchoolDetails } from '../services/school.service';
 import { fetchUserBySlug } from '../services/user.service';
 import { Service as BayonicService } from '../services/mobileMoney.service';
@@ -59,30 +59,32 @@ export const getPaymentCONTROLLER: RequestHandler = async (req, res) => {
 
 export const initiatePaymentCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const schoolPayload = { user: req.user };
-    const { walletId, studentId } = req.body;
-    const { data: school } = await getSchoolDetails(schoolPayload);
-    let reciever;
-    if (studentId) {
-      const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
-      if (!student) throw new Error('Student not found');
-      reciever = student;
-    } else {
-      const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
-      if (!wallet) throw new Error('Wallet not found');
-      reciever = wallet.User;
-    }
-    // const { data: reciever } = await fetchUserBySlug({ slug: req.body.studentId });
+    // const schoolPayload = { user: req.user };
+    // const { walletId, studentId } = req.body;
+    // const { data: school } = await getSchoolDetails(schoolPayload);
+    // let reciever;
+    // if (studentId) {
+    //   const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
+    //   if (!student) throw new Error('Student not found');
+    //   reciever = student;
+    // } else {
+    //   const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
+    //   if (!wallet) throw new Error('Wallet not found');
+    //   reciever = wallet.User;
+    // }
+    // // const { data: reciever } = await fetchUserBySlug({ slug: req.body.studentId });
 
-    const query = {
-      user: req.user,
-      phoneNumber: req.body.phoneNumber,
-      amount: req.body.amount,
-      ...(studentId && { student: reciever }),
-      ...(walletId && { reciever }),
-      purpose: studentId ? 'school-fees' : 'top-up',
-      school,
-    };
+    // const query = {
+    //   user: req.user,
+    //   phoneNumber: req.body.phoneNumber,
+    //   amount: req.body.amount,
+    //   ...(studentId && { student: reciever }),
+    //   ...(walletId && { reciever }),
+    //   purpose: studentId ? 'school-fees' : 'top-up',
+    //   school,
+    // };
+    const { walletId, studentId, phoneNumber, amount } = req.body;
+    const query = await buildCollectionRequestPayload({ user: req.user, walletId, studentId, phoneNumber, amount });
     const response = await BayonicService.initiateCollectionRequest(query);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);

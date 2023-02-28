@@ -22,8 +22,15 @@ const settings: any = {
       floor: 1000,
       flat: 0,
     },
+    'mobile-money-fee': {
+      purpose: 'Fees:Mobile-Money',
+      flat: 20,
+    },
   },
   DEFAULT_STUDENT_EMAIL: '@studentsteward.com',
+  USSD: {
+    serviceCode: '*384*3124#',
+  }
 };
 
 // eslint-disable-next-line consistent-return

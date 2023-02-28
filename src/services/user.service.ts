@@ -6,6 +6,9 @@ import Settings from './settings.service';
 import { shopperLoginValidator } from '../validators/auth.validator';
 import { findSchoolWithOrganization, findOrCreatePhoneNumber } from './helper.service';
 import { createAsset } from './assets.service';
+import { IUser } from '../database/modelInterfaces';
+import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
+import { getSchool } from '../database/repositories/schools.repo';
 
 export const updateUserProfile = async (data: any): Promise<any> => {
   // const validation = shopperLoginValidator.validate(data);
@@ -99,3 +102,25 @@ export const fetchUserBySlug = async (data: any): Promise<any> => {
     return BadRequestException(e.message);
   }
 };
+
+// export const fetchUserWithOrganization = async (userId: number): Promise<any> => {
+//   // const validation = shopperLoginValidator.validate(data);
+//   // if (validation.error) return ResourceNotFoundError(validation.error);
+
+//   try {
+//     const user = await findUser({ id: userId }, []);
+//     if (!user) throw Error(`User not found`);
+//     const organisation = await getOneOrganisationREPO({ id: (user as IUser).organisation }, []);
+//     if (organisation) {
+//       req.organisation = organisation as any;
+//       if (organisation) {
+//         const school = await getSchool({ organisation_id: organisation.id }, []);
+//         if (school) req.school = school as any;
+//       }
+//     }
+
+//     return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeUser(userAlreadyExist));
+//   } catch (e: any) {
+//     return BadRequestException(e.message);
+//   }
+// };

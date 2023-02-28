@@ -1,12 +1,16 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import randomstring from 'randomstring';
 import { Not } from 'typeorm';
 import { STATUSES } from '../database/models/status.model';
 import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import { findPendingPayment, findMultiplePendingPayments, savePendingPaymentsREPO } from '../database/repositories/payments.repo';
 import { findScholarship } from '../database/repositories/scholarship.repo';
+import { getStudent } from '../database/repositories/student.repo';
 import { findUser } from '../database/repositories/user.repo';
 import { sendObjectResponse } from '../utils/errors';
 import { sendEmail } from '../utils/mailtrap';
+import { getSchoolDetails } from './school.service';
+import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 
 export const createPendingPayment = async (data: any): Promise<any> => {
   const { org_id, sender_id, recipient_id, scholarship_id, description, amount, ...rest } = data;
@@ -91,4 +95,39 @@ export const getPendingPayment = async ({
 
   return sendObjectResponse('Payment retrieved successfully', existingPayment);
 };
+
+export const buildCollectionRequestPayload = async ({ user, walletId, studentId, phoneNumber, amount }: any): Promise<any> => {
+  let school;
+  let reciever;
+  if (user) {
+    const { data: foundSchool } = await getSchoolDetails({ user });
+    school = foundSchool;
+  }
+  if (studentId) {
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
+    if (!student) throw new Error('Student not found');
+    if (!user) {
+      school = student.School;
+      const organization = await getOneOrganisationREPO({ id: school.organisation_id }, [], ['Owner']);
+      // eslint-disable-next-line no-param-reassign
+      user = organization.Owner;
+    }
+    reciever = student;
+  } else {
+    const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
+    if (!wallet) throw new Error('Wallet not found');
+    reciever = wallet.User;
+  }
+
+  return {
+    user,
+    phoneNumber,
+    amount,
+    ...(studentId && { student: reciever }),
+    ...(walletId && { reciever }),
+    purpose: studentId ? 'school-fees' : 'top-up',
+    school,
+  };
+};
+
 // todo: get pending payment
