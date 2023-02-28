@@ -55,7 +55,7 @@ const Service = {
     if (studentId.length !== 9) return BadRequestException('END Invalid student code');
     if (studentId.length === 9) {
       if (incomingAmount) {
-        const query = await buildCollectionRequestPayload({ studentId, phoneNumber, amount: incomingAmount });
+        const query = await buildCollectionRequestPayload({ studentId, phoneNumber, amount: incomingAmount * 100 });
         const response = await BayonicService.initiateCollectionRequest(query);
         return response.success
           ? sendObjectResponse('END School Fees Payment Completed')
