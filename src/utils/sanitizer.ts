@@ -1,3 +1,4 @@
+import { Organisation } from './../database/models/organisation.model';
 import { Application } from 'express';
 import {
   IBusiness,
@@ -17,6 +18,7 @@ import {
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import { IBusiness, ICurrency, ILink, IPhoneNumber, IScholarship, ISTATUSES, IUser } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
+import { getStudent } from '../database/repositories/student.repo';
 
 export const Sanitizer = {
   jsonify(payload: any) {
@@ -198,7 +200,7 @@ export const Sanitizer = {
 
   sanitizeApplication(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { id, status, Links, Assets, Address, Scholarship, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, Links, Assets, Address, Scholarship, School, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
       ...rest,
@@ -207,6 +209,7 @@ export const Sanitizer = {
       links: Links && Sanitizer.sanitizeAllArray(Assets, Sanitizer.sanitizeLink),
       address: Address && Address,
       scholarship: Scholarship && Sanitizer.sanitizeScholarship(Scholarship, id),
+      school: School && Sanitizer.sanitizeSchool(School),
     };
     return sanitized;
   },
@@ -223,22 +226,34 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  sanitizeTransaction(payload: IScholarshipApplication): any {
+  async sanitizeTransactions(payload: any): Promise<any>  {
+    if (!Array.isArray(payload)) return null;
+    const response = await Promise.all(payload.map(Sanitizer.sanitizeTransaction));
+    return response;
+  },
+
+  async sanitizeTransaction(payload: any): Promise<any> {
     if (!payload) return null;
-    const { id, userId, User, status, Wallet, walletId, document_reference, Reciepts, ...rest } = Sanitizer.jsonify(payload);
+    const { id, userId, User, status, Wallet, walletId, document_reference, Reciepts, metadata, ...rest } = Sanitizer.jsonify(payload);
+    let Student;
+    if (metadata && metadata.collectRequestId && String(metadata.username).length > 7) {
+      Student = await getStudent({ uniqueStudentId: metadata.username }, [], ['User', 'Classes', 'Classes.ClassLevel']);
+    }
     const sanitized = {
       id,
       ...rest,
+      metadata,
       recieptReference: document_reference,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
-      payer: User && Sanitizer.sanitizeUser(User),
+      recipient: User && Sanitizer.sanitizeUser(User),
+      payer: Student && Sanitizer.sanitizeStudent(Student),
       wallet: Wallet && Sanitizer.sanitizeWallet(Wallet),
       reciepts: Reciepts && Sanitizer.sanitizeAllArray(Reciepts, Sanitizer.sanitizeAsset),
     };
     return sanitized;
   },
 
-  sanitizeStudent(payload: IScholarshipApplication): any {
+  sanitizeStudent(payload: any): any {
     if (!payload) return null;
     const { id, status, User, userId, School, schoolId, uniqueStudentId, Classes, ...rest } = Sanitizer.jsonify(payload);
     const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);

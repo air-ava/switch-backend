@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IAddress, IAssets, IPhoneNumber } from '../modelInterfaces';
+import { IAddress, IAssets, IOrganisation, IPhoneNumber } from '../modelInterfaces';
 // import { Addresses } from './Addresses';
 // import { Orders } from './Order';
 
@@ -166,4 +166,8 @@ export class Users {
   @OneToOne('Assets', 'users')
   @JoinColumn({ name: 'avatar' })
   Avatar: IAssets;
+
+  @OneToOne('Organisation', 'users')
+  @JoinColumn({ name: 'organisation' })
+  Organization: IOrganisation;
 }

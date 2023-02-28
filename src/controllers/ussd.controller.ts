@@ -7,9 +7,6 @@ export const africasTalkingCONTROLLER: RequestHandler = async (req, res): Promis
   try {
     // check token here
     if (req.query.token !== AFRICA_TALKING_USSD_TOKEN) throw Error('Inavlid token supplied');
-    const { phoneNumber, serviceCode, text, sessionId, networkCode } = req.body;
-    // const response = `CON Welcome to Steward School Fees Payment
-    //     Enter Student Code`;
     const response = await UssdService.sessionHandler(req.body);
     console.log({ response });
     res

@@ -15,7 +15,8 @@ export const listTransactionsCONTROLLER: RequestHandler = async (req, res) => {
     const response = await listTransactions({ userId: req.userId, type: req.query.purpose });
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeTransaction)));
+    return res.status(responseCode).json(oldSendObjectResponse(message || error, await Sanitizer.sanitizeTransactions(data)));
+    // return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeTransaction)));
   } catch (error) {
     console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
@@ -27,7 +28,7 @@ export const getTransactionCONTROLLER: RequestHandler = async (req, res) => {
     const response = await getTransaction({ userId: req.userId, id: req.params.id });
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeTransaction(data), true));
+    return res.status(responseCode).json(oldSendObjectResponse(message || error, await Sanitizer.sanitizeTransaction(data), true));
   } catch (error) {
     console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });

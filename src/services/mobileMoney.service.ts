@@ -78,6 +78,7 @@ export const Service = {
       balance_before: Number(wallet.balance),
       purpose,
       metadata: {
+        ...metadata,
         collectRequestId,
         fundersPhone: data.phonenumber,
         fundersNetwork: contact.network_name,
