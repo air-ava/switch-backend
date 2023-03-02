@@ -392,6 +392,14 @@ export const Sanitizer = {
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
   },
+  sanitizeBank(payload: any): any {
+    if (!payload) return null;
+    const { status, walletId, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
 };
 
 export const jsonify = (payload: any): { [key: string]: any } => {

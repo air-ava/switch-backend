@@ -13,6 +13,7 @@ import checkoutRouter from './checkout.routes';
 import userRouter from './user.routes';
 import webhookRouter from './webhook.routes';
 import miscillaneousRouter from './miscillaneous.routes';
+import banksRouter from './bank.routes';
 import scholarshipRouter from './scholarship.routes';
 import transactionsRouter from './transactions.routes';
 import walletsRouter from './wallets.routes';
@@ -41,6 +42,7 @@ router.use('/address', addressRouter);
 router.use('/cart', cartRouter);
 router.use('/checkout', checkoutRouter);
 router.use('/misc', miscillaneousRouter);
+router.use('/banks', banksRouter);
 
 // Settings.init();
 /**

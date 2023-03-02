@@ -12,6 +12,7 @@ export const getSchool = async (
     ? t.manager.findOne(Schools, {
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+        ...(relationOptions && { relations: relationOptions }),
       })
     : getRepository(Schools).findOne({
         where: queryParam,

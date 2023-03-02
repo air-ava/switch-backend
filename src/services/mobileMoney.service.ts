@@ -155,7 +155,7 @@ export const Service = {
 
   // create MobileMoney details for the collection Contact to know where the money goes to
   async updateMobileMoneyTransactions(payload: any) {
-    const { reference, status, requestId, school, incomingData, incomingStatus } = payload.data;
+    const { reference, status, requestId, school, incomingData, incomingStatus, metadata } = payload.data;
     await updateMobileMoneyTransactionREPO(
       {
         tx_reference: reference,
@@ -163,6 +163,8 @@ export const Service = {
       },
       { status },
     );
+
+    if (status === STATUSES.FAILED) await updateTransactionREPO({ reference, txn_type: 'credit', channel: 'mobile-money' }, { status, metadata });
 
     await saveThirdPartyLogsREPO({
       event: 'collectionrequest.status.changed',

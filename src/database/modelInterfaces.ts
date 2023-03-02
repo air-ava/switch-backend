@@ -1,4 +1,4 @@
-import { FindOperator } from "typeorm";
+import { FindOperator } from 'typeorm';
 
 export interface IAddress {
   id: number;
@@ -712,6 +712,24 @@ export interface ILienTransaction {
   reference: string;
   metadata: { [key: string]: string | number };
   type?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IBanks {
+  id: number;
+  provider: string;
+  country: string;
+  currency: string;
+  walletId: number;
+  status: number;
+  number: string;
+  account_name: string;
+  bank_name: string;
+  bank_code: string;
+  bank_routing_number: string;
+  metadata: { [key: string]: string | number };
+  default: boolean;
   created_at: Date;
   updated_at: Date;
 }
