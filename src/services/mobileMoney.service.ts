@@ -50,7 +50,7 @@ export const Service = {
       phonenumber: phoneNumber,
       first_name: initiator.first_name,
       last_name: initiator.last_name,
-      amount,
+      amount: amount / 100,
       currency: 'BXC' || wallet.currency,
       metadata,
       reason: `${purpose}`,

@@ -42,7 +42,8 @@ const Service = {
   },
 
   async sessionHandler(criteria: any): Promise<theResponse> {
-    const { phoneNumber, serviceCode, text, sessionId, networkCode } = criteria;
+    const { serviceCode, text, sessionId, networkCode } = criteria;
+    let { phoneNumber } = criteria;
 
     const paths = text?.split('*');
 
@@ -50,11 +51,16 @@ const Service = {
     Enter Student Code`;
     if (serviceCode !== Settings.get('USSD').serviceCode) return BadRequestException('END Invalid ussd code');
     if (!paths || !paths.length) return sendObjectResponse(baseResponse);
+
     const [studentId, incomingAmount] = paths;
+
     if (!studentId) return sendObjectResponse(baseResponse);
     if (studentId.length !== 9) return BadRequestException('END Invalid student code');
     if (studentId.length === 9) {
       if (incomingAmount) {
+        if (networkCode === '99999') phoneNumber = '+80000000003';
+        if (Number(incomingAmount) > 1000) return BadRequestException('END Incoming Amount is higher than 1000');
+
         const query = await buildCollectionRequestPayload({ studentId, phoneNumber, amount: incomingAmount * 100 });
         const response = await BayonicService.initiateCollectionRequest(query);
         return response.success

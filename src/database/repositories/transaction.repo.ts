@@ -97,6 +97,14 @@ export const getTotalCredited = (userId: string): Promise<{ total: number } | un
     .getRawOne();
 };
 
+export const getTotalSuccessfulCredit = (userId: string): Promise<{ total: number } | undefined> => {
+  return getRepository(Transactions)
+    .createQueryBuilder('transaction')
+    .select('SUM(transaction.amount)', 'totalIn')
+    .where('transaction.txn_type = :txn_type AND transaction.userId = :userId AND transaction.status = 14', { txn_type: 'credit', userId })
+    .getRawOne();
+};
+
 export const getTotalDebited = (userId: string): Promise<{ total: number } | undefined> => {
   return getRepository(Transactions)
     .createQueryBuilder('transaction')

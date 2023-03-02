@@ -4,6 +4,7 @@ import {
   getOneTransactionREPO,
   getTotalCredited,
   getTotalDebited,
+  getTotalSuccessfulCredit,
   getTransactionsREPO,
   updateTransactionREPO,
 } from '../database/repositories/transaction.repo';
@@ -35,7 +36,7 @@ export const listTransactions = async (data: any): Promise<any> => {
 export const statsOnTransactions = async (data: any): Promise<any> => {
   const { userId } = data;
   try {
-    const [totalIn, totalOut] = await Promise.all([getTotalCredited(userId), getTotalDebited(userId)]);
+    const [totalIn, totalOut] = await Promise.all([getTotalSuccessfulCredit(userId), getTotalDebited(userId)]);
 
     return sendObjectResponse('Transactions analytics retrieved successfully', { ...totalIn, ...totalOut });
   } catch (e: any) {
