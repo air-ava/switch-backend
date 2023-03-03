@@ -3,6 +3,7 @@ import BankRepo from '../database/repositories/bank.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
+import { Sanitizer } from '../utils/sanitizer';
 
 const Service = {
   async listBanks(data: any): Promise<theResponse> {
