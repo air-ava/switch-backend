@@ -15,7 +15,7 @@ const Service = {
       };
     }
     const response = await BankRepo.findBanks({ walletId: wallet.id, currency: wallet.currency, status: STATUSES.ACTIVE }, []);
-    return sendObjectResponse('Banks retrieved successfully', response);
+    return sendObjectResponse('Banks retrieved successfully', Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeBank));
   },
 
   async creatBank(data: any): Promise<theResponse> {
@@ -44,7 +44,7 @@ const Service = {
       default: defaultBank,
       country,
     });
-    return sendObjectResponse('Banks retrieved successfully', response);
+    return sendObjectResponse('Banks retrieved successfully', Sanitizer.sanitizeBank(response));
   },
 
   async defaultBank(data: any): Promise<theResponse> {

@@ -14,8 +14,7 @@ export const listBanksCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const response = await BankService.listBanks({ user, school });
     const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(sendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeBank)));
+    return res.status(responseCode).json(response);
   } catch (error: any) {
     return error.message
       ? res.status(400).json({ success: false, error: error.message })
@@ -30,8 +29,7 @@ export const addBankCONTROLLER: RequestHandler = async (req, res) => {
 
     const response = await BankService.creatBank(payload);
     const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(sendObjectResponse(message || error, Sanitizer.sanitizeBank(data)));
+    return res.status(responseCode).json(response);
   } catch (error: any) {
     return error.message
       ? res.status(400).json({ success: false, error: error.message })
