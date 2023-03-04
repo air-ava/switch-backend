@@ -1,5 +1,3 @@
-import { Organisation } from './../database/models/organisation.model';
-import { Application } from 'express';
 import {
   IBusiness,
   ICurrency,
@@ -383,12 +381,13 @@ export const Sanitizer = {
 
   sanitizeSchool(payload: any): any {
     if (!payload) return null;
-    const { status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, ...rest } = Sanitizer.jsonify(payload);
+    const { status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, logo, Logo, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
       address: Address && Sanitizer.sanitizeAddress(Address),
       phoneNumber: phoneNumber && Sanitizer.sanitizePhoneNumber(phoneNumber),
       organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
+      logo: Logo && Sanitizer.sanitizeAsset(Logo),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
   },

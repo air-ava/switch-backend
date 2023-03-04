@@ -237,8 +237,6 @@ export const updateSchoolDetails = async (data: any) => {
     schoolType,
     schoolDescription,
   } = data;
-  const { country, state } = address;
-
   try {
     const {
       data: { school, organisation },
@@ -254,6 +252,8 @@ export const updateSchoolDetails = async (data: any) => {
     }
 
     if (address) {
+      const { country, state } = address;
+
       const gottenAddress = await findOrCreateAddress({ ...address });
       payload.country = country;
       payload.state = state;
@@ -272,7 +272,7 @@ export const updateSchoolDetails = async (data: any) => {
       payload.logo = createdAsset.data.id;
     }
 
-    await updateOrganisationREPO({ id: organisation.id }, { name: organisationName });
+    if (organisationName) await updateOrganisationREPO({ id: organisation.id }, { name: organisationName });
     await updateSchool(
       { id: school.id },
       {

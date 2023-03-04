@@ -201,7 +201,7 @@ export const findSchoolWithOrganization = async (payload: { owner: string; email
   const foundSchool = await getSchool(
     { organisation_id: existingOrganisation.id },
     [],
-    ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner'],
+    ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo'],
   );
   if (!foundSchool) throw Error('School not found');
 

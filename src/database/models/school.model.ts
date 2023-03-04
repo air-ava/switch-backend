@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { IUser, IBusiness, IAddresses, IAddress, IOrganisation, IPhoneNumber } from '../modelInterfaces';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
+import { IAssets, IAddress, IOrganisation, IPhoneNumber } from '../modelInterfaces';
 
 @Entity('schools')
 export class Schools {
@@ -62,4 +62,8 @@ export class Schools {
   @OneToOne('Organisation', 'schools')
   @JoinColumn({ name: 'organisation_id', referencedColumnName: 'id' })
   Organisation: IOrganisation;
+
+  @OneToOne('Assets', 'schools')
+  @JoinColumn({ name: 'logo' })
+  Logo: IAssets;
 }
