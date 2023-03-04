@@ -152,7 +152,7 @@ export const userAuth = async (data: userAuthDTO): Promise<theResponse> => {
     if (organisation) {
       userAlreadyExist.Organisation = organisation as any;
       if (organisation) {
-        const school = await getSchool({ organisation_id: organisation.id }, []);
+        const school = await getSchool({ organisation_id: organisation.id }, [], ['Logo']);
         if (school) userAlreadyExist.School = school as any;
       }
     }

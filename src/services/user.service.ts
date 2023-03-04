@@ -9,6 +9,7 @@ import { createAsset } from './assets.service';
 import { IUser } from '../database/modelInterfaces';
 import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool } from '../database/repositories/schools.repo';
+import { Service as WalletService } from './wallet.service';
 
 export const updateUserProfile = async (data: any): Promise<any> => {
   // const validation = shopperLoginValidator.validate(data);
@@ -82,8 +83,13 @@ export const fetchUserProfile = async (data: any): Promise<any> => {
     const userAlreadyExist = await findUser({ id: user.id }, [], ['phoneNumber', 'Address', 'Avatar']);
     if (!userAlreadyExist) throw Error('User not found');
 
-    const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, [], ['Organisation']);
+    const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, [], ['Organisation', 'Logo']);
     (userAlreadyExist as any).School = school;
+
+    const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
+    if (!getWallet) throw walletError;
+
+    (userAlreadyExist as any).Wallet = wallet;
 
     return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeUser(userAlreadyExist));
   } catch (e: any) {

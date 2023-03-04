@@ -166,6 +166,7 @@ export const Sanitizer = {
       Address,
       School,
       Organisation,
+      Wallet,
       ...rest
     } = Sanitizer.jsonify(payload);
 
@@ -181,6 +182,7 @@ export const Sanitizer = {
       phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
       school: School && Sanitizer.sanitizeSchool(School),
       organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
+      wallet: Wallet && Sanitizer.sanitizeWallet(Wallet),
     };
     return sanitized;
   },
@@ -381,7 +383,10 @@ export const Sanitizer = {
 
   sanitizeSchool(payload: any): any {
     if (!payload) return null;
-    const { status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, logo, Logo, ...rest } = Sanitizer.jsonify(payload);
+
+    // console.log({ payload });
+
+    const { status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
       address: Address && Sanitizer.sanitizeAddress(Address),

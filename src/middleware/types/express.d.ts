@@ -42,7 +42,7 @@ declare namespace Express {
       document_reference: string;
       website: string;
       status: number;
-      logo: number;
+      logo: any;
       organisation_id?: number;
       phone_number?: number;
       address_id?: number;

@@ -46,7 +46,7 @@ export const validateSession: RequestHandler = async (req, res, next) => {
   if (organisation) {
     req.organisation = organisation as any;
     if (organisation) {
-      const school = await getSchool({ organisation_id: organisation.id }, []);
+      const school = await getSchool({ organisation_id: organisation.id }, [], ['Logo']);
       if (school) req.school = school as any;
     }
   }
