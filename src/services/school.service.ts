@@ -29,7 +29,7 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
     const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, email: user.email, status: STATUSES.ACTIVE, type: 'school' }, []);
     if (!existingOrganisation) return BadRequestException('Organization not found');
 
-    let foundSchool: { [key: string]: any } = {};
+    let foundSchool: any;
     const schools = await listSchools({ organisation_id: existingOrganisation.id }, []);
     if (!schools.length) return BadRequestException('School not found');
 
