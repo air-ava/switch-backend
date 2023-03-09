@@ -115,7 +115,7 @@ const Service = {
     const { transactions, transactionCount, transactionTotal } = await getListOfTransactionsForSettlement(walletId, created_at, 'Fees:');
     const amountSettled = Sanitizer.filterTransactionsByPurpose(response.Transactions, 'Withdraw:Settlement');
 
-    response.amountSettled = amountSettled;
+    response.amountSettled = Number(amountSettled.amount);
     response.transactionCount = transactionCount;
     response.creditTransactions = transactions;
     response.total = transactionTotal;
