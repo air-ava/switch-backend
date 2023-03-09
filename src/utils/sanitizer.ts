@@ -420,7 +420,7 @@ export const Sanitizer = {
     };
   },
 
-  filterTransactionsByPurpose(transactions: ITransactions[], purpose: string): ITransactions {
+  filterTransactionsByPurpose(transactions: ITransactions[], purpose: string): any {
     const filteredTransaction = transactions.filter((transaction) => transaction.purpose.includes(purpose));
     return filteredTransaction[0];
   },
@@ -431,6 +431,7 @@ export const Sanitizer = {
     const Transaction = Sanitizer.filterTransactionsByPurpose(Transactions, 'Withdraw:Settlement');
     return {
       ...rest,
+      currency: Transactions && Transactions[0].Wallet && Transactions[0].Wallet.currency,
       payment: Transaction && Sanitizer.sanitizeLightTransaction(Transaction),
       paymentTransactions: Transaction && Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeLightTransaction),
       transactions: creditTransactions && Sanitizer.sanitizeAllArray(creditTransactions, Sanitizer.sanitizeLightTransaction),

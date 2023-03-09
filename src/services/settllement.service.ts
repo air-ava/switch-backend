@@ -103,14 +103,14 @@ const Service = {
   },
 
   async listSettlements(data: any): Promise<theResponse> {
-    const response = await listSettlementTransactions({}, [], ['Transactions']);
+    const response = await listSettlementTransactions({}, [], ['Transactions', 'Transactions.Wallet']);
     return sendObjectResponse('Settlements retrieved successfully', Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeSettlement));
   },
 
   async getSettlement(data: any): Promise<theResponse> {
     const { settlementId } = data;
-    const response = await getSettlementTransactionREPO({ id: settlementId }, [], ['Transactions']);
-    const [{ walletId, created_at }] = response.Transactions;
+    const response = await getSettlementTransactionREPO({ id: settlementId }, [], ['Transactions', 'Transactions.Wallet']);
+    const [{ walletId, created_at, Wallet }] = response.Transactions;
 
     const { transactions, transactionCount, transactionTotal } = await getListOfTransactionsForSettlement(walletId, created_at, 'Fees:');
     const amountSettled = Sanitizer.filterTransactionsByPurpose(response.Transactions, 'Withdraw:Settlement');
