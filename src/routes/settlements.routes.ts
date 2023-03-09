@@ -1,10 +1,10 @@
 import express from 'express';
-import { listSettlementsCONTROLLER, processSettlementCONTROLLER } from '../controllers/settlement.contoller';
+import { fetchSettlementsCONTROLLER, listSettlementsCONTROLLER, processSettlementCONTROLLER } from '../controllers/settlement.contoller';
 
 const router = express.Router();
 
 router.get('/', listSettlementsCONTROLLER);
 router.post('/', processSettlementCONTROLLER);
-// router.patch('/:id', defaulBankCONTROLLER);
+router.get('/:id', fetchSettlementsCONTROLLER);
 
 export default router;

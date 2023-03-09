@@ -427,12 +427,13 @@ export const Sanitizer = {
 
   sanitizeSettlement(payload: any): any {
     if (!payload) return null;
-    const { status, processor_transaction_id, Transactions, ...rest } = Sanitizer.jsonify(payload);
+    const { status, processor_transaction_id, Transactions, creditTransactions, ...rest } = Sanitizer.jsonify(payload);
     const Transaction = Sanitizer.filterTransactionsByPurpose(Transactions, 'Withdraw:Settlement');
     return {
       ...rest,
       payment: Transaction && Sanitizer.sanitizeLightTransaction(Transaction),
-      paymentTransactions: Transaction && Transactions && Transactions,
+      paymentTransactions: Transaction && Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeLightTransaction),
+      transactions: creditTransactions && Sanitizer.sanitizeAllArray(creditTransactions, Sanitizer.sanitizeLightTransaction),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
   },

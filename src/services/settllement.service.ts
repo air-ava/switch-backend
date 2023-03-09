@@ -3,7 +3,7 @@ import { Not, In } from 'typeorm';
 import { v4 } from 'uuid';
 import Settings from './settings.service';
 import { STATUSES } from '../database/models/status.model';
-import { listSettlementTransactions, saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
+import { getSettlementTransactionREPO, listSettlementTransactions, saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
 import { getListOfTransactionsForSettlement, getTotalSuccessfulDebit, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
@@ -105,6 +105,21 @@ const Service = {
   async listSettlements(data: any): Promise<theResponse> {
     const response = await listSettlementTransactions({}, [], ['Transactions']);
     return sendObjectResponse('Settlements retrieved successfully', Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeSettlement));
+  },
+
+  async getSettlement(data: any): Promise<theResponse> {
+    const { settlementId } = data;
+    const response = await getSettlementTransactionREPO({ id: settlementId }, [], ['Transactions']);
+    const [{ walletId, created_at }] = response.Transactions;
+
+    const { transactions, transactionCount, transactionTotal } = await getListOfTransactionsForSettlement(walletId, created_at, 'Fees:');
+    const amountSettled = Sanitizer.filterTransactionsByPurpose(response.Transactions, 'Withdraw:Settlement');
+
+    response.amountSettled = amountSettled;
+    response.transactionCount = transactionCount;
+    response.creditTransactions = transactions;
+    response.total = transactionTotal;
+    return sendObjectResponse('Settlement retrieved successfully', Sanitizer.sanitizeSettlement(response));
   },
 };
 
