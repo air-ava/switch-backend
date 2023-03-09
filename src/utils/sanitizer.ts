@@ -11,6 +11,7 @@ import {
   IScholarshipApplication,
   IScholarshipRequirement,
   IStudentClass,
+  ITransactions,
 } from '../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -252,6 +253,20 @@ export const Sanitizer = {
     };
     return sanitized;
   },
+  sanitizeLightTransaction(payload: any): any {
+    if (!payload) return null;
+    // console.log({ payload });
+    const { id, userId, User, status, Wallet, walletId, document_reference, Reciepts, metadata, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      id,
+      ...rest,
+      metadata,
+      recieptReference: document_reference,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    // console.log({ sanitized });
+    return sanitized;
+  },
 
   sanitizeStudent(payload: any): any {
     if (!payload) return null;
@@ -401,6 +416,23 @@ export const Sanitizer = {
     const { status, walletId, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
+
+  filterTransactionsByPurpose(transactions: ITransactions[], purpose: string): ITransactions {
+    const filteredTransaction = transactions.filter((transaction) => transaction.purpose.includes(purpose));
+    return filteredTransaction[0];
+  },
+
+  sanitizeSettlement(payload: any): any {
+    if (!payload) return null;
+    const { status, processor_transaction_id, Transactions, ...rest } = Sanitizer.jsonify(payload);
+    const Transaction = Sanitizer.filterTransactionsByPurpose(Transactions, 'Withdraw:Settlement');
+    return {
+      ...rest,
+      payment: Transaction && Sanitizer.sanitizeLightTransaction(Transaction),
+      paymentTransactions: Transaction && Transactions && Transactions,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
   },

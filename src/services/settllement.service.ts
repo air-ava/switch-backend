@@ -3,7 +3,7 @@ import { Not, In } from 'typeorm';
 import { v4 } from 'uuid';
 import Settings from './settings.service';
 import { STATUSES } from '../database/models/status.model';
-import { saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
+import { listSettlementTransactions, saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
 import { getListOfTransactionsForSettlement, getTotalSuccessfulDebit, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
@@ -11,6 +11,7 @@ import BankRepo from '../database/repositories/bank.repo';
 import { getQueryRunner } from '../database/helpers/db';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';
+import { Sanitizer } from '../utils/sanitizer';
 
 const Service = {
   async recordSettlementTransaction(data: any): Promise<theResponse> {
@@ -100,5 +101,11 @@ const Service = {
 
     return withdrawal;
   },
+
+  async listSettlements(data: any): Promise<theResponse> {
+    const response = await listSettlementTransactions({}, [], ['Transactions']);
+    return sendObjectResponse('Settlements retrieved successfully', Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeSettlement));
+  },
 };
+
 export default Service;

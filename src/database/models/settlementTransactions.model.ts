@@ -41,6 +41,10 @@ export class SettlementTransactions {
   @JoinColumn({ name: 'status', referencedColumnName: 'id' })
   Status: IStatus;
 
+  @OneToOne('Transactions', 'settlementTransactions')
+  @JoinColumn({ name: 'tx_reference', referencedColumnName: 'reference' })
+  Transaction: ITransactions;
+
   @OneToMany(() => Transactions, (transaction) => transaction.Settlement)
   Transactions: ITransactions[];
 }
