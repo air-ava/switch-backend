@@ -148,3 +148,13 @@ export const isValidDate = (date: any): boolean => {
     return false;
   }
 };
+
+export const singleDayStartAndEnd = (date: any = new Date()): { startDate: Date; endDate: Date } => {
+  const startDate = new Date(date);
+  startDate.setHours(0, 0, 0, 0);
+
+  const endDate = new Date(date);
+  endDate.setHours(23, 59, 59, 999);
+
+  return { startDate, endDate };
+};

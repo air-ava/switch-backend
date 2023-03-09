@@ -733,3 +733,17 @@ export interface IBanks {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface ISettlementTransactions {
+  id: number;
+  processor: string;
+  processor_transaction_id: string;
+  response: string;
+  tx_reference: string;
+  tx_count: number;
+  bankId: number;
+  metadata?: { [key: string]: string | number };
+  status: number;
+  created_at: Date;
+  updated_at: Date;
+}

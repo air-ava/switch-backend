@@ -23,7 +23,6 @@ export class addSettlementTable1677725156690 implements MigrationInterface {
           {
             name: 'processor_transaction_id',
             type: 'varchar',
-            default: `'bayonic'`,
             isNullable: false,
           },
           {
@@ -49,7 +48,7 @@ export class addSettlementTable1677725156690 implements MigrationInterface {
           {
             name: 'metadata',
             type: 'json',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'status',

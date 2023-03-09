@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import randomstring from 'randomstring';
-import { Not } from 'typeorm';
+import { In, Not } from 'typeorm';
+import { v4 } from 'uuid';
 import { STATUSES } from '../database/models/status.model';
 import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import { findPendingPayment, findMultiplePendingPayments, savePendingPaymentsREPO } from '../database/repositories/payments.repo';
@@ -11,6 +12,12 @@ import { sendObjectResponse } from '../utils/errors';
 import { sendEmail } from '../utils/mailtrap';
 import { getSchoolDetails } from './school.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
+import { Service as WalletService } from './wallet.service';
+import { getListOfTransactionsForSettlement, updateTransactionREPO } from '../database/repositories/transaction.repo';
+import BankRepo from '../database/repositories/bank.repo';
+import { saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
+import Settings from './settings.service';
+import { getQueryRunner } from '../database/helpers/db';
 
 export const createPendingPayment = async (data: any): Promise<any> => {
   const { org_id, sender_id, recipient_id, scholarship_id, description, amount, ...rest } = data;
@@ -128,6 +135,81 @@ export const buildCollectionRequestPayload = async ({ user, walletId, studentId,
     purpose: studentId ? 'school-fees' : 'top-up',
     school,
   };
+};
+
+export const recordSettlementTransaction = async (data: any): Promise<any> => {
+  const { bankId = null, amount = null, selectedDate = new Date(), user } = data;
+
+  const settlementDate = new Date(selectedDate);
+  const reference = v4();
+  const purpose = 'Withdraw:Settlement';
+  // const t = await getQueryRunner();
+
+  const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
+  if (!getWallet) throw walletError;
+
+  const {
+    transactions: creditTransactions,
+    transactionCount,
+    transactionTotal,
+  } = await getListOfTransactionsForSettlement(wallet.id, settlementDate, 'Fees:');
+  const description = `Settlement for ${transactionCount} transactions at ${transactionTotal}`;
+
+  const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
+  const defaultBankDetails = { ...(bankId ? { id: bankId } : { ...coreBankDetails }), status: STATUSES.ACTIVE };
+  const foundBank = await BankRepo.findBank(defaultBankDetails, []);
+  if (foundBank) return { success: false, error: 'Bank exists' };
+
+  // todo: process payment handled here
+
+  const debitPayload = {
+    user,
+    amount: transactionTotal,
+    description,
+    purpose,
+    reference,
+    // t,
+  };
+  const withdrawal = await WalletService.debitWallet(debitPayload);
+  const {
+    success: debitSuccess,
+    data: transactionFees,
+    error: debitError,
+  } = await WalletService.debitTransactionFees({
+    wallet_id: wallet.id,
+    reference,
+    user,
+    description,
+    feesNames: ['debit-fees'],
+    transactionAmount: transactionTotal,
+    // t,
+  });
+  if (!debitSuccess) throw debitError;
+
+  const feesConfig = Settings.get('TRANSACTION_FEES');
+  const feesPurposeNames: string[] = [feesConfig['debit-fees'].purpose];
+  await updateTransactionREPO(
+    { reference, purpose: Not(In(feesPurposeNames)) },
+    {
+      metadata: {
+        transactionFees,
+        fees: feesPurposeNames,
+      },
+    },
+    // t,
+  );
+
+  // await t.commitTransaction();
+
+  await saveSettlementTransaction({
+    processor_transaction_id: 'asas121',
+    tx_reference: reference,
+    tx_count: transactionCount,
+    bankId: foundBank.id,
+    status: STATUSES.PROCESSING,
+  });
+
+  return sendObjectResponse('Settlement completed successfully', withdrawal);
 };
 
 // todo: get pending payment
