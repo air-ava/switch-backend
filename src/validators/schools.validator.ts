@@ -8,5 +8,5 @@ export const getQuestionnaire = joi.object().keys({
     .messages({
       'string.valid.base': 'Steward is not availaible in your country yet',
     })
-    .required(),
+    .optional(),
 });
