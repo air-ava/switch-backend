@@ -15,11 +15,11 @@ import { saveLinkREPO } from '../database/repositories/link.repo';
 import { updateSchool } from '../database/repositories/schools.repo';
 
 export const Service: any = {
-  async listDocumentRequirements({ process }: { process: string }): Promise<theResponse> {
-    const validation = getQuestionnaire.validate({ process });
+  async listDocumentRequirements({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
+    const validation = getQuestionnaire.validate({ process, country });
     if (validation.error) return ResourceNotFoundError(validation.error);
 
-    const response = await DocumentRequirementREPO.listDocumentRequirements({ process }, [], ['Status']);
+    const response = await DocumentRequirementREPO.listDocumentRequirements({ process, country }, [], ['Status']);
     if (!response.length) return BadRequestException('Document Requirement not found');
     return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`, response);
   },

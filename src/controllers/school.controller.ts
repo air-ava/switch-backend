@@ -96,7 +96,8 @@ export const updateSchoolCONTROLLER: RequestHandler = async (req, res) => {
 
 export const getDocumentRequirementCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await DocumentService.listDocumentRequirements({ process: String(req.query.process) });
+    const payload = req.query;
+    const response = await DocumentService.listDocumentRequirements(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error: any) {
