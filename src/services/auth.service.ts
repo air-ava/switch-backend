@@ -65,7 +65,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     }
 
     // todo: put the token in redis and expire it
-    const remember_token = randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' });
+    const remember_token = randomstring.generate({ length: 6, charset: 'numeric' });
     const slug = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
     const userTypeCheck = user_type === 'school';
     const passwordHash = bcrypt.hashSync(password, 8);
@@ -77,6 +77,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
         business_name,
         organisation_email,
         slug,
+        from: 'School',
       });
       school = await saveSchoolsREPO({
         name: business_name,

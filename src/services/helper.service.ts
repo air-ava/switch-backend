@@ -176,11 +176,11 @@ export const findOrCreateOrganizaton = async (payload: findAndCreateOrganisation
   // const { error } = ImageValidator.validate(payload);
   // if (error) return ResourceNotFoundError(error);
 
-  const { business_name: name, organisation_email: email, slug } = payload;
+  const { business_name: name, organisation_email: email, slug, from = 'Business' } = payload;
   const existingOrganisation = await getOneOrganisationREPO({ name, status: STATUSES.ACTIVE }, []);
   if (existingOrganisation && existingOrganisation.email === email)
     return sendObjectResponse('Organisation retrieved successfully', existingOrganisation);
-  if (existingOrganisation && existingOrganisation.name === name) throw Error('Business name already exists');
+  if (existingOrganisation && existingOrganisation.name === name) throw Error(`${from} name already exists`);
 
   await createOrganisationREPO({ name, email, slug });
 

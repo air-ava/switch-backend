@@ -22,7 +22,7 @@ export interface findAndCreateAssetsDTO {
 export interface findAndCreateOrganisationDTO {
   business_name?: string;
   organisation_email?: string;
-  // owner: string;
+  from: string;
   slug: string;
 }
 
