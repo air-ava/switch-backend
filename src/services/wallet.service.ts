@@ -61,7 +61,7 @@ export const Service: any = {
 
     await WalletREPO.createWallet({
       userId: user.id,
-      uniquePaymentId: randomstring.generate({ length: 10, capitalization: 'lowercase', charset: 'alphanumeric' }),
+      uniquePaymentId: randomstring.generate({ length: 10, charset: 'numeric' }),
       currency: currencyRes.short_code || 'UGX',
       entityId,
       entity,
