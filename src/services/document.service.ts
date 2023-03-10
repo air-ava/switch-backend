@@ -16,8 +16,8 @@ import { updateSchool } from '../database/repositories/schools.repo';
 
 export const Service: any = {
   async listDocumentRequirements({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
-    const validation = getQuestionnaire.validate({ process, country });
-    if (validation.error) return ResourceNotFoundError(validation.error);
+    // const validation = getQuestionnaire.validate({ process, country });
+    // if (validation.error) return ResourceNotFoundError(validation.error);
 
     const response = await DocumentRequirementREPO.listDocumentRequirements({ process, country }, [], ['Status']);
     if (!response.length) return BadRequestException('Document Requirement not found');
