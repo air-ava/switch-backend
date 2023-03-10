@@ -23,7 +23,8 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   //   const validation = createBusinessValidator.validate(data);
   //   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { user, schoolName, organisationName, schoolEmail, schoolType, schoolDescription, schoolWebsite } = data;
+  const { user, schoolName, organisationName, schoolEmail, schoolDescription, schoolWebsite } = data;
+  let { schoolType } = data;
 
   try {
     const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, email: user.email, status: STATUSES.ACTIVE, type: 'school' }, []);
@@ -37,6 +38,8 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
       if (schoolName === school.name) foundSchool = school;
     });
     if (!foundSchool) foundSchool = schools[schools.length - 1];
+
+    if (Array.isArray(schoolType)) schoolType = schoolType.join(',');
 
     await updateSchool(
       { id: foundSchool.id },

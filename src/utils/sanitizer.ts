@@ -401,9 +401,10 @@ export const Sanitizer = {
 
     // console.log({ payload });
 
-    const { status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } = Sanitizer.jsonify(payload);
+    const { education_level, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
+      education_level: education_level ? education_level.split(',') : [],
       address: Address && Sanitizer.sanitizeAddress(Address),
       phoneNumber: phoneNumber && Sanitizer.sanitizePhoneNumber(phoneNumber),
       organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
