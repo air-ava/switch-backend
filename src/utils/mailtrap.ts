@@ -26,7 +26,8 @@ export function getTemplateAndSubjectFromPurpose(purpose: string): { subject: st
     case 'account_email_activate':
       return { subject: 'Activate your Account', template: `${EMAIL_TEMPLATES_PATH}/activation.pug` };
     case 'welcome_user':
-      return { subject: 'Welcome to Steward', template: `${EMAIL_TEMPLATES_PATH}/welcome_email_verification.pug` };
+      // return { subject: 'Welcome to Steward', template: `${EMAIL_TEMPLATES_PATH}/welcome_email_verification.pug` };
+      return { subject: 'Welcome to Steward', template: `${EMAIL_TEMPLATES_PATH}/verify-email.pug` };
     case 'application_recieved':
       return { subject: 'Application Recieved', template: `${EMAIL_TEMPLATES_PATH}/application_recieved.pug` };
     case 'application_sent':
@@ -50,9 +51,9 @@ export const sendEmail = async ({
   templateInfo: { [key: string]: string };
 }): Promise<any> => {
   const { template, subject } = getTemplateAndSubjectFromPurpose(purpose);
-  console.log({
-    templateInfo,
-  });
+  const now = new Date();
+  // eslint-disable-next-line no-param-reassign
+  templateInfo.year = `${now.getFullYear()}`;
 
   return transporter.sendMail({
     to: recipientEmail,

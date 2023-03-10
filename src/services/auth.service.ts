@@ -116,12 +116,21 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       });
     }
 
+    // await sendEmail({
+    //   recipientEmail: user.email,
+    //   purpose: 'welcome_user',
+    //   templateInfo: {
+    //     code: remember_token,
+    //     name: ` ${user.first_name}`,
+    //     userId: user.id,
+    //   },
+    // });
     await sendEmail({
       recipientEmail: user.email,
       purpose: 'welcome_user',
       templateInfo: {
-        code: remember_token,
-        name: ` ${user.first_name}`,
+        otp: remember_token,
+        firstName: ` ${user.first_name}`,
         userId: user.id,
       },
     });
