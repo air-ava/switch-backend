@@ -81,13 +81,13 @@ export const updateSchoolContact = async (data: {
   const { country, state } = address;
 
   try {
-    const {
-      data: { school: foundSchool },
-    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    if (!gottenSchool.success) return gottenSchool;
+    const { school: foundSchool } = gottenSchool.data;
 
-    const {
-      data: { id: phone_number },
-    } = await findOrCreatePhoneNumber(reqPhone);
+    const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
+    if (!phoneNumber.success) return phoneNumber;
+    const { id: phone_number } = phoneNumber.data;
 
     const gottenAddress = await findOrCreateAddress({ ...address });
 
@@ -95,11 +95,8 @@ export const updateSchoolContact = async (data: {
 
     return sendObjectResponse('School Contact Information successfully updated');
   } catch (e: any) {
-    console.log(e);
     // await queryRunner.rollbackTransaction();
-    return BadRequestException('Updating School Contact Information failed, kindly try again');
-  } finally {
-    // await queryRunner.release();
+    return BadRequestException(e || 'Updating School Contact Information failed, kindly try again');
   }
 };
 
@@ -118,15 +115,15 @@ export const updateOrganisationOwner = async (data: {
   //   if (validation.error) return ResourceNotFoundError(validation.error);
 
   const { job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
-  
-  try {
-    const {
-      data: { school: foundSchool },
-    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
 
-    const {
-      data: { id: phone_number },
-    } = await findOrCreatePhoneNumber(reqPhone);
+  try {
+    const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    if (!gottenSchool.success) return gottenSchool;
+    const { school: foundSchool } = gottenSchool.data;
+
+    const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
+    if (!phoneNumber.success) return phoneNumber;
+    const { id: phone_number } = phoneNumber.data;
 
     await updateIndividual(
       {
@@ -201,9 +198,10 @@ export const answerQuestionService = async ({ question, user, choice }: answerQu
 
 export const answerQuestionnaireService = async ({ answers, user }: { answers: answerQuestionServiceDTO[]; user: string }): Promise<any> => {
   try {
-    const {
-      data: { school },
-    } = await findSchoolWithOrganization({ owner: user });
+    const gottenSchool = await findSchoolWithOrganization({ owner: user });
+    if (!gottenSchool.success) return gottenSchool;
+    const { school } = gottenSchool.data;
+
     await Promise.all(answers.map(({ question, choice }: answerQuestionServiceDTO) => answerQuestionService({ question, user, choice })));
 
     await updateSchool({ id: school.id }, { status: STATUSES.VERIFIED });
@@ -217,9 +215,9 @@ export const getSchoolDetails = async (data: any) => {
   const { user } = data;
 
   try {
-    const {
-      data: { school },
-    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    if (!gottenSchool.success) return gottenSchool;
+    const { school } = gottenSchool.data;
 
     return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool(school));
   } catch (e: any) {
@@ -241,16 +239,17 @@ export const updateSchoolDetails = async (data: any) => {
     schoolDescription,
   } = data;
   try {
-    const {
-      data: { school, organisation },
-    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    if (!gottenSchool.success) return gottenSchool;
+    const { school, organisation } = gottenSchool.data;
+
     if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
 
     const payload: any = {};
     if (reqPhone) {
-      const {
-        data: { id: phone_number },
-      } = await findOrCreatePhoneNumber(reqPhone);
+      const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
+      if (!phoneNumber.success) return phoneNumber;
+      const { id: phone_number } = phoneNumber.data;
       payload.phone_number = phone_number;
     }
 

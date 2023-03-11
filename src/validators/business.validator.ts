@@ -3,8 +3,8 @@ import joi from 'joi';
 export const createBusinessValidator = joi.object().keys({
   phone_number: joi
     .object({
-      countryCode: joi.string().valid('234').max(3).message('Your region is wrong for the phone number now').required(),
-      localFormat: joi.string().length(11).message('Wrong Phone number format').required(),
+      countryCode: joi.string().required(),
+      localFormat: joi.string().required(),
     })
     .required(),
   description: joi.string().min(50).optional(),
@@ -23,8 +23,8 @@ export const updateBusinessValidator = joi.object().keys({
   owner: joi.number().integer().required(),
   phone_number: joi
     .object({
-      countryCode: joi.string().valid('234').max(3).message('Your region is wrong for the phone number now').required(),
-      localFormat: joi.string().length(11).message('Wrong Phone number format').required(),
+      countryCode: joi.string().required(),
+      localFormat: joi.string().required(),
     })
     .optional(),
   description: joi.string().min(50).optional(),

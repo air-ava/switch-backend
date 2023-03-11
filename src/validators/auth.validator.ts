@@ -5,8 +5,8 @@ const passwordRegex = new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]*)(?=.*[!@#$%
 export const registerValidator = joi.object().keys({
   phone_number: joi
     .object({
-      countryCode: joi.string().valid('234').max(3).message('Your region is wrong for the phone number now').required(),
-      localFormat: joi.string().length(11).message('Wrong Phone number format').required(),
+      countryCode: joi.string().required(),
+      localFormat: joi.string().required(),
     })
     .optional(),
   email: joi.string().email().required(),
