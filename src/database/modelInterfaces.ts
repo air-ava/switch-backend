@@ -724,6 +724,7 @@ export interface IBanks {
   walletId: number;
   status: number;
   number: string;
+  type: 'owner' | 'beneficiary';
   account_name: string;
   bank_name: string;
   bank_code: string;
@@ -744,6 +745,21 @@ export interface ISettlementTransactions {
   bankId: number;
   metadata?: { [key: string]: string | number };
   status: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IBankTransfers {
+  id: number;
+  walletId: number;
+  amount: number;
+  bankId: number;
+  status: number;
+  tx_reference: string;
+  narration: string;
+  processor: string;
+  response: string;
+  sessionId: string;
   created_at: Date;
   updated_at: Date;
 }

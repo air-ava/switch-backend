@@ -26,6 +26,9 @@ export class Banks {
   number: string;
 
   @Column()
+  type: 'owner' | 'beneficiary';
+
+  @Column()
   account_name: string;
 
   @Column()
