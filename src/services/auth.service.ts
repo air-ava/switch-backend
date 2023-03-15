@@ -43,6 +43,10 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   const validation = registerValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
+  const countryMapping: { [key: string]: string } = {
+    UG: 'UGANDA',
+  };
+
   const {
     // is_business = false,
     phone_number: reqPhone,
@@ -83,7 +87,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       school = await saveSchoolsREPO({
         name: business_name,
         organisation_id: organisation.data.id,
-        country,
+        country: countryMapping[country],
       });
     }
 
@@ -98,7 +102,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       ...(userTypeCheck && business_name && { business_name }),
       ...(userTypeCheck && { slug }),
       ...rest,
-      country,
+      country: countryMapping[country],
       password: passwordHash,
       organisation: organisation.data.id,
     });
@@ -107,7 +111,6 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     if (!user) throw Error(`Sorry, Error creating Account`);
     await createPassword({ user: user.id, password: passwordHash });
 
-    console.log({ user });
     const { first_name: firstName, last_name: lastName } = rest;
     if (userTypeCheck) {
       await updateOrganisationREPO({ id: organisation.data.id }, { owner: user.id });
