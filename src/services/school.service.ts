@@ -11,7 +11,7 @@ import Settings from './settings.service';
 import { findOrCreateAddress, findOrCreatePhoneNumber, findSchoolWithOrganization } from './helper.service';
 import { answerQuestionnaire, findQuestionnaire } from '../database/repositories/questionnaire.repo';
 import { listQuestionnaire } from '../database/repositories/questionTitle.repo';
-import { getQuestionnaire } from '../validators/schools.validator';
+import { getQuestionnaire, schoolContact } from '../validators/schools.validator';
 import { toTitle } from '../utils/utils';
 import { answerBooleanQuestionsDTO, answerQuestionServiceDTO, answerTextQuestionsDTO } from '../dto/school.dto';
 import { getQuestion } from '../database/repositories/question.repo';
@@ -27,6 +27,9 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   let { schoolType } = data;
 
   try {
+    const organisationWithSameName = await getOneOrganisationREPO({ name: organisationName }, []);
+    if (organisationWithSameName) return BadRequestException('Organization name already Exists');
+
     const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, email: user.email, status: STATUSES.ACTIVE, type: 'school' }, []);
     if (!existingOrganisation) return BadRequestException('Organization not found');
 
@@ -63,7 +66,6 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
 export const updateSchoolContact = async (data: {
   address: {
     street: string;
-    country: string;
     state: string;
     city: string;
     area: string;
@@ -74,11 +76,13 @@ export const updateSchoolContact = async (data: {
   };
   user: IUser;
 }): Promise<theResponse> => {
-  //   const validation = createBusinessValidator.validate(data);
-  //   if (validation.error) return ResourceNotFoundError(validation.error);
+  const { user, ...rest } = data;
 
-  const { user, phone_number: reqPhone, address } = data;
-  const { country, state } = address;
+  const validation = schoolContact.validate(rest);
+  if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { phone_number: reqPhone, address } = data;
+  const { state } = address;
 
   try {
     const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
@@ -89,9 +93,9 @@ export const updateSchoolContact = async (data: {
     if (!phoneNumber.success) return phoneNumber;
     const { id: phone_number } = phoneNumber.data;
 
-    const gottenAddress = await findOrCreateAddress({ ...address });
+    const gottenAddress = await findOrCreateAddress({ ...address, country: foundSchool.country });
 
-    await updateSchool({ id: foundSchool.id }, { country, state, phone_number, address_id: gottenAddress.data.id });
+    await updateSchool({ id: foundSchool.id }, { state, phone_number, address_id: gottenAddress.data.id });
 
     return sendObjectResponse('School Contact Information successfully updated');
   } catch (e: any) {
@@ -241,7 +245,7 @@ export const updateSchoolDetails = async (data: any) => {
   try {
     const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
     if (!gottenSchool.success) return gottenSchool;
-    const { school, organisation } = gottenSchool.data;
+    const { school, organisation, country } = gottenSchool.data;
 
     if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
 
@@ -254,11 +258,8 @@ export const updateSchoolDetails = async (data: any) => {
     }
 
     if (address) {
-      const { country, state } = address;
-
-      const gottenAddress = await findOrCreateAddress({ ...address });
-      payload.country = country;
-      payload.state = state;
+      const gottenAddress = await findOrCreateAddress({ ...address, country });
+      payload.state = address.state;
       payload.address_id = gottenAddress.data.id;
     }
 

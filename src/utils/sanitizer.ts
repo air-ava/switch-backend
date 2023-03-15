@@ -421,6 +421,12 @@ export const Sanitizer = {
     };
   },
 
+  sanitizeBankName(payload: any): any {
+    if (!payload) return null;
+    const { name, ...rest } = Sanitizer.jsonify(payload);
+    return name;
+  },
+
   filterTransactionsByPurpose(transactions: ITransactions[], purpose: string): any {
     const filteredTransaction = transactions.filter((transaction) => transaction.purpose.includes(purpose));
     return filteredTransaction[0];

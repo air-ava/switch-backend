@@ -1,11 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { STATUSES } from '../models/status.model';
 
-export class addBanksTable1677723163847 implements MigrationInterface {
+export class addReservedAccountsTransactionsTable1678849808995 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'banks',
+        name: 'reservedAccountsTransactions',
         columns: [
           {
             name: 'id',
@@ -15,37 +14,33 @@ export class addBanksTable1677723163847 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'provider',
-            type: 'varchar',
-            isNullable: false,
-          },
-          {
-            name: 'country',
-            type: 'varchar',
-            default: `'UGANDA'`,
-            isNullable: false,
-          },
-          {
-            name: 'currency',
-            type: 'varchar(10)',
-            default: `'UGX'`,
-            isPrimary: true,
-            isNullable: false,
-          },
-          {
             name: 'walletId',
             type: 'int',
             isNullable: false,
           },
           {
-            name: 'number',
+            name: 'transactionId',
+            type: 'int',
+            isNullable: false,
+          },
+          {
+            name: 'amount',
+            type: 'decimal',
+            default: 0,
+            unsigned: true,
+            precision: 20,
+            scale: 4,
+            isNullable: false,
+          },
+          {
+            name: 'originator_account_name',
             type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'account_name',
+            name: 'originator_account_number',
             type: 'varchar',
-            isNullable: true,
+            isNullable: false,
           },
           {
             name: 'bank_name',
@@ -53,37 +48,35 @@ export class addBanksTable1677723163847 implements MigrationInterface {
             isNullable: false,
           },
           {
-            name: 'bank_code',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
             name: 'bank_routing_number',
             type: 'varchar',
             isNullable: true,
           },
           {
-            name: 'type',
+            name: 'bank_code',
             type: 'varchar',
-            default: `'owner'`,
             isNullable: true,
           },
           {
-            name: 'metadata',
+            name: 'processor',
             type: 'varchar',
-            isNullable: false,
+            default: `'STEWARD'`,
+            isNullable: true,
           },
           {
-            name: 'status',
-            type: 'int',
-            default: STATUSES.ACTIVE,
-            isNullable: false,
+            name: 'sessionId',
+            type: 'varchar',
+            isNullable: true,
           },
           {
-            name: 'default',
-            type: 'boolean',
-            default: true,
-            isNullable: false,
+            name: 'response',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'narration',
+            type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'created_at',
@@ -103,6 +96,6 @@ export class addBanksTable1677723163847 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('banks');
+    await queryRunner.dropTable('reservedAccountsTransactions');
   }
 }

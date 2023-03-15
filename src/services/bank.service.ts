@@ -1,9 +1,11 @@
 import { STATUSES } from '../database/models/status.model';
 import BankRepo from '../database/repositories/bank.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
-import { sendObjectResponse } from '../utils/errors';
+import { ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { Sanitizer } from '../utils/sanitizer';
+import { listBanks } from '../integrations/bayonic/collection.integration';
+import { bankListValidator } from '../validators/banks.validator';
 
 const Service = {
   async listBanks(data: any): Promise<theResponse> {
@@ -17,6 +19,15 @@ const Service = {
     }
     const response = await BankRepo.findBanks({ walletId: wallet.id, currency: wallet.currency, status: STATUSES.ACTIVE }, []);
     return sendObjectResponse('Banks retrieved successfully', Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeBank));
+  },
+
+  async bankList(country: string): Promise<theResponse> {
+    const validation = bankListValidator.validate(country);
+    if (validation.error) return ResourceNotFoundError(validation.error);
+
+    const banks = await listBanks();
+    const ugandanBanks = banks.data.results.filter(({ country: { name } }: { country: { name: string } }) => name === `${country}`);
+    return sendObjectResponse('Bank names retrieved successfully', Sanitizer.sanitizeAllArray(ugandanBanks, Sanitizer.sanitizeBankName));
   },
 
   async creatBank(data: any): Promise<theResponse> {

@@ -10,3 +10,16 @@ export const getQuestionnaire = joi.object().keys({
     })
     .optional(),
 });
+
+export const schoolContact = joi.object().keys({
+  address: joi.object().keys({
+    street: joi.string().min(3).required(),
+    state: joi.string().min(3).required(),
+    city: joi.string().min(3).required(),
+    area: joi.string().min(3).required(),
+  }),
+  phone_number: joi.object({
+    countryCode: joi.string().required(),
+    localFormat: joi.string().required(),
+  }),
+});

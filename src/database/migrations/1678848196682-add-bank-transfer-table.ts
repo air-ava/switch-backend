@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 import { STATUSES } from '../models/status.model';
 
-export class addBanksTable1677723163847 implements MigrationInterface {
+export class addBankTransferTable1678848196682 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'banks',
+        name: 'bankTransfers',
         columns: [
           {
             name: 'id',
@@ -15,75 +15,55 @@ export class addBanksTable1677723163847 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'provider',
-            type: 'varchar',
-            isNullable: false,
-          },
-          {
-            name: 'country',
-            type: 'varchar',
-            default: `'UGANDA'`,
-            isNullable: false,
-          },
-          {
-            name: 'currency',
-            type: 'varchar(10)',
-            default: `'UGX'`,
-            isPrimary: true,
-            isNullable: false,
-          },
-          {
             name: 'walletId',
             type: 'int',
             isNullable: false,
           },
           {
-            name: 'number',
-            type: 'varchar',
+            name: 'amount',
+            type: 'decimal',
+            default: 0,
+            unsigned: true,
+            precision: 20,
+            scale: 4,
             isNullable: false,
           },
           {
-            name: 'account_name',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'bank_name',
-            type: 'varchar',
+            name: 'bankId',
+            type: 'int',
             isNullable: false,
           },
           {
-            name: 'bank_code',
+            name: 'processor',
             type: 'varchar',
+            default: `'STEWARD'`,
             isNullable: true,
-          },
-          {
-            name: 'bank_routing_number',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'type',
-            type: 'varchar',
-            default: `'owner'`,
-            isNullable: true,
-          },
-          {
-            name: 'metadata',
-            type: 'varchar',
-            isNullable: false,
           },
           {
             name: 'status',
             type: 'int',
-            default: STATUSES.ACTIVE,
+            default: STATUSES.INITIATED,
             isNullable: false,
           },
           {
-            name: 'default',
-            type: 'boolean',
-            default: true,
+            name: 'tx_reference',
+            type: 'varchar',
             isNullable: false,
+          },
+          {
+            name: 'sessionId',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'response',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'narration',
+            type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'created_at',
@@ -103,6 +83,6 @@ export class addBanksTable1677723163847 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('banks');
+    await queryRunner.dropTable('bankTransfers');
   }
 }

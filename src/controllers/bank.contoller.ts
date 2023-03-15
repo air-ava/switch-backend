@@ -22,6 +22,19 @@ export const listBanksCONTROLLER: RequestHandler = async (req, res) => {
   }
 };
 
+export const bankListCONTROLLER: RequestHandler = async (req, res) => {
+  const { country } = req.query;
+  try {
+    const response = await BankService.bankList(String(country));
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: errorMessages.listBanks, data: error });
+  }
+};
+
 export const addBankCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const { school, user } = req;

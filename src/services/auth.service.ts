@@ -51,6 +51,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     user_type,
     organisation_email,
     business_name,
+    country,
     ...rest
   } = data;
 
@@ -82,6 +83,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       school = await saveSchoolsREPO({
         name: business_name,
         organisation_id: organisation.data.id,
+        country,
       });
     }
 
@@ -96,6 +98,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       ...(userTypeCheck && business_name && { business_name }),
       ...(userTypeCheck && { slug }),
       ...rest,
+      country,
       password: passwordHash,
       organisation: organisation.data.id,
     });

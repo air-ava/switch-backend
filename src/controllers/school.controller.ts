@@ -24,7 +24,7 @@ export const schoolInfoCONTROLLER: RequestHandler = async (req, res) => {
 
 export const schoolContactCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
+    const payload = { ...req.body, user: req.user };
     const response = await updateSchoolContact(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);

@@ -24,3 +24,19 @@ export const initiateCollection = async (payload: any): Promise<any> => {
     };
   }
 };
+
+export const listBanks = async (): Promise<any> => {
+  try {
+    const response = await axiosInstance.get('banks?limit=1000');
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error: any) {
+    logger.error(error);
+    return {
+      success: false,
+      error: error.response.data,
+    };
+  }
+};
