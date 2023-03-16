@@ -293,6 +293,8 @@ export const Service: any = {
     reference = v4(),
     description,
     metadata,
+    channel,
+    status,
     transactionPin,
     t,
   }: {
@@ -302,6 +304,8 @@ export const Service: any = {
     purpose: string;
     reference?: string;
     description: string;
+    channel?: string;
+    status?: number;
     metadata: { [key: string]: number | string };
     transactionPin?: string;
     t: QueryRunner;
@@ -343,6 +347,8 @@ export const Service: any = {
       balance_after: Number(wallet.balance) - Number(amount),
       balance_before: Number(wallet.balance),
       purpose,
+      channel,
+      status,
       metadata,
       reference,
       description,

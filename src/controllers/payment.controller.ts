@@ -3,8 +3,10 @@ import { buildCollectionRequestPayload, createPendingPayment, getPendingPayment,
 import { getSchoolDetails } from '../services/school.service';
 import { fetchUserBySlug } from '../services/user.service';
 import { Service as BayonicService } from '../services/mobileMoney.service';
+import BankTransferService from '../services/bankTransfer.service';
 import { getStudent } from '../database/repositories/student.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
+import { addDocumentToTransaction } from '../services/transaction.service';
 
 export const createPaymentCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -62,6 +64,61 @@ export const initiatePaymentCONTROLLER: RequestHandler = async (req, res) => {
     const { walletId, studentId, phoneNumber, amount } = req.body;
     const query = await buildCollectionRequestPayload({ user: req.user, walletId, studentId, phoneNumber, amount });
     const response = await BayonicService.initiateCollectionRequest(query);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    console.log({ error });
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
+export const recordBankTransferCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const { user, school } = req;
+    const payload = {
+      user,
+      school,
+      ...req.body,
+    };
+    const { documents } = req.body;
+    const response = await BankTransferService.recordBankTransfer(payload);
+
+    if (response.success) {
+      const { data } = response;
+      if (documents) addDocumentToTransaction({ user: req.user, id: data.id, documents: req.body.documents });
+      if (documents) addDocumentToTransaction({ user: req.user, id: data.id, documents: req.body.documents });
+    }
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    console.log({ error });
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
+export const updateBankTransferCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const response = await BankTransferService.updateBankTransfer(req.body);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    console.log({ error });
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+export const completeBankTransferCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = {
+    user: req.user,
+    ...req.body,
+  };
+  try {
+    const response = await BankTransferService.completeBankTransfer(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error: any) {

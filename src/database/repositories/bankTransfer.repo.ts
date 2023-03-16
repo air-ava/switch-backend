@@ -47,7 +47,7 @@ const Repo = {
     return transaction ? transaction.manager.save(BankTransfers, queryParams) : getRepository(BankTransfers).save(queryParams);
   },
 
-  updateBankTransfer(queryParams: Pick<IBankTransfers, 'id'>, updateFields: Partial<IBankTransfers>, t?: QueryRunner): Promise<UpdateResult> {
+  updateBankTransfer(queryParams: Partial<IBankTransfers>, updateFields: Partial<IBankTransfers>, t?: QueryRunner): Promise<UpdateResult> {
     return t ? t.manager.update(BankTransfers, queryParams, updateFields) : getRepository(BankTransfers).update(queryParams, updateFields);
   },
 };
