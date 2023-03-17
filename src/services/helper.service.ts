@@ -31,10 +31,9 @@ export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO
   if (error) return ResourceNotFoundError(error);
 
   const { countryCode, localFormat } = phone;
-  const phoneNumber = await getOnePhoneNumber({ queryParams: phone });
-  if (phoneNumber) return sendObjectResponse('Phone numbers retrieved successfully', phoneNumber);
-
   const internationalFormat = formatPhoneNumber(localFormat);
+  const phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat } });
+  if (phoneNumber) return sendObjectResponse('Phone numbers retrieved successfully', phoneNumber);
   await createAPhoneNumber({
     queryParams: {
       countryCode,

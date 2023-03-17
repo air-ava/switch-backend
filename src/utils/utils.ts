@@ -34,7 +34,7 @@ export const findObjectValue = (object: any, path: string) => {
 };
 
 export const formatPhoneNumber = (localFormat: string): string => {
-  const { number: newInternationalFormat } = parsePhoneNumber(localFormat, 'NG');
+  const { number: newInternationalFormat } = parsePhoneNumber(localFormat, 'UG');
   return newInternationalFormat;
 };
 
