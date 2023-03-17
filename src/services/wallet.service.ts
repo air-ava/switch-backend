@@ -93,7 +93,7 @@ export const Service: any = {
         await t.rollbackTransaction();
         return {
           success: false,
-          error: 'There is no wallet with this phone number.',
+          error: 'There is no wallet belonging to this user',
         };
       }
 
