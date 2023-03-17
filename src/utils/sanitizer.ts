@@ -220,6 +220,7 @@ export const Sanitizer = {
     const { id, userId, User, status, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
+      isPinSet: !!transaction_pin,
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       owner: User && Sanitizer.sanitizeUser(User),
