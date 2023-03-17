@@ -16,7 +16,7 @@ export const schoolContact = joi.object().keys({
     street: joi.string().min(3).required(),
     state: joi.string().min(3).required(),
     city: joi.string().min(3).required(),
-    area: joi.string().min(3).required(),
+    area: joi.string().required(),
   }),
   phone_number: joi.object({
     countryCode: joi.string().required(),
