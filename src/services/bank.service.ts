@@ -40,7 +40,7 @@ const Service = {
       };
     }
     const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
-    const defaultBankDetails = { ...coreBankDetails, number, bank_name, status: STATUSES.ACTIVE };
+    const defaultBankDetails = { ...coreBankDetails, number, bank_name, bank_code, account_name, status: STATUSES.ACTIVE };
 
     const foundBank = await BankRepo.findBank(defaultBankDetails, []);
     if (foundBank) return { success: false, error: 'Bank exists' };

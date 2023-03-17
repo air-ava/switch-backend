@@ -88,7 +88,6 @@ export const recordBankTransferCONTROLLER: RequestHandler = async (req, res) => 
     if (response.success) {
       const { data } = response;
       if (documents) addDocumentToTransaction({ user: req.user, id: data.id, documents: req.body.documents });
-      if (documents) addDocumentToTransaction({ user: req.user, id: data.id, documents: req.body.documents });
     }
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
