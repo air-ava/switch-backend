@@ -166,6 +166,6 @@ export class Users {
   // organisation_city: string;
 }
 
-export const countryMapping = {
+export const countryMapping: { [key: string]: string } = {
   UG: 'UGANDA',
 };
