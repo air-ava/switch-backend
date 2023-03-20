@@ -79,7 +79,7 @@ export class createSchoolsTable1679260393345 implements MigrationInterface {
           {
             name: 'status',
             type: 'int',
-            default: 1,
+            default: 7,
             isNullable: false,
           },
           {

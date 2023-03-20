@@ -37,15 +37,12 @@ import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repo
 import { getSchool, saveSchoolsREPO } from '../database/repositories/schools.repo';
 import { saveIndividual } from '../database/repositories/individual.repo';
 import { Service as WalletService } from './wallet.service';
+import { countryMapping } from '../database/models/users.model';
 // import { IEmailMessage } from '../database/modelInterfaces';
 
 export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   const validation = registerValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
-
-  const countryMapping: { [key: string]: string } = {
-    UG: 'UGANDA',
-  };
 
   const {
     // is_business = false,
