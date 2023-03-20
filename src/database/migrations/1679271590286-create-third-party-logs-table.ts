@@ -1,11 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { STATUSES } from '../models/status.model';
 
-export class createDocumentRequirementsTable1675903611904 implements MigrationInterface {
+export class createThirdPartyLogsTable1679271590286 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'document_requirements',
+        name: 'third_party_logs',
         columns: [
           {
             name: 'id',
@@ -15,55 +14,59 @@ export class createDocumentRequirementsTable1675903611904 implements MigrationIn
             generationStrategy: 'increment',
           },
           {
-            name: 'requirement_type',
-            type: 'enum',
-            enum: ['link', 'number', 'file', 'text'],
-            default: `'file'`,
-            isNullable: false,
-          },
-          {
-            name: 'required',
-            type: 'boolean',
-            default: true,
-            isNullable: false,
-          },
-          {
-            name: 'name',
+            name: 'event',
             type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'type',
+            name: 'message',
             type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'process',
+            name: 'school',
             type: 'varchar',
-            default: `'onboarding'`,
             isNullable: false,
           },
           {
-            name: 'status',
-            type: 'int',
-            default: STATUSES.ACTIVE,
+            name: 'status_code',
+            type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'country',
+            name: 'provider_type',
             type: 'varchar',
-            default: `'UGANDA'`,
+            isNullable: false,
+          },
+          {
+            name: 'provider',
+            type: 'varchar',
+            isNullable: false,
+          },
+          {
+            name: 'endpoint',
+            type: 'varchar',
             isNullable: true,
           },
           {
-            name: 'description',
+            name: 'endpoint_verb',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'payload',
+            type: 'json',
+            isNullable: true,
+          },
+          {
+            name: 'reference',
             type: 'varchar',
             isNullable: true,
           },
           {
             name: 'created_at',
             type: 'timestamp',
-            default: 'NOW()',
+            default: 'CURRENT_TIMESTAMP',
             isNullable: false,
           },
           {
@@ -79,6 +82,6 @@ export class createDocumentRequirementsTable1675903611904 implements MigrationIn
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('document_requirements');
+    await queryRunner.dropTable('third_party_logs');
   }
 }

@@ -88,6 +88,7 @@ export class addReservedAccountsTransactionsTable1678849808995 implements Migrat
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

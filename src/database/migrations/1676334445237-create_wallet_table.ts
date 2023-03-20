@@ -1,44 +1,6 @@
 import { MigrationInterface, QueryRunner, Table, TableColumn } from 'typeorm';
 import { STATUSES } from '../models/status.model';
 
-const addType = new TableColumn({
-  name: 'type',
-  type: 'varchar',
-  default: `'permanent'`,
-  isNullable: false,
-});
-
-const addCurrency = new TableColumn({
-  name: 'currency',
-  type: 'varchar',
-  default: `'UGX'`,
-  isNullable: false,
-});
-
-const addId = new TableColumn({
-  name: 'id',
-  type: 'int',
-});
-
-const addUserId = new TableColumn({
-  name: 'userId',
-  type: 'varchar',
-  isNullable: false,
-  collation: 'utf8mb4_unicode_ci',
-});
-
-const addEntity = new TableColumn({
-  name: 'entity',
-  type: 'varchar',
-  isNullable: false,
-});
-
-const addEntityId = new TableColumn({
-  name: 'entity_id',
-  type: 'varchar',
-  isNullable: false,
-});
-
 export class createWalletTable1676334445237 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
@@ -91,12 +53,12 @@ export class createWalletTable1676334445237 implements MigrationInterface {
           {
             name: 'transaction_webhook_url',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'transaction_pin',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'balance',
@@ -148,6 +110,7 @@ export class createWalletTable1676334445237 implements MigrationInterface {
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

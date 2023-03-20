@@ -21,13 +21,16 @@ export class Users {
   other_name: string;
 
   @Column('text')
+  code?: string;
+  
+  @Column('text')
+  phone?: string;
+
+  @Column('text')
   image: string;
 
   @Column('text')
   title: string;
-
-  @Column('text')
-  employer: string;
 
   @Column('int')
   organisation: number;
@@ -36,25 +39,7 @@ export class Users {
   job_title: string;
 
   @Column('text')
-  industry_skills: string;
-
-  @Column('text')
-  job_status: string;
-
-  @Column('text')
   country: string;
-
-  @Column('text')
-  state: string;
-
-  @Column('text')
-  area: string;
-
-  @Column('text')
-  city: string;
-
-  @Column('text')
-  bio: string;
 
   @Column('text')
   provider: string;
@@ -63,58 +48,10 @@ export class Users {
   provider_id: string;
 
   @Column('text')
-  facebook: string;
-
-  @Column('text')
-  linkedin: string;
-
-  @Column('text')
-  twitter: string;
-
-  @Column('text')
-  website: string;
-
-  @Column('text')
   slug: string;
 
   @Column('text')
-  address: string;
-
-  @Column('text')
-  instagram: string;
-
-  @Column('text')
-  logo: string;
-
-  @Column('text')
   organisation_email: string;
-
-  @Column('text')
-  organisation_headline: string;
-
-  @Column('text')
-  organisation_bio: string;
-
-  @Column('text')
-  organisation_code: string;
-
-  @Column('text')
-  organisation_phone: string;
-
-  @Column('text')
-  organisation_address: string;
-
-  @Column('text')
-  organisation_country: string;
-
-  @Column('text')
-  organisation_state: string;
-
-  @Column('text')
-  organisation_area: string;
-
-  @Column('text')
-  organisation_city: string;
 
   @Column('text')
   user_type: string;
@@ -124,12 +61,6 @@ export class Users {
 
   @Column('text')
   remember_token: string | null;
-
-  @Column('text')
-  code?: string;
-
-  @Column('text')
-  phone?: string;
 
   @Column('int')
   phone_number: number;
@@ -142,9 +73,6 @@ export class Users {
 
   @Column('int')
   avatar: number;
-
-  // @Column('boolean')
-  // is_business: boolean;
 
   @CreateDateColumn()
   created_at: Date;
@@ -170,4 +98,70 @@ export class Users {
   @OneToOne('Organisation', 'users')
   @JoinColumn({ name: 'organisation' })
   Organization: IOrganisation;
+
+  // @Column('boolean')
+  // is_business: boolean;
+
+  // @Column('text')
+  // phone?: string;
+
+  // @Column('text')
+  // employer: string;
+
+  // @Column('text')
+  // industry_skills: string;
+
+  // @Column('text')
+  // job_status: string;
+
+  // @Column('text')
+  // state: string;
+
+  // @Column('text')
+  // area: string;
+
+  // @Column('text')
+  // city: string;
+
+  // @Column('text')
+  // bio: string;
+
+  // @Column('text')
+  // facebook: string;
+
+  // @Column('text')
+  // linkedin: string;
+
+  // @Column('text')
+  // twitter: string;
+
+  // @Column('text')
+  // website: string;
+
+  // @Column('text')
+  // organisation_headline: string;
+
+  // @Column('text')
+  // organisation_bio: string;
+
+  // @Column('text')
+  // organisation_code: string;
+
+  // @Column('text')
+  // organisation_phone: string;
+
+  // @Column('text')
+  // organisation_address: string;
+
+  // @Column('text')
+  // organisation_country: string;
+
+  // @Column('text')
+  // organisation_state: string;
+
+  // @Column('text')
+  // organisation_area: string;
+
+  // @Column('text')
+  // organisation_city: string;
 }

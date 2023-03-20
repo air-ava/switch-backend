@@ -5,6 +5,7 @@ import {
   getTotalCredited,
   getTotalDebited,
   getTotalSuccessfulCredit,
+  getTransactionsByGroup,
   getTransactionsREPO,
   updateTransactionREPO,
 } from '../database/repositories/transaction.repo';
@@ -101,6 +102,19 @@ export const addDocumentToTransaction = async (data: any): Promise<any> => {
   } catch (e: any) {
     console.log({ e });
     return BadRequestException(e.message || 'Adding Note to transaction failed, kindly try again');
+  }
+};
+
+export const getTransactionsAnalytics = async (data: any): Promise<any> => {
+  const { from, to, groupBy = 'daily', txnType = 'credit', wallet } = data;
+  try {
+    const transactionAnalytics = await getTransactionsByGroup(wallet, from && from, to && to, groupBy, txnType);
+    console.log({ data, transactionAnalytics });
+    
+    return sendObjectResponse('Transaction analytics gotten successfully', transactionAnalytics);
+  } catch (e: any) {
+    console.log({ e });
+    return BadRequestException(e.message || 'Getting transaction analytics failed, kindly try again');
   }
 };
 

@@ -17,12 +17,12 @@ export class createMobileMoneyTransactionsTable1676595248351 implements Migratio
           {
             name: 'processor',
             type: 'varchar',
+            default: `'BEYONIC'`,
             isNullable: false,
           },
           {
             name: 'processor_transaction_id',
             type: 'varchar',
-            default: `'bayonic'`,
             isNullable: false,
           },
           {
@@ -51,6 +51,7 @@ export class createMobileMoneyTransactionsTable1676595248351 implements Migratio
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

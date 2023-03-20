@@ -33,6 +33,7 @@ export class createQuestionnaireTitleTable1675402314474 implements MigrationInte
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

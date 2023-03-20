@@ -28,7 +28,7 @@ export class createTransactionsTable1676340079684 implements MigrationInterface 
           {
             name: 'status',
             type: 'int',
-            default: 14,
+            default: STATUSES.SUCCESS,
             isNullable: false,
           },
           {
@@ -39,12 +39,12 @@ export class createTransactionsTable1676340079684 implements MigrationInterface 
           {
             name: 'note',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'document_reference',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'reference',
@@ -59,7 +59,7 @@ export class createTransactionsTable1676340079684 implements MigrationInterface 
           {
             name: 'metadata',
             type: 'json',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'amount',
@@ -101,12 +101,6 @@ export class createTransactionsTable1676340079684 implements MigrationInterface 
             isNullable: false,
           },
           {
-            name: 'status',
-            type: 'int',
-            default: STATUSES.ACTIVE,
-            isNullable: false,
-          },
-          {
             name: 'created_at',
             type: 'timestamp',
             default: 'NOW()',
@@ -116,6 +110,7 @@ export class createTransactionsTable1676340079684 implements MigrationInterface 
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

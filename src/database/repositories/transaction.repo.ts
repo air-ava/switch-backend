@@ -1,9 +1,10 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-param-reassign */
 import { QueryRunner, InsertResult, getRepository, UpdateResult } from 'typeorm';
-import { singleDayStartAndEnd } from '../../utils/utils';
+import { isValidDate, singleDayStartAndEnd } from '../../utils/utils';
 import { ITransactions } from '../modelInterfaces';
 import { Transactions } from '../models/transaction.model';
+const dateFns = require("date-fns");
 
 export const saveTransaction = (
   transaction_details: Omit<ITransactions, 'id' | 'note' | 'document_reference' | 'created_at' | 'updated_at'> & { t?: QueryRunner },
@@ -242,4 +243,63 @@ export const getListOfTransactionsForSettlement = async (
     transactionCount,
     transactionTotal,
   };
+};
+
+export const getTransactionsByGroup = async (
+  wallet: number,
+  from?: string,
+  to?: string,
+  groupType = 'daily',
+  txnType?: 'credit' | 'debit',
+  purpose?: string,
+): Promise<any> => {
+  let groupBy: string;
+  let select: string;
+  let where = ''; // Initialize to null
+  const today = new Date();
+  from = dateFns.subDays(today, 100).toISOString();
+  to = today.toISOString();
+
+  switch (groupType) {
+    case 'daily':
+      groupBy = 'DATE(transaction.created_at)';
+      select = 'DATE(transaction.created_at)';
+      break;
+    case 'weekly':
+      groupBy = 'YEARWEEK(transaction.created_at)';
+      select = 'YEARWEEK(transaction.created_at)';
+      break;
+    case 'monthly':
+      groupBy = "DATE_FORMAT(transaction.created_at, '%Y-%m')";
+      select = "DATE_FORMAT(transaction.created_at, '%Y-%m')";
+      break;
+    case 'yearly':
+      groupBy = 'YEAR(transaction.created_at)';
+      select = 'YEAR(transaction.created_at)';
+      break;
+    default:
+      throw new Error('Invalid group type');
+  }
+
+
+
+  const query = getRepository(Transactions)
+    .createQueryBuilder('transaction')
+    .select(select, 'date')
+    .addSelect('SUM(transaction.amount)', 'total')
+    .where(`transaction.walletId = ${wallet}`);
+
+  if (txnType) query.andWhere(`transaction.txn_type = '${txnType}'`);
+  if (purpose) query.andWhere(`transaction.purpose NOT LIKE %${purpose}%`);
+
+  if (from || to) {
+    if (from && isValidDate(from)) query.andWhere(`transaction.created_at >= '${from}'`);
+    if (to && isValidDate(to)) query.andWhere(`transaction.created_at <= '${to}'`);
+  }
+
+  const transactions = await query.groupBy(groupBy).orderBy(groupBy, 'ASC').getRawMany();
+
+  console.log({ transactions });
+
+  return transactions;
 };

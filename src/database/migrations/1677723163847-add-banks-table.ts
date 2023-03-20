@@ -17,6 +17,7 @@ export class addBanksTable1677723163847 implements MigrationInterface {
           {
             name: 'provider',
             type: 'varchar',
+            default: `'BEYONIC'`,
             isNullable: false,
           },
           {
@@ -71,7 +72,7 @@ export class addBanksTable1677723163847 implements MigrationInterface {
           {
             name: 'metadata',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'status',
@@ -95,6 +96,7 @@ export class addBanksTable1677723163847 implements MigrationInterface {
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

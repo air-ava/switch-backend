@@ -75,6 +75,7 @@ export class addBankTransferTable1678848196682 implements MigrationInterface {
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

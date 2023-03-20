@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { STATUSES } from '../models/status.model';
+// createSchoolsTable1679260393345
 
-export class createIndividualTable1675297127595 implements MigrationInterface {
+export class createSchoolsTable1679260393345 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'individual',
+        name: 'schools',
         columns: [
           {
             name: 'id',
@@ -15,39 +15,55 @@ export class createIndividualTable1675297127595 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'firstName',
+            name: 'country',
+            type: 'varchar',
+            default: `'UGANDA'`,
+            isNullable: true,
+          },
+          {
+            name: 'state',
+            type: 'varchar',
+            default: `'UGANDA'`,
+            isNullable: true,
+          },
+          {
+            name: 'name',
             type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'lastName',
+            name: 'education_level',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
+          },
+          {
+            name: 'description',
+            type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'email',
             type: 'varchar',
-            isNullable: false,
-          },
-          {
-            name: 'avatar',
-            type: 'int',
             isNullable: true,
           },
           {
-            name: 'job_title',
-            type: 'int',
+            name: 'website',
+            type: 'varchar',
             isNullable: true,
           },
           {
-            name: 'status',
+            name: 'document_reference',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'organisation_id',
             type: 'int',
-            default: STATUSES.ACTIVE,
             isNullable: false,
           },
           {
-            name: 'metadata',
-            type: 'json',
+            name: 'address_id',
+            type: 'int',
             isNullable: true,
           },
           {
@@ -56,13 +72,14 @@ export class createIndividualTable1675297127595 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'address_id',
+            name: 'logo',
             type: 'int',
             isNullable: true,
           },
           {
-            name: 'school_id',
+            name: 'status',
             type: 'int',
+            default: 1,
             isNullable: false,
           },
           {
@@ -84,6 +101,6 @@ export class createIndividualTable1675297127595 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('individual');
+    await queryRunner.dropTable('schools');
   }
 }

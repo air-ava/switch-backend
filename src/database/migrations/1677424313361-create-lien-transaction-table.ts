@@ -60,6 +60,7 @@ export class createLienTransactionTable1677424313361 implements MigrationInterfa
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

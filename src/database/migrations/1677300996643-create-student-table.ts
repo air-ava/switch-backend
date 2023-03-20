@@ -46,6 +46,7 @@ export class createStudentTable1677300996643 implements MigrationInterface {
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

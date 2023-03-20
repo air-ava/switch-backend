@@ -16,7 +16,7 @@ const seedData = [
   },
 ];
 
-export class seedDocumentRequirements1675905106730 implements MigrationInterface {
+export class seedDocumentRequirementsTable1679268887811 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await Promise.all(
       seedData.map((seed) => seed.rows.map((value) => queryRunner.query(`INSERT INTO ${seed.name} (${seed.column}) VALUES (${value})`))),

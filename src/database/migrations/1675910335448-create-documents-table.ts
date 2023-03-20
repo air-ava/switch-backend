@@ -22,7 +22,7 @@ export class createDocumentsTable1675910335448 implements MigrationInterface {
           {
             name: 'metadata',
             type: 'json',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'reference',
@@ -38,7 +38,7 @@ export class createDocumentsTable1675910335448 implements MigrationInterface {
           {
             name: 'response',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'trigger',
@@ -64,7 +64,7 @@ export class createDocumentsTable1675910335448 implements MigrationInterface {
           {
             name: 'number',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
             name: 'country',
@@ -102,6 +102,7 @@ export class createDocumentsTable1675910335448 implements MigrationInterface {
             name: 'updated_at',
             type: 'timestamp',
             isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
           },
         ],
       }),

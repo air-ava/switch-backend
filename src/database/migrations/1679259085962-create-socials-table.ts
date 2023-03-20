@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class createQuestionsTable1675402735806 implements MigrationInterface {
+export class createSocialsTable1679259085962 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'questions',
+        name: 'socials',
         columns: [
           {
             name: 'id',
@@ -14,19 +14,40 @@ export class createQuestionsTable1675402735806 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'question',
+            name: 'link',
             type: 'varchar',
-            isNullable: false,
+            isNullable: true,
           },
           {
-            name: 'title_id',
+            name: 'linkId',
             type: 'int',
-            isNullable: false,
+            isNullable: true,
           },
           {
-            name: 'type',
-            type: 'enum',
-            enum: ['text', 'radio', 'checkbox'],
+            name: 'user_id',
+            type: 'varchar',
+            isNullable: true,
+            collation: 'utf8mb4_unicode_ci',
+          },
+          {
+            name: 'organisation',
+            type: 'int',
+            isNullable: true,
+          },
+          {
+            name: 'entity',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'entity_id',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'status',
+            type: 'int',
+            default: 1,
             isNullable: false,
           },
           {
@@ -48,6 +69,6 @@ export class createQuestionsTable1675402735806 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('questions');
+    await queryRunner.dropTable('socials');
   }
 }

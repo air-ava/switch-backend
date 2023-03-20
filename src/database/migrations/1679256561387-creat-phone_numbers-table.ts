@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class createQuestionsTable1675402735806 implements MigrationInterface {
+export class creatPhoneNumbersTable1679256561387 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'questions',
+        name: 'phone_numbers',
         columns: [
           {
             name: 'id',
@@ -14,19 +14,30 @@ export class createQuestionsTable1675402735806 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'question',
+            name: 'countryCode',
             type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'title_id',
-            type: 'int',
+            name: 'localFormat',
+            type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'type',
-            type: 'enum',
-            enum: ['text', 'radio', 'checkbox'],
+            name: 'internationalFormat',
+            type: 'varchar',
+            isNullable: false,
+          },
+          {
+            name: 'is_verified',
+            type: 'boolean',
+            default: false,
+            isNullable: false,
+          },
+          {
+            name: 'active',
+            type: 'boolean',
+            default: true,
             isNullable: false,
           },
           {
@@ -48,6 +59,6 @@ export class createQuestionsTable1675402735806 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('questions');
+    await queryRunner.dropTable('phone_numbers');
   }
 }

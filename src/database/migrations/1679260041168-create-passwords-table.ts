@@ -1,10 +1,11 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
+// createPasswordsTable1679260041168
 
-export class createQuestionsTable1675402735806 implements MigrationInterface {
+export class createPasswordsTable1679260041168 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'questions',
+        name: 'passwords',
         columns: [
           {
             name: 'id',
@@ -14,19 +15,25 @@ export class createQuestionsTable1675402735806 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'question',
+            name: 'user',
+            type: 'varchar',
+            isNullable: true,
+            collation: 'utf8mb4_unicode_ci',
+          },
+          {
+            name: 'password',
             type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'title_id',
+            name: 'organization',
             type: 'int',
-            isNullable: false,
+            isNullable: true,
           },
           {
-            name: 'type',
-            type: 'enum',
-            enum: ['text', 'radio', 'checkbox'],
+            name: 'status',
+            type: 'int',
+            default: 1,
             isNullable: false,
           },
           {
@@ -48,6 +55,6 @@ export class createQuestionsTable1675402735806 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('questions');
+    await queryRunner.dropTable('passwords');
   }
 }

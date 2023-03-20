@@ -92,7 +92,7 @@ export const Service: any = {
 
     // todo: check if similar document exists for this school and delete it 
     
-    if (requirement_type === 'number') payload.number = document;
+    if (requirement_type === 'text' || requirement_type === 'number') payload.number = document;
     if (requirement_type === 'file') {
       const createdAsset = await createAsset({
         imagePath: document,

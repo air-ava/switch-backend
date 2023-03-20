@@ -1,11 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { STATUSES } from '../models/status.model';
 
-export class createDocumentRequirementsTable1675903611904 implements MigrationInterface {
+export class createOrganisationsTable1679257971599 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'document_requirements',
+        name: 'organisations',
         columns: [
           {
             name: 'id',
@@ -15,50 +14,77 @@ export class createDocumentRequirementsTable1675903611904 implements MigrationIn
             generationStrategy: 'increment',
           },
           {
-            name: 'requirement_type',
-            type: 'enum',
-            enum: ['link', 'number', 'file', 'text'],
-            default: `'file'`,
-            isNullable: false,
-          },
-          {
-            name: 'required',
-            type: 'boolean',
-            default: true,
-            isNullable: false,
-          },
-          {
             name: 'name',
             type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'type',
+            name: 'email',
             type: 'varchar',
             isNullable: false,
           },
           {
-            name: 'process',
+            name: 'logo',
             type: 'varchar',
-            default: `'onboarding'`,
+            isNullable: true,
+          },
+          {
+            name: 'owner',
+            type: 'varchar',
+            isNullable: true,
+            collation: 'utf8mb4_unicode_ci',
+          },
+          {
+            name: 'slug',
+            type: 'varchar',
             isNullable: false,
+          },
+          {
+            name: 'bio',
+            type: 'text',
+            isNullable: true,
+          },
+          {
+            name: 'headline',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'social',
+            type: 'int',
+            isNullable: true,
+          },
+          {
+            name: 'phone_number',
+            type: 'int',
+            isNullable: true,
+          },
+          {
+            name: 'size',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'category',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'industry',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
+            name: 'type',
+            type: 'varchar',
+            isNullable: true,
+            default: "'school'",
           },
           {
             name: 'status',
             type: 'int',
-            default: STATUSES.ACTIVE,
+            default: 1,
             isNullable: false,
-          },
-          {
-            name: 'country',
-            type: 'varchar',
-            default: `'UGANDA'`,
-            isNullable: true,
-          },
-          {
-            name: 'description',
-            type: 'varchar',
-            isNullable: true,
           },
           {
             name: 'created_at',
@@ -79,6 +105,6 @@ export class createDocumentRequirementsTable1675903611904 implements MigrationIn
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('document_requirements');
+    await queryRunner.dropTable('organisations');
   }
 }
