@@ -165,3 +165,7 @@ export class Users {
   // @Column('text')
   // organisation_city: string;
 }
+
+export const countryMapping = {
+  UG: 'UGANDA',
+};

@@ -17,6 +17,7 @@ import {
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import { IBusiness, ICurrency, ILink, IPhoneNumber, IScholarship, ISTATUSES, IUser } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
+import { countryMapping } from '../database/models/users.model';
 import { getStudent } from '../database/repositories/student.repo';
 
 export const Sanitizer = {
@@ -402,9 +403,10 @@ export const Sanitizer = {
 
     // console.log({ payload });
 
-    const { education_level, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } = Sanitizer.jsonify(payload);
+    const { country, education_level, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
+      country: country && Sanitizer.getStatusById(countryMapping, country),
       education_level: education_level ? education_level.split(',') : [],
       address: Address && Sanitizer.sanitizeAddress(Address),
       phoneNumber: phoneNumber && Sanitizer.sanitizePhoneNumber(phoneNumber),

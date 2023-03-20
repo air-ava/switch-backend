@@ -117,8 +117,3 @@ export const getTransactionsAnalytics = async (data: any): Promise<any> => {
     return BadRequestException(e.message || 'Getting transaction analytics failed, kindly try again');
   }
 };
-
-// addNoteToTransaction
-// addDocumentToTransaction
-// creditWallet
-// debitWallet
