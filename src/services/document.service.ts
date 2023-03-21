@@ -91,7 +91,7 @@ export const Service: any = {
     if (requirementDocs[entity_id] !== requirement_type) throw new Error('Wrong file type submitted');
 
     // todo: check if similar document exists for this school and delete it 
-    
+
     if (requirement_type === 'text' || requirement_type === 'number') payload.number = document;
     if (requirement_type === 'file') {
       const createdAsset = await createAsset({
@@ -102,6 +102,7 @@ export const Service: any = {
         organisation: organisation.id,
         entity,
         entity_id,
+        customName: `process:${process}-add_documents|doc:${type}-${country}|ref:${reference}|org:${organisation.name}|submittedBy:${user.first_name}${user.last_name}`,
       });
       payload.asset_id = createdAsset.data.id;
     }

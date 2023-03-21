@@ -22,7 +22,7 @@ export class Users {
 
   @Column('text')
   code?: string;
-  
+
   @Column('text')
   phone?: string;
 

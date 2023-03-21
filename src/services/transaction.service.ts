@@ -92,6 +92,7 @@ export const addDocumentToTransaction = async (data: any): Promise<any> => {
           organisation: user.organisation,
           entity: process,
           entity_id: existingTransaction.id || id,
+          customName: `ref:${reference}|process:${process}-add_reciepts|payer:${user.first_name}${user.last_name}`,
         }),
       ),
     );
