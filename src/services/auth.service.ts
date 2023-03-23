@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import randomstring from 'randomstring';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import otpGenerator from 'otp-generator';
+import { Like } from 'typeorm';
 import { theResponse } from '../utils/interface';
 import {
   changePasswordValidator,
@@ -25,7 +26,7 @@ import {
   userAuthDTO,
   verifyUserDTO,
 } from '../dto/auth.dto';
-import { findUser, createAUser, updateUser, verifyUser } from '../database/repositories/user.repo';
+import { findUser, createAUser, updateUser, verifyUser, listUser } from '../database/repositories/user.repo';
 import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
 import { generateToken } from '../utils/jwt';
@@ -38,7 +39,41 @@ import { getSchool, saveSchoolsREPO } from '../database/repositories/schools.rep
 import { saveIndividual } from '../database/repositories/individual.repo';
 import { Service as WalletService } from './wallet.service';
 import { countryMapping } from '../database/models/users.model';
-// import { IEmailMessage } from '../database/modelInterfaces';
+import { sendSms } from '../integrations/africasTalking/sms.integration';
+import Settings from './settings.service';
+import { formatPhoneNumber } from '../utils/utils';
+import { getOnePhoneNumber } from '../database/repositories/phoneNumber.repo';
+import { PhoneNumbers } from '../database/models/phoneNumber.model';
+
+export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
+  const { first_name, last_name, emailType = 'user' } = data;
+  let emailDomain;
+  let emailLocalSuffix;
+  switch (emailType) {
+    case 'user':
+      emailDomain = 'usersteward.com';
+      emailLocalSuffix = 'owner';
+      break;
+    case 'student':
+      emailDomain = 'studentsteward.com';
+      emailLocalSuffix = 'student';
+      break;
+    case 'school':
+      emailDomain = 'schoolsteward.com';
+      emailLocalSuffix = 'school';
+      break;
+    case 'organization':
+      emailDomain = 'orgsteward.com';
+      emailLocalSuffix = 'organisation';
+      break;
+    default:
+      throw new Error('Invalid email type');
+  }
+  let email = `${first_name}+${last_name}+${emailLocalSuffix}@${emailDomain}`;
+  const userFound = await listUser({ email: Like(`%${first_name}+${last_name}%`) }, []);
+  if (userFound.length) email = `${first_name}+${last_name}${userFound.length + 1}+${emailLocalSuffix}@${emailDomain}`;
+  return email.toLowerCase();
+};
 
 export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   const validation = registerValidator.validate(data);
@@ -47,24 +82,32 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   const {
     // is_business = false,
     phone_number: reqPhone,
-    email,
     password,
     user_type,
-    organisation_email,
     business_name,
     country,
+    email: incomingEmail,
     ...rest
   } = data;
+  let { email, organisation_email } = data;
 
   try {
-    const userAlreadyExist = await findUser({ email }, []);
-    if (userAlreadyExist) throw Error('Account already exists');
-
     let phone_number;
+    let internationalFormat;
     if (reqPhone) {
       const { data: phone } = await findOrCreatePhoneNumber(reqPhone);
       phone_number = phone.id;
+      internationalFormat = phone.completeInternationalFormat;
     }
+
+    if (!email) {
+      const { first_name, last_name } = rest;
+      email = await generatePlaceHolderEmail({ first_name, last_name, emailType: 'user' });
+    }
+    if (!organisation_email) organisation_email = await generatePlaceHolderEmail({ first_name: business_name, last_name: country, emailType: 'organization' });
+
+    const userAlreadyExist = await findUser([{ email }, { phone_number }], []);
+    if (userAlreadyExist) throw Error('Account already exists');
 
     // todo: put the token in redis and expire it
     const remember_token = randomstring.generate({ length: 6, charset: 'numeric' });
@@ -120,15 +163,6 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       });
     }
 
-    // await sendEmail({
-    //   recipientEmail: user.email,
-    //   purpose: 'welcome_user',
-    //   templateInfo: {
-    //     code: remember_token,
-    //     name: ` ${user.first_name}`,
-    //     userId: user.id,
-    //   },
-    // });
     await sendEmail({
       recipientEmail: user.email,
       purpose: 'welcome_user',
@@ -139,6 +173,12 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       },
     });
 
+    await sendSms({
+      phoneNumber: internationalFormat,
+      // message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
+      message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
+    });
+
     const token = generateToken(user);
 
     return sendObjectResponse('Account created successfully', { user: sanitizeUser(user), token });
@@ -147,14 +187,22 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   }
 };
 
-export const userAuth = async (data: userAuthDTO): Promise<theResponse> => {
+export const userAuth = async (data: any): Promise<theResponse> => {
   const validation = userAuthValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { email, password, addPhone } = data;
+  const { email, password, phone_number, addPhone } = data;
 
   try {
-    const userAlreadyExist: any = await findUser({ email }, [], [addPhone && 'phoneNumber']);
+    let phoneNumber;
+    if (phone_number) {
+      const { countryCode, localFormat } = phone_number;
+      const internationalFormat = formatPhoneNumber(localFormat);
+      phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
+      if (!phoneNumber) throw Error('Your credentials are incorrect');
+    }
+
+    const userAlreadyExist: any = await findUser([{ email }, { phone_number: (phoneNumber as PhoneNumbers).id }], [], [addPhone && 'phoneNumber']);
     if (!userAlreadyExist) throw Error(`Your credentials are incorrect`);
     // if (!userAlreadyExist.enabled) throw Error('Your account has been disabled');
     if (!userAlreadyExist.password) throw Error('Kindly set password');

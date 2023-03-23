@@ -45,7 +45,7 @@ export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO
   const createdPhoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: internationalFormat.replace('+', '') } });
   if (!createdPhoneNumber) throw Error('Sorry, problem with Phone Number creation');
 
-  return sendObjectResponse('Account created successfully', createdPhoneNumber);
+  return sendObjectResponse('Account created successfully', { ...createdPhoneNumber, completeInternationalFormat: internationalFormat });
 };
 
 export const findOrCreateImage = async (payload: findAndCreateImageDTO): Promise<theResponse> => {

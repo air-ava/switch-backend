@@ -33,7 +33,8 @@ export interface resetPasswordDTO {
   password: string;
 }
 export interface userAuthDTO {
-  email: string;
+  email?: string;
+  phone_number?: findAndCreatePhoneNumberDTO;
   password: string;
   addPhone?: boolean;
 }
