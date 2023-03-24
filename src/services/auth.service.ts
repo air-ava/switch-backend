@@ -234,9 +234,10 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
   const { email, phone_number } = data;
   try {
     let phoneNumber;
+    let internationalFormat;
     if (phone_number) {
       const { countryCode, localFormat } = phone_number;
-      const internationalFormat = formatPhoneNumber(localFormat);
+      internationalFormat = formatPhoneNumber(localFormat);
       phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
       if (!phoneNumber) throw Error('Your credentials are incorrect');
     }
@@ -256,6 +257,12 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
         code: remember_token,
         name: ` ${user.first_name}`,
       },
+    });
+
+    await sendSms({
+      phoneNumber: internationalFormat,
+      message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
+      // message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
     return sendObjectResponse('Token resent successfully');
