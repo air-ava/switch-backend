@@ -29,6 +29,24 @@ export function generateToken(data: any) {
   return sign(payload, JWT_KEY, signInOptions);
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function generateBackOfficeToken(data: any) {
+  // information to be encoded in the JWT
+  const { name, id: userId } = data;
+  const payload = {
+    name,
+    type: 'backOffice',
+    userId,
+    accessTypes: ['getTeams', 'addTeams', 'updateTeams', 'deleteTeams'],
+  };
+  const signInOptions: SignOptions = {
+    expiresIn: '1h',
+  };
+
+  // generate JWT
+  return sign(payload, JWT_KEY, signInOptions);
+}
+
 export function decodeToken(token: string, key: string): { success: boolean } {
   try {
     jwt.verify(token, key);

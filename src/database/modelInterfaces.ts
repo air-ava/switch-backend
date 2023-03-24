@@ -792,3 +792,17 @@ export interface IBankTransfers {
   created_at: Date;
   updated_at: Date;
 }
+export interface IBackOfficeUsers {
+  id: number;
+  email: string;
+  name: string;
+  slug: string;
+  role: string;
+  remember_token: string | null;
+  password: string;
+  avatar: number;
+  status: number;
+  created_at: Date;
+  email_verified_at?: Date;
+  updated_at?: Date;
+}

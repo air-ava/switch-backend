@@ -17,6 +17,7 @@ import Settings from './services/settings.service';
 // import { getOneUser } from './database/repositories/user.repository';
 import logger from './utils/logger';
 import router from './routes';
+import office from './routes/office/index';
 import webhook from './routes/webhook.routes';
 import ussd from './routes/ussd.routes';
 import swagger from './routes/swagger';
@@ -36,6 +37,7 @@ async function startServer(): Promise<void> {
   app.use(helmet());
 
   app.use('/api', router);
+  app.use('/office', office);
   app.use('/webhook', webhook);
   app.use('/ussd', ussd);
   app.use('/swagger', swagger);

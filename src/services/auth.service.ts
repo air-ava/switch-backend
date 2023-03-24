@@ -29,7 +29,7 @@ import {
 import { findUser, createAUser, updateUser, verifyUser, listUser } from '../database/repositories/user.repo';
 import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
-import { generateToken } from '../utils/jwt';
+import { generateBackOfficeToken, generateToken } from '../utils/jwt';
 import { getBusinessesREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
@@ -43,7 +43,9 @@ import { sendSms } from '../integrations/africasTalking/sms.integration';
 import Settings from './settings.service';
 import { formatPhoneNumber } from '../utils/utils';
 import { getOnePhoneNumber } from '../database/repositories/phoneNumber.repo';
+import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
 import { PhoneNumbers } from '../database/models/phoneNumber.model';
+import { IBackOfficeUsers } from '../database/modelInterfaces';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -202,11 +204,11 @@ export const userAuth = async (data: any): Promise<theResponse> => {
       if (!phoneNumber) throw Error('Your credentials are incorrect');
     }
 
-    const userAlreadyExist: any = await findUser([{ email }, { phone_number: (phoneNumber as PhoneNumbers).id }], [], [addPhone && 'phoneNumber']);
+    if (phoneNumber) phoneNumber = (phoneNumber as PhoneNumbers).id;
+    const userAlreadyExist: any = await findUser([{ email }, { phone_number: phoneNumber }], [], [addPhone && 'phoneNumber']);
     if (!userAlreadyExist) throw Error(`Your credentials are incorrect`);
     // if (!userAlreadyExist.enabled) throw Error('Your account has been disabled');
     if (!userAlreadyExist.password) throw Error('Kindly set password');
-
     if (!bcrypt.compareSync(password, userAlreadyExist.password)) throw Error('Your credentials are incorrect');
 
     const organisation = await getOneOrganisationREPO({ id: userAlreadyExist.organisation }, []);
