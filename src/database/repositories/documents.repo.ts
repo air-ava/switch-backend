@@ -23,6 +23,16 @@ export const Repo = {
         });
   },
 
+  async getDocumentLogs(
+    queryParam: Partial<IDocuments> | any,
+    selectOptions: Array<keyof Documents>,
+    relationOptions?: any[],
+
+    t?: QueryRunner,
+  ): Promise<Documents[]> {
+    return getRepository(Documents).createQueryBuilder('document').leftJoinAndSelect('document.Assets', 'assets').getMany();
+  },
+
   async saveDocuments(payload: Partial<IDocuments>, t?: QueryRunner): Promise<Documents> {
     const { ...rest } = payload;
     return t ? t.manager.save(Documents, rest) : getRepository(Documents).save(rest);
