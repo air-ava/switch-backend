@@ -10,6 +10,7 @@ import {
   forgotPasswordValidator,
   newPasswordValidator,
   registerValidator,
+  resendToken,
   resetPasswordValidator,
   shopperLoginValidator,
   userAuthValidator,
@@ -226,9 +227,23 @@ export const userAuth = async (data: any): Promise<theResponse> => {
   }
 };
 
-export const resendVerifyToken = async (email: string): Promise<theResponse> => {
+export const resendVerifyToken = async (data: any): Promise<theResponse> => {
+  // const validation = resendToken.validate(data);
+  // if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { email, phone_number } = data;
   try {
-    const user = await findUser({ email }, []);
+    let phoneNumber;
+    if (phone_number) {
+      const { countryCode, localFormat } = phone_number;
+      const internationalFormat = formatPhoneNumber(localFormat);
+      phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
+      if (!phoneNumber) throw Error('Your credentials are incorrect');
+    }
+
+    if (phoneNumber) phoneNumber = (phoneNumber as PhoneNumbers).id;
+    const user: any = await findUser([{ email }, { phone_number: phoneNumber }], []);
+    // const user = await findUser({ email }, []);
     if (!user) throw Error('Account Not Found');
 
     const remember_token = randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' });

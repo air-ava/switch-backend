@@ -42,6 +42,19 @@ export const userAuthValidator = joi
   })
   .xor('phone_number', 'email');
 
+export const resendToken = joi
+  .object()
+  .keys({
+    email: joi.string().email().optional(),
+    phone_number: joi
+      .object({
+        countryCode: joi.string().required(),
+        localFormat: joi.string().required(),
+      })
+      .optional()
+  })
+  .xor('phone_number', 'email');
+
 export const shopperLoginValidator = joi
   .object()
   .keys({
