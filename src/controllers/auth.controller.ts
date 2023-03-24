@@ -104,7 +104,16 @@ export const verifyCONTROLLER: RequestHandler = async (req, res) => {
 
 export const resendCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await resendVerifyToken(req.params.email);
+    const payload: any = {
+      phone_number: {
+        countryCode: '256',
+      },
+    };
+
+    if (req.params.identity.includes('@')) payload.email = req.params.identity;
+    else payload.phone_number.localFormat = req.params.identity;
+
+    const response = await resendVerifyToken(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error: any) {
