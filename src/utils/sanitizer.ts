@@ -416,8 +416,6 @@ export const Sanitizer = {
   sanitizeSchool(payload: any): any {
     if (!payload) return null;
 
-    // console.log({ payload });
-
     const { country, education_level, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } =
       Sanitizer.jsonify(payload);
     return {

@@ -60,7 +60,7 @@ export class Assets {
   Application: IScholarshipApplication;
 
   @ManyToOne('Documents', 'assets')
-  @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'reference', referencedColumnName: 'reference' })
   Document: IDocuments;
 
   @ManyToOne('Transactions', 'assets')

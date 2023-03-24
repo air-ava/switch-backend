@@ -228,6 +228,19 @@ export const getSchoolDetails = async (data: any) => {
   }
 };
 
+export const listSchool = async (data: any) => {
+  try {
+    const foundSchool = await listSchools(
+      {},
+      [],
+      ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo', 'Organisation.Owner.phoneNumber'],
+    );
+    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeAllArray(foundSchool, Sanitizer.sanitizeSchool));
+  } catch (e: any) {
+    return BadRequestException(e.message);
+  }
+};
+
 export const updateSchoolDetails = async (data: any) => {
   const {
     user,

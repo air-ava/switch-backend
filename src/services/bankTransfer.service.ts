@@ -170,7 +170,7 @@ const Service = {
     );
     return sendObjectResponse('Bank Transfer successfully completed');
   },
-  
+
   async listBankTransfer(data: any): Promise<theResponse> {
     const { reference, user, bankDraftCode, status } = data;
 

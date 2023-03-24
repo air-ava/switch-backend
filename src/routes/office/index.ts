@@ -3,7 +3,8 @@ import express, { Request, Response } from 'express';
 // eslint-disable-next-line prettier/prettier
 import authRouter from './auth.office.routes';
 // import businessRouter from './business.routes';
-// import schoolRouter from './school.routes';
+import schoolRouter from './school.office.routes';
+import documentRouter from './document.office.routes';
 // import studentRouter from './student.routes';
 // import productRouter from './product.routes';
 // import publicRouter from './public.routes';
@@ -28,14 +29,15 @@ router.get('/', (_, res) => res.json({ success: true, message: 'User Admin gatew
 
 router.use('/auth', authRouter);
 router.use(validateSession);
-router.use('/user', userRouter);
+router.use('/users', userRouter);
+router.use('/payments', paymentsRouter);
+router.use('/schools', schoolRouter);
+router.use('/documents', documentRouter);
 // router.use('/business', businessRouter);
-// router.use('/school', schoolRouter);
 // router.use('/students', studentRouter);
 // router.use('/scholarship', scholarshipRouter);
 // router.use('/transactions', transactionsRouter);
 // router.use('/wallets', walletsRouter);
-router.use('/payments', paymentsRouter);
 // router.use('/product', productRouter);
 // router.use('/address', addressRouter);
 // router.use('/cart', cartRouter);
