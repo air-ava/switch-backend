@@ -28,7 +28,7 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
 
   try {
     const organisationWithSameName = await getOneOrganisationREPO({ name: organisationName }, ['id', 'name']);
-    const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, email: user.email, status: STATUSES.ACTIVE, type: 'school' }, []);
+    const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, status: STATUSES.ACTIVE, type: 'school' }, []);
     if (!existingOrganisation) return BadRequestException('Organization not found');
     if (organisationWithSameName && organisationWithSameName.id !== existingOrganisation.id) return BadRequestException('Organization name already Exists');
 
