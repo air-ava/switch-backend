@@ -19,7 +19,7 @@ export const updateUserProfile = async (data: any): Promise<any> => {
   try {
     const {
       data: { school, organisation },
-    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    } = await findSchoolWithOrganization({ owner: user.id });
 
     const payload: any = {
       ...(job_title && { job_title: Settings.get('JOB_TITLES')[job_title] }),

@@ -41,7 +41,7 @@ const Service: any = {
     const { documents, user, process = 'onboarding' } = data;
     const {
       data: { school, organisation },
-    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    } = await findSchoolWithOrganization({ owner: user.id });
 
     const reference = `onb_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
 
