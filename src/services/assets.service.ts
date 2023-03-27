@@ -15,15 +15,14 @@ export const createAsset = async (data: {
   customName?: string;
 }): Promise<any> => {
   const { organisation, user, entity, entity_id, video, name: assetName, reference, trigger, customName } = data;
-  const options = {
+  const response = await cloudinary.uploader.upload(data.imagePath, {
     use_filename: false,
     unique_filename: true,
     overwrite: true,
     folder: 'joinSteward',
     ...(video && { resource_type: 'video' }),
     ...(customName && { public_id: customName }),
-  };
-  const response = await cloudinary.uploader.upload(data.imagePath, options);
+  });
   const { public_id: name, original_filename: file_name, resource_type: file_type, format: file_format, bytes, secure_url: url } = response;
   const createAssets = await saveAssetsREPO({
     name,
