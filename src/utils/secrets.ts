@@ -16,6 +16,7 @@ export const PORT = throwIfUndefined('PORT');
 export const JWT_KEY = throwIfUndefined('JWT_KEY');
 export const NODE_ENV = throwIfUndefined('NODE_ENV');
 export const AFRICA_TALKING_API_KEY = throwIfUndefined('AFRICA_TALKING_API_KEY');
+export const AFRICA_TALKING_USERNAME = throwIfUndefined('AFRICA_TALKING_USERNAME');
 
 export const DB_NAME = throwIfUndefined('DB_NAME');
 export const DB_HOST = throwIfUndefined('DB_HOST');
