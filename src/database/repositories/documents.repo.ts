@@ -1,5 +1,7 @@
+import { Status } from './../models/status.model';
 import { QueryRunner, getRepository, UpdateResult } from 'typeorm';
 import { Documents } from '../models/document.model';
+import { Assets } from '../models/assets.model';
 import { IDocuments } from '../modelInterfaces';
 
 export const Repo = {
@@ -30,7 +32,11 @@ export const Repo = {
 
     t?: QueryRunner,
   ): Promise<Documents[]> {
-    return getRepository(Documents).createQueryBuilder('document').leftJoinAndSelect('document.Assets', 'assets').getMany();
+    return getRepository(Documents)
+      .createQueryBuilder('document')
+      .leftJoinAndSelect('document.Assets', 'Asset')
+      .leftJoinAndSelect('document.Status', 'Status')
+      .getMany();
   },
 
   async saveDocuments(payload: Partial<IDocuments>, t?: QueryRunner): Promise<Documents> {

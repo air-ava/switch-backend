@@ -23,12 +23,13 @@ const Service: any = {
     if (!response.length) return BadRequestException('Document Requirement not found');
     return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`, response);
   },
-  
+
   async listDocuments({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
     // const validation = getQuestionnaire.validate({ process, country });
     // if (validation.error) return ResourceNotFoundError(validation.error);
 
-    const response = await DocumentREPO.listDocuments({}, [], ['Status']);
+    const response = await DocumentREPO.listDocuments({}, [], ['Status', 'Assets']);
+    // const response = await DocumentREPO.getDocumentLogs({}, []);
     return sendObjectResponse(`Documents retrieved successfully'`, response);
   },
 

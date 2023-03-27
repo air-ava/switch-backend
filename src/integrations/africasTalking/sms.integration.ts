@@ -12,7 +12,7 @@ export const sendSms = async (payload: any): Promise<any> => {
     const response = await africastalking.sendSms({
       to: [`${phoneNumber}`],
       message,
-      from: 'STEWARD',
+      // from: 'STEWARD',
     });
     return {
       success: true,
