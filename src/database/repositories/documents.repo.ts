@@ -1,5 +1,7 @@
+import { Status } from './../models/status.model';
 import { QueryRunner, getRepository, UpdateResult } from 'typeorm';
 import { Documents } from '../models/document.model';
+import { Assets } from '../models/assets.model';
 import { IDocuments } from '../modelInterfaces';
 
 export const Repo = {
@@ -21,6 +23,20 @@ export const Repo = {
           ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
           ...(relationOptions && { relations: relationOptions }),
         });
+  },
+
+  async getDocumentLogs(
+    queryParam: Partial<IDocuments> | any,
+    selectOptions: Array<keyof Documents>,
+    relationOptions?: any[],
+
+    t?: QueryRunner,
+  ): Promise<Documents[]> {
+    return getRepository(Documents)
+      .createQueryBuilder('document')
+      .leftJoinAndSelect('document.Assets', 'Asset')
+      .leftJoinAndSelect('document.Status', 'Status')
+      .getMany();
   },
 
   async saveDocuments(payload: Partial<IDocuments>, t?: QueryRunner): Promise<Documents> {

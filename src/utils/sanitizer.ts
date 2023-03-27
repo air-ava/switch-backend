@@ -189,6 +189,21 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizeAdminUser(payload: IUser): any {
+    if (!payload) return null;
+    const { status, password, remember_token, email_verified_at, Avatar, slug, ...rest } = Sanitizer.jsonify(payload);
+
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      reference: slug,
+      avatar: Avatar && Sanitizer.sanitizeAsset(Avatar),
+      emailVerified: !!email_verified_at,
+      email_verified_at,
+    };
+    return sanitized;
+  },
+
   sanitizeSponsorship(payload: ISponsorships): any {
     if (!payload) return null;
     const { password, user, User, status, ...rest } = Sanitizer.jsonify(payload);
@@ -229,7 +244,7 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  async sanitizeTransactions(payload: any): Promise<any>  {
+  async sanitizeTransactions(payload: any): Promise<any> {
     if (!Array.isArray(payload)) return null;
     const response = await Promise.all(payload.map(Sanitizer.sanitizeTransaction));
     return response;
@@ -401,9 +416,8 @@ export const Sanitizer = {
   sanitizeSchool(payload: any): any {
     if (!payload) return null;
 
-    // console.log({ payload });
-
-    const { country, education_level, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } = Sanitizer.jsonify(payload);
+    const { country, education_level, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } =
+      Sanitizer.jsonify(payload);
     return {
       ...rest,
       country: country && Sanitizer.getStatusById(countryMapping, country),
@@ -421,6 +435,18 @@ export const Sanitizer = {
     return {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
+
+  sanitizeBankTransfer(payload: any): any {
+    if (!payload) return null;
+    const { status, bankId, Bank, Wallet, walletId, Transactions, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      bank: Bank && Sanitizer.sanitizeBank(Bank),
+      wallet: Wallet && Sanitizer.sanitizeWallet(Wallet),
+      transactions: Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeTransaction),
     };
   },
 

@@ -8,8 +8,8 @@ export const registerValidator = joi.object().keys({
       countryCode: joi.string().required(),
       localFormat: joi.string().required(),
     })
-    .optional(),
-  email: joi.string().email().required(),
+    .required(),
+  email: joi.string().email().optional(),
   password: joi.string().pattern(passwordRegex).required(),
   country: joi.string().valid('UG').required(),
   user_type: joi.string().valid('school', 'vendor').required(),
@@ -17,7 +17,7 @@ export const registerValidator = joi.object().keys({
   first_name: joi.string().min(3).message('First Name must have more than 3 Characters').required(),
   last_name: joi.string().min(3).message('Last Name must have more than 3 Characters').required(),
   business_name: joi.string().required(),
-  organisation_email: joi.string().email().required(),
+  organisation_email: joi.string().email().optional(),
 });
 // .when('.user_type', {
 //   is: 'partner',
@@ -27,16 +27,47 @@ export const registerValidator = joi.object().keys({
 //   }),
 // });
 
-export const userAuthValidator = joi.object().keys({
-  email: joi.string().email().required(),
-  password: joi.string().pattern(passwordRegex).required(),
-  addPhone: joi.boolean().allow(null),
-});
+export const userAuthValidator = joi
+  .object()
+  .keys({
+    email: joi.string().email().optional(),
+    phone_number: joi
+      .object({
+        countryCode: joi.string().required(),
+        localFormat: joi.string().required(),
+      })
+      .optional(),
+    password: joi.string().pattern(passwordRegex).required(),
+    addPhone: joi.boolean().allow(null),
+  })
+  .xor('phone_number', 'email');
 
-export const shopperLoginValidator = joi.object().keys({
-  email: joi.string().email().required(),
-  password: joi.string().pattern(passwordRegex).required(),
-});
+export const resendToken = joi
+  .object()
+  .keys({
+    email: joi.string().email().optional(),
+    phone_number: joi
+      .object({
+        countryCode: joi.string().required(),
+        localFormat: joi.string().required(),
+      })
+      .optional()
+  })
+  .xor('phone_number', 'email');
+
+export const shopperLoginValidator = joi
+  .object()
+  .keys({
+    email: joi.string().email().optional(),
+    phone_number: joi
+      .object({
+        countryCode: joi.string().required(),
+        localFormat: joi.string().required(),
+      })
+      .optional(),
+    password: joi.string().pattern(passwordRegex).required(),
+  })
+  .xor('phone_number', 'email');
 
 export const forgotPasswordValidator = joi.object().keys({
   email: joi.string().email().required(),

@@ -14,7 +14,7 @@ import { findSchoolWithOrganization } from './helper.service';
 import { saveLinkREPO } from '../database/repositories/link.repo';
 import { updateSchool } from '../database/repositories/schools.repo';
 
-export const Service: any = {
+const Service: any = {
   async listDocumentRequirements({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
     // const validation = getQuestionnaire.validate({ process, country });
     // if (validation.error) return ResourceNotFoundError(validation.error);
@@ -22,6 +22,15 @@ export const Service: any = {
     const response = await DocumentRequirementREPO.listDocumentRequirements({ process, country }, [], ['Status']);
     if (!response.length) return BadRequestException('Document Requirement not found');
     return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`, response);
+  },
+
+  async listDocuments({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
+    // const validation = getQuestionnaire.validate({ process, country });
+    // if (validation.error) return ResourceNotFoundError(validation.error);
+
+    const response = await DocumentREPO.listDocuments({}, [], ['Status', 'Assets']);
+    // const response = await DocumentREPO.getDocumentLogs({}, []);
+    return sendObjectResponse(`Documents retrieved successfully'`, response);
   },
 
   // same `reference` and `trigger` across all documents
@@ -33,7 +42,7 @@ export const Service: any = {
     const { documents, user, process = 'onboarding' } = data;
     const {
       data: { school, organisation },
-    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    } = await findSchoolWithOrganization({ owner: user.id });
 
     const reference = `onb_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
 
@@ -145,3 +154,5 @@ export const Service: any = {
 
   // }
 };
+
+export default Service;

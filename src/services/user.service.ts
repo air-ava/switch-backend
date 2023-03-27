@@ -1,5 +1,5 @@
 import { updateIndividual } from '../database/repositories/individual.repo';
-import { findUser, updateUser } from '../database/repositories/user.repo';
+import { findUser, listUser, updateUser } from '../database/repositories/user.repo';
 import { ResourceNotFoundError, sendObjectResponse, BadRequestException } from '../utils/errors';
 import { Sanitizer, sanitizeUser } from '../utils/sanitizer';
 import Settings from './settings.service';
@@ -19,7 +19,7 @@ export const updateUserProfile = async (data: any): Promise<any> => {
   try {
     const {
       data: { school, organisation },
-    } = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    } = await findSchoolWithOrganization({ owner: user.id });
 
     const payload: any = {
       ...(job_title && { job_title: Settings.get('JOB_TITLES')[job_title] }),
@@ -74,6 +74,7 @@ export const updateUserProfile = async (data: any): Promise<any> => {
     return BadRequestException(e.message);
   }
 };
+
 export const fetchUserProfile = async (data: any): Promise<any> => {
   // const validation = shopperLoginValidator.validate(data);
   // if (validation.error) return ResourceNotFoundError(validation.error);
@@ -97,6 +98,19 @@ export const fetchUserProfile = async (data: any): Promise<any> => {
   }
 };
 
+export const listUsers = async (data: any): Promise<any> => {
+  // const validation = shopperLoginValidator.validate(data);
+  // if (validation.error) return ResourceNotFoundError(validation.error);
+
+  try {
+    const users = await listUser({}, [], ['phoneNumber', 'Address', 'Avatar']);
+
+    return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeAllArray(users, Sanitizer.sanitizeUser));
+  } catch (e: any) {
+    return BadRequestException(e.message);
+  }
+};
+
 export const fetchUserBySlug = async (data: any): Promise<any> => {
   // const validation = shopperLoginValidator.validate(data);
   // if (validation.error) return ResourceNotFoundError(validation.error);
@@ -112,24 +126,3 @@ export const fetchUserBySlug = async (data: any): Promise<any> => {
   }
 };
 
-// export const fetchUserWithOrganization = async (userId: number): Promise<any> => {
-//   // const validation = shopperLoginValidator.validate(data);
-//   // if (validation.error) return ResourceNotFoundError(validation.error);
-
-//   try {
-//     const user = await findUser({ id: userId }, []);
-//     if (!user) throw Error(`User not found`);
-//     const organisation = await getOneOrganisationREPO({ id: (user as IUser).organisation }, []);
-//     if (organisation) {
-//       req.organisation = organisation as any;
-//       if (organisation) {
-//         const school = await getSchool({ organisation_id: organisation.id }, []);
-//         if (school) req.school = school as any;
-//       }
-//     }
-
-//     return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeUser(userAlreadyExist));
-//   } catch (e: any) {
-//     return BadRequestException(e.message);
-//   }
-// };

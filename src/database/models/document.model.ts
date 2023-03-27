@@ -64,7 +64,7 @@ export class Documents {
   @JoinColumn({ name: 'status' })
   Status: IStatus;
 
-  @OneToMany(() => Assets, (asset) => asset.Application)
+  @OneToMany(() => Assets, (asset) => asset.Document)
   Assets: IAssets[];
 
   @OneToMany(() => Link, (link) => link.Application)

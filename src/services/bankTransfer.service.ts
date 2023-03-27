@@ -13,6 +13,7 @@ import { Service as WalletService } from './wallet.service';
 import Settings from './settings.service';
 import { getOneTransactionREPO, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { updateBankTransfer } from '../validators/payment.validator';
+import { findUser } from '../database/repositories/user.repo';
 
 const Service = {
   async recordBankTransfer(data: any): Promise<theResponse> {
@@ -97,6 +98,7 @@ const Service = {
   async updateBankTransfer(data: { status: 'PROCESSING' | 'PROCESSED'; reference: string }): Promise<theResponse> {
     const { status, reference: tx_reference } = data;
 
+    console.log({ data, status: STATUSES[status] });
     const validation = updateBankTransfer.validate(data);
     if (validation.error) return ResourceNotFoundError(validation.error);
 
@@ -109,6 +111,10 @@ const Service = {
 
     // const validation = updateBankTransfer.validate(data);
     // if (validation.error) return ResourceNotFoundError(validation.error);
+
+    const foundUser = await findUser({ id: user }, []);
+    if (!foundUser) throw Error('User account Not Found');
+    // if (foundUser.status === STATUSES.INACTIVE) throw Error('Your account has been disabled');
 
     const transaction = await getOneTransactionREPO({ reference }, ['description', 'metadata', 'amount', 'walletId']);
     if (!transaction)
@@ -141,7 +147,7 @@ const Service = {
     } = await WalletService.debitTransactionFees({
       wallet_id: transaction.walletId,
       reference,
-      user,
+      user: foundUser,
       description: narration,
       feesNames: ['debit-fees'],
       transactionAmount: transaction.amount,
@@ -163,6 +169,16 @@ const Service = {
       // t,
     );
     return sendObjectResponse('Bank Transfer successfully completed');
+  },
+
+  async listBankTransfer(data: any): Promise<theResponse> {
+    const { reference, user, bankDraftCode, status } = data;
+
+    // const validation = updateBankTransfer.validate(data);
+    // if (validation.error) return ResourceNotFoundError(validation.error);
+
+    const bankTransfers = await BankTransferRepo.findBankTransfers({}, [], ['Wallet', 'Bank', 'Transactions']);
+    return sendObjectResponse('Bank Transfer successfully retrieved', Sanitizer.sanitizeAllArray(bankTransfers, Sanitizer.sanitizeBankTransfer));
   },
   // todo: Complete Bank transfer which update transaction status to 'failed' and bank transfer status to 'declined'
   // todo: on Decline Reverse amount back to wallet

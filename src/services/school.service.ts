@@ -28,9 +28,10 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
 
   try {
     const organisationWithSameName = await getOneOrganisationREPO({ name: organisationName }, ['id', 'name']);
-    const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, email: user.email, status: STATUSES.ACTIVE, type: 'school' }, []);
+    const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, status: STATUSES.ACTIVE, type: 'school' }, []);
     if (!existingOrganisation) return BadRequestException('Organization not found');
-    if (organisationWithSameName && organisationWithSameName.id !== existingOrganisation.id) return BadRequestException('Organization name already Exists');
+    if (organisationWithSameName && organisationWithSameName.id !== existingOrganisation.id)
+      return BadRequestException('Organization name already Exists');
 
     let foundSchool: any;
     const schools = await listSchools({ organisation_id: existingOrganisation.id }, []);
@@ -84,7 +85,7 @@ export const updateSchoolContact = async (data: {
   const { state } = address;
 
   try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
     if (!gottenSchool.success) return gottenSchool;
     const { school: foundSchool } = gottenSchool.data;
 
@@ -120,7 +121,7 @@ export const updateOrganisationOwner = async (data: {
   const { job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
 
   try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
     if (!gottenSchool.success) return gottenSchool;
     const { school: foundSchool } = gottenSchool.data;
 
@@ -218,11 +219,24 @@ export const getSchoolDetails = async (data: any) => {
   const { user } = data;
 
   try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
     if (!gottenSchool.success) return gottenSchool;
     const { school } = gottenSchool.data;
 
     return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool(school));
+  } catch (e: any) {
+    return BadRequestException(e.message);
+  }
+};
+
+export const listSchool = async (data: any) => {
+  try {
+    const foundSchool = await listSchools(
+      {},
+      [],
+      ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo', 'Organisation.Owner.phoneNumber'],
+    );
+    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeAllArray(foundSchool, Sanitizer.sanitizeSchool));
   } catch (e: any) {
     return BadRequestException(e.message);
   }
@@ -242,7 +256,7 @@ export const updateSchoolDetails = async (data: any) => {
     schoolDescription,
   } = data;
   try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id, email: user.email });
+    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
     if (!gottenSchool.success) return gottenSchool;
     const { school, organisation, country } = gottenSchool.data;
 

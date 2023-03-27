@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne } from 'typeorm';
 import { IDocuments, IScholarshipApplication, IScholarshipEligibility, IScholarshipRequirement, ITransactions } from '../modelInterfaces';
+import { Documents } from './document.model';
 
 @Entity('assets')
 export class Assets {
@@ -59,13 +60,13 @@ export class Assets {
   @JoinColumn({ name: 'reference', referencedColumnName: 'id' })
   Application: IScholarshipApplication;
 
-  @ManyToOne('Documents', 'assets')
-  @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
-  Document: IDocuments;
-
   @ManyToOne('Transactions', 'assets')
   @JoinColumn({ name: 'reference', referencedColumnName: 'document_reference' })
   Transaction: ITransactions;
+
+  @ManyToOne('Documents', 'assets')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'reference' })
+  Document: IDocuments;
 
   @ManyToOne('ScholarshipRequirement', 'assets')
   @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
