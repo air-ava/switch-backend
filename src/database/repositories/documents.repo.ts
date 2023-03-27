@@ -29,7 +29,6 @@ export const Repo = {
     queryParam: Partial<IDocuments> | any,
     selectOptions: Array<keyof Documents>,
     relationOptions?: any[],
-
     t?: QueryRunner,
   ): Promise<Documents[]> {
     return getRepository(Documents)
