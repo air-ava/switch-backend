@@ -262,8 +262,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
 
     await sendSms({
       phoneNumber: internationalFormat,
-      message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
-      // message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
+      message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
     return sendObjectResponse('Token resent successfully');
@@ -492,6 +491,35 @@ export const forgotPassword = async (data: {
     });
 
     return sendObjectResponse(`OTP sent to ${userAlreadyExist.email}`);
+  } catch (e: any) {
+    console.log({ e });
+    return BadRequestException(e.message);
+  }
+};
+
+export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse> => {
+  // const validation = verifyUserValidator.validate(data);
+  // if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { id } = data;
+  try {
+    const userAlreadyExist = await findUser({ id }, [], []);
+    if (!userAlreadyExist) throw Error(`User Not Found`);
+
+    const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, []);
+    if (!school) throw Error(`School not found`);
+
+    await verifyUser({ id }, { email_verified_at: new Date(Date.now()) });
+
+    await WalletService.createDollarWallet({
+      user: userAlreadyExist,
+      currency: 'UGX',
+      type: 'permanent',
+      entity: 'school',
+      entityId: school.id,
+    });
+
+    return sendObjectResponse('user verified');
   } catch (e: any) {
     console.log({ e });
     return BadRequestException(e.message);

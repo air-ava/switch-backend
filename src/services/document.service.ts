@@ -13,6 +13,7 @@ import { createAsset } from './assets.service';
 import { findSchoolWithOrganization } from './helper.service';
 import { saveLinkREPO } from '../database/repositories/link.repo';
 import { updateSchool } from '../database/repositories/schools.repo';
+import { verifyDocument } from '../validators/document.validator';
 
 const Service: any = {
   async listDocumentRequirements({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
@@ -29,8 +30,34 @@ const Service: any = {
     // if (validation.error) return ResourceNotFoundError(validation.error);
 
     const response = await DocumentREPO.listDocuments({}, [], ['Status', 'Assets']);
-    // const response = await DocumentREPO.getDocumentLogs({}, []);
     return sendObjectResponse(`Documents retrieved successfully'`, response);
+  },
+
+  async verifyDocument({
+    documentId,
+    status = 'approved',
+    reason,
+  }: {
+    reason: string;
+    documentId: number;
+    status: 'approved' | 'rejected';
+  }): Promise<theResponse> {
+    const validation = verifyDocument.validate({ documentId, status, reason });
+    if (validation.error) return ResourceNotFoundError(validation.error);
+
+    const response = await DocumentREPO.findDocument({ id: documentId }, [], ['Status', 'Assets']);
+    if (!response) throw Error(`Document Not Found`);
+
+    await DocumentREPO.updateDocuments(
+      { id: documentId },
+      {
+        status: status === 'approved' ? STATUSES.APPROVED : STATUSES.REJECTED,
+        processor: 'STEWARD',
+        response: reason,
+      },
+    );
+
+    return sendObjectResponse(`Documents ${status} successfully`);
   },
 
   // same `reference` and `trigger` across all documents
@@ -99,7 +126,7 @@ const Service: any = {
     };
     if (requirementDocs[entity_id] !== requirement_type) throw new Error('Wrong file type submitted');
 
-    // todo: check if similar document exists for this school and delete it 
+    // todo: check if similar document exists for this school and delete it
 
     if (requirement_type === 'text' || requirement_type === 'number') payload.number = document;
     if (requirement_type === 'file') {

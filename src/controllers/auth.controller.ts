@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import { changePasswordDTO } from '../dto/auth.dto';
 import {
+  backOfficeVerifiesAccount,
   businessLogin,
   changePassword,
   createUser,
@@ -166,6 +167,20 @@ export const changePasswordCONTROLLER: RequestHandler = async (req, res) => {
     const response = await changePassword(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(oldSendObjectResponse(response.messaage, response.date, true));
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
+export const backOfficeVerifiesAccountCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload = { id: req.params.id };
+
+    const response = await backOfficeVerifiesAccount(payload);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
   } catch (error: any) {
     return error.message
       ? res.status(400).json({ success: false, error: error.message })
