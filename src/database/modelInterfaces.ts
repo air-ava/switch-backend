@@ -789,6 +789,8 @@ export interface IBankTransfers {
   processor: string;
   response: string;
   sessionId: string;
+  document_reference: string;
+  metadata: string;
   created_at: Date;
   updated_at: Date;
 }
