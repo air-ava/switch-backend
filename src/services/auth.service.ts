@@ -107,7 +107,8 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       const { first_name, last_name } = rest;
       email = await generatePlaceHolderEmail({ first_name, last_name, emailType: 'user' });
     }
-    if (!organisation_email) organisation_email = await generatePlaceHolderEmail({ first_name: business_name, last_name: country, emailType: 'organization' });
+    if (!organisation_email)
+      organisation_email = await generatePlaceHolderEmail({ first_name: business_name, last_name: country, emailType: 'organization' });
 
     const userAlreadyExist = await findUser([{ email }, { phone_number }], []);
     if (userAlreadyExist) throw Error('Account already exists');
@@ -178,8 +179,8 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
 
     await sendSms({
       phoneNumber: internationalFormat,
-      // message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
-      message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
+      message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
+      // message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
     const token = generateToken(user);
@@ -438,13 +439,28 @@ export const resetPassword = async (data: resetPasswordDTO): Promise<theResponse
   }
 };
 
-export const forgotPassword = async (data: { email: string }): Promise<theResponse> => {
+export const forgotPassword = async (data: {
+  email: string;
+  phone_number: {
+    countryCode: string;
+    localFormat: string;
+  };
+}): Promise<theResponse> => {
   const validation = forgotPasswordValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { email } = data;
+  const { phone_number: reqPhone, email } = data;
   try {
-    const userAlreadyExist = await findUser({ email }, [], []);
+    let phone_number;
+    let internationalFormat;
+    if (reqPhone) {
+      const { message, data: phone } = await findOrCreatePhoneNumber(reqPhone);
+      console.log({ message, phone, reqPhone });
+      
+      phone_number = phone.id;
+      internationalFormat = phone.completeInternationalFormat;
+    }
+    const userAlreadyExist = await findUser([{ email }, { phone_number }], [], []);
     if (!userAlreadyExist) throw Error(`User Not Found`);
 
     const otp = otpGenerator.generate(5, {
@@ -463,6 +479,16 @@ export const forgotPassword = async (data: { email: string }): Promise<theRespon
         code: otp,
         name: ` ${userAlreadyExist.first_name}`,
       },
+    });
+
+    console.log({
+      phoneNumber: internationalFormat,
+      message: `Hi ${userAlreadyExist.first_name}, Here is your OTP ${otp}`,
+    });
+    await sendSms({
+      phoneNumber: internationalFormat,
+      // message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
+      message: `Hi ${userAlreadyExist.first_name}, Here is your OTP ${otp}`,
     });
 
     return sendObjectResponse(`OTP sent to ${userAlreadyExist.email}`);
