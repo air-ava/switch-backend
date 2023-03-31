@@ -233,7 +233,7 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  sanitizeWallet(payload: IScholarshipApplication): any {
+  sanitizeWallet(payload: IScholarshipApplication, addUserId?: boolean): any {
     if (!payload) return null;
     const { id, userId, User, status, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
@@ -241,6 +241,7 @@ export const Sanitizer = {
       isPinSet: !!transaction_pin,
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      ...(addUserId && { userId }),
       owner: User && Sanitizer.sanitizeUser(User),
     };
     return sanitized;
@@ -452,7 +453,7 @@ export const Sanitizer = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       bank: Bank && Sanitizer.sanitizeBank(Bank),
-      wallet: Wallet && Sanitizer.sanitizeWallet(Wallet),
+      wallet: Wallet && Sanitizer.sanitizeWallet(Wallet, true),
       transactions: Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeTransaction),
     };
   },
