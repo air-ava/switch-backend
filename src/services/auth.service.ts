@@ -43,7 +43,7 @@ import { countryMapping } from '../database/models/users.model';
 import { sendSms } from '../integrations/africasTalking/sms.integration';
 import Settings from './settings.service';
 import { formatPhoneNumber } from '../utils/utils';
-import { getOnePhoneNumber } from '../database/repositories/phoneNumber.repo';
+import { getOnePhoneNumber, updatePhoneNumber } from '../database/repositories/phoneNumber.repo';
 import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
 import { PhoneNumbers } from '../database/models/phoneNumber.model';
 import { IBackOfficeUsers } from '../database/modelInterfaces';
@@ -97,8 +97,10 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   try {
     let phone_number;
     let internationalFormat;
+    let remember_token_phone;
     if (reqPhone) {
-      const { data: phone } = await findOrCreatePhoneNumber(reqPhone);
+      remember_token_phone = randomstring.generate({ length: 6, charset: 'numeric' });
+      const { data: phone } = await findOrCreatePhoneNumber(reqPhone, remember_token_phone);
       phone_number = phone.id;
       internationalFormat = phone.completeInternationalFormat;
     }
@@ -179,7 +181,9 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
 
     await sendSms({
       phoneNumber: internationalFormat,
-      message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
+      message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${
+        remember_token_phone || remember_token
+      } \n It expires in 10 minutes`,
       // message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
@@ -319,30 +323,60 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
   const validation = verifyUserValidator.validate(data);
   if (validation.error) return ResourceNotFoundError(validation.error);
 
-  const { id, token: remember_token } = data;
+  let { id } = data;
+  const { token: remember_token } = data;
   try {
-    const userAlreadyExist = id ? await findUser({ id }, [], []) : await findUser({ remember_token }, [], []);
-    if (!userAlreadyExist) throw Error(`User Not Found`);
+    let userAlreadyExist = id ? await findUser({ id }, [], []) : await findUser({ remember_token }, [], []);
+    let emailToken = true;
+    if (!userAlreadyExist) {
+      if (!remember_token) throw Error(`User Not Found`);
+
+      // Check if the OTP belongs to the phone Number
+      const phoneNumber = await getOnePhoneNumber({ queryParams: { remember_token } });
+      if (!phoneNumber) throw Error(`User Not Found`);
+      // if (phoneNumber.is_verified) throw Error(`User has been verified`);
+
+      userAlreadyExist = await findUser({ phone_number: phoneNumber.id }, []);
+      if (!userAlreadyExist) throw Error(`User Not Found`);
+
+      userAlreadyExist.remember_token = remember_token;
+      id = userAlreadyExist.id;
+      emailToken = false;
+
+      await updatePhoneNumber(
+        {
+          id: phoneNumber.id,
+        },
+        {
+          verified_at: new Date(Date.now()),
+          is_verified: true,
+        },
+      );
+    }
     if (userAlreadyExist.remember_token !== remember_token) throw Error(`Wrong Token`);
+    if (userAlreadyExist.email_verified_at) throw Error(`User has been verified`);
 
     const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, []);
     if (!school) throw Error(`School not found`);
 
     await verifyUser(
       {
-        remember_token,
+        ...(emailToken && { remember_token }),
         ...(id && { id }),
       },
-      { email_verified_at: new Date(Date.now()) },
+      {
+        ...(emailToken && { email_verified_at: new Date(Date.now()) }),
+        status: STATUSES.VERIFIED,
+      },
     );
 
-    await WalletService.createDollarWallet({
-      user: userAlreadyExist,
-      currency: 'UGX',
-      type: 'permanent',
-      entity: 'school',
-      entityId: school.id,
-    });
+    // await WalletService.createDollarWallet({
+    //   user: userAlreadyExist,
+    //   currency: 'UGX',
+    //   type: 'permanent',
+    //   entity: 'school',
+    //   entityId: school.id,
+    // });
 
     const token = generateToken(userAlreadyExist);
     return sendObjectResponse('user verified', { token });
@@ -455,7 +489,7 @@ export const forgotPassword = async (data: {
     if (reqPhone) {
       const { message, data: phone } = await findOrCreatePhoneNumber(reqPhone);
       console.log({ message, phone, reqPhone });
-      
+
       phone_number = phone.id;
       internationalFormat = phone.completeInternationalFormat;
     }
@@ -509,7 +543,7 @@ export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse>
     const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, []);
     if (!school) throw Error(`School not found`);
 
-    await verifyUser({ id }, { email_verified_at: new Date(Date.now()) });
+    await verifyUser({ id }, { status: STATUSES.VERIFIED });
 
     await WalletService.createDollarWallet({
       user: userAlreadyExist,

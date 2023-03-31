@@ -12,7 +12,7 @@ const errorMessages = {
 
 export const listDocumentsCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await DocumentService.listDocuments(req.body);
+    const response = await DocumentService.listDocuments(req.query);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
   } catch (error: any) {

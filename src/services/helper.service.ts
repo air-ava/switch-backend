@@ -26,7 +26,7 @@ import { getOneAssetsREPO, createAssetsREPO } from '../database/repositories/ass
 import { getOneOrganisationREPO, createOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool } from '../database/repositories/schools.repo';
 
-export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO): Promise<theResponse> => {
+export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO, remember_token?: string): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
   if (error) return ResourceNotFoundError(error);
 
@@ -40,6 +40,7 @@ export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO
       countryCode,
       localFormat,
       internationalFormat: String(internationalFormat.replace('+', '')),
+      remember_token,
     },
   });
   const createdPhoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: internationalFormat.replace('+', '') } });

@@ -169,6 +169,7 @@ export const Sanitizer = {
       School,
       Organisation,
       Wallet,
+      status,
       ...rest
     } = Sanitizer.jsonify(payload);
 
@@ -180,6 +181,7 @@ export const Sanitizer = {
       address: Address && Sanitizer.sanitizeAddress(Address),
       emailVerified: !!email_verified_at,
       email_verified_at,
+      userVerified: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       ...(phoneNumber && { phone_number: phoneNumber.internationalFormat }),
       phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
       school: School && Sanitizer.sanitizeSchool(School),
@@ -372,8 +374,12 @@ export const Sanitizer = {
 
   sanitizePhoneNumber(payload: IPhoneNumber): any {
     if (!payload) return null;
-    const { id, ...rest } = Sanitizer.jsonify(payload);
-    return rest;
+    const { id, is_verified, verified_at, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      phoneVerified: is_verified,
+      phone_verified_at: verified_at,
+    };
   },
 
   sanitizeLink(payload: ILink): any {

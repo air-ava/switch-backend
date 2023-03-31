@@ -22,6 +22,12 @@ export class PhoneNumbers {
   @Column('boolean')
   is_verified: boolean;
 
+  @Column('varchar')
+  remember_token: string;
+
+  @Column()
+  verified_at: Date;
+
   @CreateDateColumn()
   created_at: Date;
 

@@ -13,7 +13,7 @@ import { createAsset } from './assets.service';
 import { findSchoolWithOrganization } from './helper.service';
 import { saveLinkREPO } from '../database/repositories/link.repo';
 import { updateSchool } from '../database/repositories/schools.repo';
-import { verifyDocument } from '../validators/document.validator';
+import { listDocuments, verifyDocument } from '../validators/document.validator';
 
 const Service: any = {
   async listDocumentRequirements({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
@@ -25,11 +25,27 @@ const Service: any = {
     return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`, response);
   },
 
-  async listDocuments({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
-    // const validation = getQuestionnaire.validate({ process, country });
-    // if (validation.error) return ResourceNotFoundError(validation.error);
+  async listDocuments({
+    process = 'onboarding',
+    country = 'UGANDA',
+    reference,
+  }: {
+    process: string;
+    country: 'UGANDA';
+    reference: string;
+  }): Promise<theResponse> {
+    const validation = listDocuments.validate({ process, country });
+    if (validation.error) return ResourceNotFoundError(validation.error);
 
-    const response = await DocumentREPO.listDocuments({}, [], ['Status', 'Assets']);
+    const response = await DocumentREPO.listDocuments(
+      {
+        ...(reference && { reference }),
+        trigger: process,
+        country,
+      },
+      [],
+      ['Status', 'Assets'],
+    );
     return sendObjectResponse(`Documents retrieved successfully'`, response);
   },
 

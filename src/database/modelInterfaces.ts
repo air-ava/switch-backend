@@ -97,6 +97,7 @@ export interface IUser {
   image: string;
   title: string;
   organisation: number;
+  status: number;
   job_title: string;
   country: string;
   provider: string;
@@ -137,6 +138,8 @@ export interface IPhoneNumber {
   internationalFormat: string;
   active: boolean;
   is_verified: boolean;
+  remember_token: string;
+  verified_at: Date;
   created_at: Date;
   updated_at: Date;
 }
