@@ -400,11 +400,12 @@ export const Sanitizer = {
     };
   },
 
-  sanitizeAddress(payload: IAssets): any {
+  sanitizeAddress(payload: IAssets, shortenCountry?: boolean): any {
     if (!payload) return null;
-    const { status, ...rest } = Sanitizer.jsonify(payload);
+    const { status, country, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
+      country: shortenCountry ? Sanitizer.getStatusById(countryMapping, country) : country,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
   },
@@ -426,9 +427,9 @@ export const Sanitizer = {
       Sanitizer.jsonify(payload);
     return {
       ...rest,
-      country: country && Sanitizer.getStatusById(countryMapping, country),
+      country: country ? Sanitizer.getStatusById(countryMapping, country) : country,
       education_level: education_level ? education_level.split(',') : [],
-      address: Address && Sanitizer.sanitizeAddress(Address),
+      address: Address && Sanitizer.sanitizeAddress(Address, true),
       phoneNumber: phoneNumber && Sanitizer.sanitizePhoneNumber(phoneNumber),
       organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
       logo: Logo && Sanitizer.sanitizeAsset(Logo),

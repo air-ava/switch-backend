@@ -25,6 +25,7 @@ import { STATUSES } from '../database/models/status.model';
 import { getOneAssetsREPO, createAssetsREPO } from '../database/repositories/assets.repo';
 import { getOneOrganisationREPO, createOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool } from '../database/repositories/schools.repo';
+import { listJobTitleREPO } from '../database/repositories/jobTitle.repo';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO, remember_token?: string): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
@@ -208,4 +209,12 @@ export const findSchoolWithOrganization = async (payload: { owner: string; email
   if (!foundSchool) throw Error('School not found');
 
   return sendObjectResponse('Organisation retrieved successfully', { organisation: existingOrganisation, school: foundSchool });
+};
+
+export const listJobTitles = async (): Promise<theResponse> => {
+  // const validation = getQuestionnaire.validate({ process, country });
+  // if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const response = await listJobTitleREPO({}, []);
+  return sendObjectResponse(`Job titles retrieved successfully`, response);
 };

@@ -1,7 +1,7 @@
 import { STATUSES } from '../database/models/status.model';
 import BankRepo from '../database/repositories/bank.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
-import { ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { Sanitizer } from '../utils/sanitizer';
 import { listBanks } from '../integrations/bayonic/collection.integration';
@@ -88,6 +88,24 @@ const Service = {
     // eslint-disable-next-line no-unused-expressions
     defaultBank === 'true' ? await BankRepo.defaultBank({ id }) : await BankRepo.unDefaultBank({ id });
     return sendObjectResponse(`Bank ${defaultBank === 'true' ? 'defaulted' : 'un-defaulted'} successfully`);
+  },
+
+  async deleteBank(data: any): Promise<theResponse> {
+    // const validation = verifyUserValidator.validate(data);
+    // if (validation.error) return ResourceNotFoundError(validation.error);
+
+    const { id } = data;
+    try {
+      const foundBank = await BankRepo.findBank({ id }, [], []);
+      if (!foundBank) throw Error(`Bank not found`);
+
+      await BankRepo.updateBank({ id }, { status: STATUSES.DELETED });
+
+      return sendObjectResponse('Bank deleted Succefully');
+    } catch (e: any) {
+      console.log({ e });
+      return BadRequestException(e.message);
+    }
   },
 };
 export default Service;
