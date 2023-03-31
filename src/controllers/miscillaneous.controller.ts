@@ -7,6 +7,11 @@ import { oldSendObjectResponse } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { Sanitizer } from '../utils/sanitizer';
 import Settings from '../services/settings.service';
+import { listJobTitles } from '../services/helper.service';
+
+const errorMessages = {
+  listJobTitles: 'Could not list job titles',
+};
 
 export const countriesCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -24,6 +29,18 @@ export const educationLevelCONTROLLER: RequestHandler = async (req, res) => {
   } catch (error) {
     console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
+export const jobTitlesCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const response = await listJobTitles();
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: errorMessages.listJobTitles, data: error });
   }
 };
 

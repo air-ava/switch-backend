@@ -7,6 +7,7 @@ const errorMessages = {
   listBanks: 'Could not list banks',
   addBank: 'Could not add bank',
   defaulBank: 'Error with defaulting Bank',
+  deleteBank: 'Error with deleting Bank',
 };
 
 export const listBanksCONTROLLER: RequestHandler = async (req, res) => {
@@ -62,5 +63,18 @@ export const defaulBankCONTROLLER: RequestHandler = async (req, res) => {
     return error.message
       ? res.status(400).json({ success: false, error: error.message })
       : res.status(500).json({ success: false, error: errorMessages.defaulBank, data: error });
+  }
+};
+
+export const deleteBankCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload = { id: req.params.id };
+    const response = await BankService.deleteBank(payload);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: errorMessages.deleteBank, data: error });
   }
 };
