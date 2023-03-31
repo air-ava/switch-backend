@@ -806,3 +806,10 @@ export interface IBackOfficeUsers {
   email_verified_at?: Date;
   updated_at?: Date;
 }
+
+export interface IJobTitle {
+  id: number;
+  name: string;
+  created_at: Date;
+  updated_at?: Date;
+}
