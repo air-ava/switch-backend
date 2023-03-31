@@ -33,7 +33,8 @@ export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO
   const { countryCode, localFormat } = phone;
   const internationalFormat = formatPhoneNumber(localFormat);
   const phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
-  if (phoneNumber) return sendObjectResponse('Phone numbers retrieved successfully', { ...phoneNumber, completeInternationalFormat: internationalFormat });
+  if (phoneNumber)
+    return sendObjectResponse('Phone numbers retrieved successfully', { ...phoneNumber, completeInternationalFormat: internationalFormat });
 
   await createAPhoneNumber({
     queryParams: {

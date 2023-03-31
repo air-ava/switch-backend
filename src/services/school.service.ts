@@ -309,3 +309,21 @@ export const updateSchoolDetails = async (data: any) => {
     return BadRequestException(e.message);
   }
 };
+
+export const backOfficeVerifiesSchool = async (data: any): Promise<theResponse> => {
+  // const validation = verifyUserValidator.validate(data);
+  // if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { id } = data;
+  try {
+    const foundSchool = await getSchool({ id }, [], []);
+    if (!foundSchool) throw Error(`School not found`);
+
+    await updateSchool({ id }, { status: STATUSES.VERIFIED });
+
+    return sendObjectResponse('School verified');
+  } catch (e: any) {
+    console.log({ e });
+    return BadRequestException(e.message);
+  }
+};

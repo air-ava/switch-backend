@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 
 // eslint-disable-next-line prettier/prettier
 import authRouter from './auth.office.routes';
-// import businessRouter from './business.routes';
+import businessRouter from './business.office.routes';
 import schoolRouter from './school.office.routes';
 import documentRouter from './document.office.routes';
 // import studentRouter from './student.routes';
@@ -33,7 +33,7 @@ router.use('/users', userRouter);
 router.use('/payments', paymentsRouter);
 router.use('/schools', schoolRouter);
 router.use('/documents', documentRouter);
-// router.use('/business', businessRouter);
+router.use('/organisation', businessRouter);
 // router.use('/students', studentRouter);
 // router.use('/scholarship', scholarshipRouter);
 // router.use('/transactions', transactionsRouter);

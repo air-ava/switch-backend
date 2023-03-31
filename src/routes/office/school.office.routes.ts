@@ -10,11 +10,13 @@ import {
   getDocumentRequirementCONTROLLER,
   addOnboardingDocumentsCONTROLLER,
   listSchoolCONTROLLER,
+  verifySchoolCONTROLLER,
 } from '../../controllers/school.controller';
 
 const router = express.Router();
 
 router.get('/', listSchoolCONTROLLER);
+router.post('/verify', verifySchoolCONTROLLER);
 // router.get('/', getSchoolCONTROLLER);
 // router.patch('/', updateSchoolCONTROLLER);
 // router.post('/info', schoolInfoCONTROLLER);

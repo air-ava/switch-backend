@@ -1,14 +1,11 @@
-import { DocumentRequirement } from './../database/models/documentRequirement.model';
 import randomstring from 'randomstring';
 import { STATUSES } from '../database/models/status.model';
-import { listQuestionnaire } from '../database/repositories/questionTitle.repo';
 import { Repo as DocumentRequirementREPO } from '../database/repositories/documentRequirement.repo';
 import { Repo as DocumentREPO } from '../database/repositories/documents.repo';
 import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { Sanitizer } from '../utils/sanitizer';
 import { createObjectFromArray, toTitle } from '../utils/utils';
-import { getQuestionnaire } from '../validators/schools.validator';
 import { createAsset } from './assets.service';
 import { findSchoolWithOrganization } from './helper.service';
 import { saveLinkREPO } from '../database/repositories/link.repo';

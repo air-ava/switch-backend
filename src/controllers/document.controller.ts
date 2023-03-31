@@ -8,6 +8,7 @@ const errorMessages = {
   schoolOwner: 'Could not add school Owner Details',
   useCase: 'Could not complete use case',
   schoolProfile: 'Could not get school profile',
+  verifyDocument: 'Could not verify document',
 };
 
 export const listDocumentsCONTROLLER: RequestHandler = async (req, res) => {
@@ -31,6 +32,6 @@ export const verifyDocumentCONTROLLER: RequestHandler = async (req, res) => {
   } catch (error: any) {
     return error.message
       ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.schoolProfile, data: error });
+      : res.status(500).json({ success: false, error: errorMessages.verifyDocument, data: error });
   }
 };
