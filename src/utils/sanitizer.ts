@@ -469,6 +469,15 @@ export const Sanitizer = {
     return filteredTransaction[0];
   },
 
+  sanitizeDocument(payload: any): any {
+    if (!payload) return null;
+    const { Asset, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      Assets: Asset && [Asset],
+    };
+  },
+
   sanitizeSettlement(payload: any): any {
     if (!payload) return null;
     const { status, processor_transaction_id, Transactions, creditTransactions, ...rest } = Sanitizer.jsonify(payload);

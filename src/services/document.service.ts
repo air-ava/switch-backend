@@ -41,9 +41,9 @@ const Service: any = {
         country,
       },
       [],
-      ['Status', 'Assets'],
+      ['Status', 'Asset'],
     );
-    return sendObjectResponse(`Documents retrieved successfully'`, response);
+    return sendObjectResponse(`Documents retrieved successfully'`, Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeDocument));
   },
 
   async verifyDocument({

@@ -60,9 +60,13 @@ export class Documents {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToOne('Status', 'currencies')
+  @OneToOne('Status', 'documents')
   @JoinColumn({ name: 'status' })
   Status: IStatus;
+
+  @OneToOne('Assets', 'documents')
+  @JoinColumn({ name: 'asset_id' })
+  Asset: IStatus;
 
   @OneToMany(() => Assets, (asset) => asset.Document)
   Assets: IAssets[];
