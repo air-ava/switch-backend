@@ -17,11 +17,13 @@ export const Repo = {
           where: queryParam,
           ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
           ...(relationOptions && { relations: relationOptions }),
+          order: { created_at: 'DESC' },
         })
       : getRepository(Documents).find({
           where: queryParam,
           ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
           ...(relationOptions && { relations: relationOptions }),
+          order: { created_at: 'DESC' },
         });
   },
 

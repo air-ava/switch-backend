@@ -33,11 +33,13 @@ export const listUser = async (
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        order: { created_at: 'DESC' },
       })
     : getRepository(Users).find({
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        order: { created_at: 'DESC' },
       });
 };
 
