@@ -226,7 +226,7 @@ export const Service = {
         reference,
         user,
         description,
-        feesNames: ['debit-fees'],
+        feesNames: ['mobile-money-subscription-school-fees', 'steward-charge-school-fees', 'mobile-money-collection-fees'],
         transactionAmount: amount,
       });
       // await t.commitTransaction();
