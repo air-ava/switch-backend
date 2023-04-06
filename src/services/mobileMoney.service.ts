@@ -16,7 +16,8 @@ import { fetchUserBySlug, fetchUserProfile } from './user.service';
 import { creditLedgerWallet, debitLedgerWallet } from './lien.service';
 import { updateStatusOfALienTransaction } from '../database/repositories/lienTransaction.repo';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
-import { STEWARD_BASE_URL } from '../utils/secrets';
+import { ENVIRONMENT, STEWARD_BASE_URL } from '../utils/secrets';
+import Utils from '../utils/utils';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
@@ -51,7 +52,7 @@ export const Service = {
       first_name: initiator.first_name,
       last_name: initiator.last_name,
       amount: amount / 100,
-      currency: 'BXC' || wallet.currency,
+      currency: Utils.isStaging() ? 'BXC' : wallet.currency,
       metadata,
       reason: `${purpose}`,
       send_instructions: true,

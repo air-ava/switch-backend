@@ -11,14 +11,15 @@ import {
   addOnboardingDocumentsCONTROLLER,
   listSchoolCONTROLLER,
   verifySchoolCONTROLLER,
+  updateSchoolAdminCONTROLLER,
 } from '../../controllers/school.controller';
 
 const router = express.Router();
 
 router.get('/', listSchoolCONTROLLER);
 router.post('/verify', verifySchoolCONTROLLER);
+router.patch('/:id', updateSchoolAdminCONTROLLER);
 // router.get('/', getSchoolCONTROLLER);
-// router.patch('/', updateSchoolCONTROLLER);
 // router.post('/info', schoolInfoCONTROLLER);
 // router.post('/contact', schoolContactCONTROLLER);
 // router.post('/owner', schoolOwnerCONTROLLER);

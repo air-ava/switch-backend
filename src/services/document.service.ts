@@ -9,7 +9,7 @@ import { createObjectFromArray, toTitle } from '../utils/utils';
 import { createAsset } from './assets.service';
 import { findSchoolWithOrganization } from './helper.service';
 import { saveLinkREPO } from '../database/repositories/link.repo';
-import { updateSchool } from '../database/repositories/schools.repo';
+import { getSchool, updateSchool } from '../database/repositories/schools.repo';
 import { listDocuments, verifyDocument } from '../validators/document.validator';
 
 const Service: any = {
@@ -100,7 +100,39 @@ const Service: any = {
       school,
     });
     await updateSchool({ id: school.id }, { document_reference: reference });
-    return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`);
+    return sendObjectResponse(`${toTitle(process)} Document submitted successfully'`);
+  },
+
+  async addDocumentAdmin(data: any): Promise<any> {
+    const { documents, schoolId, process = 'onboarding' } = data;
+
+    const school = await getSchool(
+      { id: schoolId },
+      [],
+      ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo', 'Organisation.Owner.phoneNumber'],
+    );
+    if (!school) throw Error('School not found');
+    const { Organisation: organisation } = school;
+    const user = (organisation as any).Owner;
+
+    const reference =
+      school.document_reference || `onb_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+
+    const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements({ process }, [], []);
+    const requirementDocs = await createObjectFromArray(documentRequirement, 'id', 'requirement_type');
+
+    // if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
+    await Service.callService('addDocument', documents, {
+      reference,
+      user,
+      process,
+      entity: 'document_requirements',
+      organisation,
+      requirementDocs,
+      school,
+    });
+    await updateSchool({ id: school.id }, { document_reference: reference });
+    return sendObjectResponse(`${toTitle(process)} Document submitted successfully'`);
   },
 
   async addDocument({

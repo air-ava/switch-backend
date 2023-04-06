@@ -117,6 +117,19 @@ export const updateSchoolCONTROLLER: RequestHandler = async (req, res) => {
   }
 };
 
+export const updateSchoolAdminCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const payload = { ...req.body, admin: true, schoolId: req.params.id };
+    const response = await updateSchoolDetails(payload);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: errorMessages.schoolProfile, data: error });
+  }
+};
+
 export const getDocumentRequirementCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const payload = req.query;

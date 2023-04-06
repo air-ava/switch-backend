@@ -244,7 +244,8 @@ export const listSchool = async (data: any) => {
 
 export const updateSchoolDetails = async (data: any) => {
   const {
-    user,
+    schoolId,
+    admin = false,
     logo,
     phone_number: reqPhone,
     address,
@@ -255,10 +256,32 @@ export const updateSchoolDetails = async (data: any) => {
     schoolType,
     schoolDescription,
   } = data;
+  let { user } = data;
   try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
-    if (!gottenSchool.success) return gottenSchool;
-    const { school, organisation, country } = gottenSchool.data;
+    let schoolDetails;
+    if (!admin) {
+      const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
+      if (!gottenSchool.success) return gottenSchool;
+      // const { school, organisation, country } = gottenSchool.data;
+      schoolDetails = gottenSchool.data;
+    } else {
+      const school = await getSchool(
+        { id: schoolId },
+        [],
+        ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo', 'Organisation.Owner.phoneNumber'],
+      );
+      if (!school) throw Error('School not found');
+      const { Organisation: organisation, country } = school;
+      const owner = (organisation as any).Owner;
+      schoolDetails = { school, organisation, country };
+      user = owner;
+    }
+    const { school, organisation, country } = schoolDetails;
+
+    if (organisationName) {
+      const organisationWithSameName = await getOneOrganisationREPO({ name: organisationName }, ['id', 'name']);
+      if (organisationWithSameName && organisationWithSameName.id !== organisation.id) return BadRequestException('Organization name already Exists');
+    }
 
     if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
 

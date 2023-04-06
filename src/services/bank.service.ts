@@ -1,5 +1,6 @@
 import { STATUSES } from '../database/models/status.model';
 import BankRepo from '../database/repositories/bank.repo';
+import BackOfficeBanksRepo from '../database/repositories/backOfficeBank.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
@@ -18,6 +19,11 @@ const Service = {
       };
     }
     const response = await BankRepo.findBanks({ walletId: wallet.id, currency: wallet.currency, status: STATUSES.ACTIVE }, []);
+    return sendObjectResponse('Banks retrieved successfully', Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeBank));
+  },
+
+  async listBanksBackOffice(): Promise<theResponse> {
+    const response = await BackOfficeBanksRepo.findBackOfficeBanks({ status: STATUSES.ACTIVE }, []);
     return sendObjectResponse('Banks retrieved successfully', Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeBank));
   },
 

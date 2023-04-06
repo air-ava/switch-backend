@@ -818,3 +818,15 @@ export interface IJobTitle {
   created_at: Date;
   updated_at?: Date;
 }
+
+export interface IBackOfficeBanks {
+  id: number;
+  country: string;
+  currency: string;
+  number: string;
+  account_name: string;
+  bank_name: string;
+  status: number;
+  created_at: Date;
+  updated_at?: Date;
+}

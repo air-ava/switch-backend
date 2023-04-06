@@ -1,5 +1,5 @@
 import express from 'express';
-import { listDocumentsCONTROLLER, verifyDocumentCONTROLLER } from '../../controllers/document.controller';
+import { addDocumentAdminCONTROLLER, listDocumentsCONTROLLER, verifyDocumentCONTROLLER } from '../../controllers/document.controller';
 import {
   accountUseCaseQuestionnaireCONTROLLER,
   schoolInfoCONTROLLER,
@@ -19,6 +19,7 @@ router.get('/', listDocumentsCONTROLLER);
 router.get('/requirement', getDocumentRequirementCONTROLLER);
 router.post('/upload', addOnboardingDocumentsCONTROLLER);
 router.post('/verify/:id', verifyDocumentCONTROLLER);
+router.post('/:id', addDocumentAdminCONTROLLER);
 // router.get('/', getSchoolCONTROLLER);
 // router.patch('/', updateSchoolCONTROLLER);
 // router.post('/info', schoolInfoCONTROLLER);
