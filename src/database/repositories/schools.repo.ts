@@ -32,11 +32,13 @@ export const listSchools = async (
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        order: { created_at: 'DESC' },
       })
     : getRepository(Schools).find({
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
+        order: { created_at: 'DESC' },
       });
 };
 

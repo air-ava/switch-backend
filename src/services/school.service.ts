@@ -244,7 +244,8 @@ export const listSchool = async (data: any) => {
 
 export const updateSchoolDetails = async (data: any) => {
   const {
-    user,
+    schoolId,
+    admin = false,
     logo,
     phone_number: reqPhone,
     address,
@@ -255,10 +256,32 @@ export const updateSchoolDetails = async (data: any) => {
     schoolType,
     schoolDescription,
   } = data;
+  let { user } = data;
   try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
-    if (!gottenSchool.success) return gottenSchool;
-    const { school, organisation, country } = gottenSchool.data;
+    let schoolDetails;
+    if (!admin) {
+      const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
+      if (!gottenSchool.success) return gottenSchool;
+      // const { school, organisation, country } = gottenSchool.data;
+      schoolDetails = gottenSchool.data;
+    } else {
+      const school = await getSchool(
+        { id: schoolId },
+        [],
+        ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo', 'Organisation.Owner.phoneNumber'],
+      );
+      if (!school) throw Error('School not found');
+      const { Organisation: organisation, country } = school;
+      const owner = (organisation as any).Owner;
+      schoolDetails = { school, organisation, country };
+      user = owner;
+    }
+    const { school, organisation, country } = schoolDetails;
+
+    if (organisationName) {
+      const organisationWithSameName = await getOneOrganisationREPO({ name: organisationName }, ['id', 'name']);
+      if (organisationWithSameName && organisationWithSameName.id !== organisation.id) return BadRequestException('Organization name already Exists');
+    }
 
     if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
 
@@ -306,6 +329,24 @@ export const updateSchoolDetails = async (data: any) => {
 
     return sendObjectResponse('School update completed successfully', Sanitizer.sanitizeSchool(foundSchool));
   } catch (e: any) {
+    return BadRequestException(e.message);
+  }
+};
+
+export const backOfficeVerifiesSchool = async (data: any): Promise<theResponse> => {
+  // const validation = verifyUserValidator.validate(data);
+  // if (validation.error) return ResourceNotFoundError(validation.error);
+
+  const { id } = data;
+  try {
+    const foundSchool = await getSchool({ id }, [], []);
+    if (!foundSchool) throw Error(`School not found`);
+
+    await updateSchool({ id }, { status: STATUSES.VERIFIED });
+
+    return sendObjectResponse('School verified');
+  } catch (e: any) {
+    console.log({ e });
     return BadRequestException(e.message);
   }
 };

@@ -1,18 +1,16 @@
-import { DocumentRequirement } from './../database/models/documentRequirement.model';
 import randomstring from 'randomstring';
 import { STATUSES } from '../database/models/status.model';
-import { listQuestionnaire } from '../database/repositories/questionTitle.repo';
 import { Repo as DocumentRequirementREPO } from '../database/repositories/documentRequirement.repo';
 import { Repo as DocumentREPO } from '../database/repositories/documents.repo';
 import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { Sanitizer } from '../utils/sanitizer';
 import { createObjectFromArray, toTitle } from '../utils/utils';
-import { getQuestionnaire } from '../validators/schools.validator';
 import { createAsset } from './assets.service';
 import { findSchoolWithOrganization } from './helper.service';
 import { saveLinkREPO } from '../database/repositories/link.repo';
-import { updateSchool } from '../database/repositories/schools.repo';
+import { getSchool, updateSchool } from '../database/repositories/schools.repo';
+import { listDocuments, verifyDocument } from '../validators/document.validator';
 
 const Service: any = {
   async listDocumentRequirements({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
@@ -24,13 +22,55 @@ const Service: any = {
     return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`, response);
   },
 
-  async listDocuments({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
-    // const validation = getQuestionnaire.validate({ process, country });
-    // if (validation.error) return ResourceNotFoundError(validation.error);
+  async listDocuments({
+    process = 'onboarding',
+    country = 'UGANDA',
+    reference,
+  }: {
+    process: string;
+    country: 'UGANDA';
+    reference: string;
+  }): Promise<theResponse> {
+    const validation = listDocuments.validate({ process, country });
+    if (validation.error) return ResourceNotFoundError(validation.error);
 
-    const response = await DocumentREPO.listDocuments({}, [], ['Status', 'Assets']);
-    // const response = await DocumentREPO.getDocumentLogs({}, []);
-    return sendObjectResponse(`Documents retrieved successfully'`, response);
+    const response = await DocumentREPO.listDocuments(
+      {
+        ...(reference && { reference }),
+        trigger: process,
+        country,
+      },
+      [],
+      ['Status', 'Asset'],
+    );
+    return sendObjectResponse(`Documents retrieved successfully'`, Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeDocument));
+  },
+
+  async verifyDocument({
+    documentId,
+    status = 'approved',
+    reason,
+  }: {
+    reason: string;
+    documentId: number;
+    status: 'approved' | 'rejected';
+  }): Promise<theResponse> {
+    const validation = verifyDocument.validate({ documentId, status, reason });
+    if (validation.error) return ResourceNotFoundError(validation.error);
+
+    const response = await DocumentREPO.findDocument({ id: documentId }, [], ['Status', 'Assets']);
+    if (!response) throw Error(`Document Not Found`);
+
+    await DocumentREPO.updateDocuments(
+      { id: documentId },
+      {
+        status: status === 'approved' ? STATUSES.APPROVED : STATUSES.REJECTED,
+        processor: 'STEWARD',
+        response: reason,
+      },
+    );
+
+    return sendObjectResponse(`Documents ${status} successfully`);
   },
 
   // same `reference` and `trigger` across all documents
@@ -60,7 +100,39 @@ const Service: any = {
       school,
     });
     await updateSchool({ id: school.id }, { document_reference: reference });
-    return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`);
+    return sendObjectResponse(`${toTitle(process)} Document submitted successfully'`);
+  },
+
+  async addDocumentAdmin(data: any): Promise<any> {
+    const { documents, schoolId, process = 'onboarding' } = data;
+
+    const school = await getSchool(
+      { id: schoolId },
+      [],
+      ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo', 'Organisation.Owner.phoneNumber'],
+    );
+    if (!school) throw Error('School not found');
+    const { Organisation: organisation } = school;
+    const user = (organisation as any).Owner;
+
+    const reference =
+      school.document_reference || `onb_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+
+    const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements({ process }, [], []);
+    const requirementDocs = await createObjectFromArray(documentRequirement, 'id', 'requirement_type');
+
+    // if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
+    await Service.callService('addDocument', documents, {
+      reference,
+      user,
+      process,
+      entity: 'document_requirements',
+      organisation,
+      requirementDocs,
+      school,
+    });
+    await updateSchool({ id: school.id }, { document_reference: reference });
+    return sendObjectResponse(`${toTitle(process)} Document submitted successfully'`);
   },
 
   async addDocument({
@@ -99,7 +171,7 @@ const Service: any = {
     };
     if (requirementDocs[entity_id] !== requirement_type) throw new Error('Wrong file type submitted');
 
-    // todo: check if similar document exists for this school and delete it 
+    // todo: check if similar document exists for this school and delete it
 
     if (requirement_type === 'text' || requirement_type === 'number') payload.number = document;
     if (requirement_type === 'file') {

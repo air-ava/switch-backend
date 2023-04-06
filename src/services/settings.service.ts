@@ -26,6 +26,18 @@ const settings: any = {
       purpose: 'Fees:Mobile-Money',
       flat: 20,
     },
+    'mobile-money-subscription-school-fees': {
+      purpose: 'Fees:offset-Charge',
+      flat: 1755,
+    },
+    'steward-charge-school-fees': {
+      purpose: 'Fees:steward-Charge',
+      flat: 200,
+    },
+    'mobile-money-collection-fees': {
+      purpose: 'Fees:collection-charge',
+      percent: 1.5,
+    },
   },
   DEFAULT_STUDENT_EMAIL: '@studentsteward.com',
   DEFAULT_EMAIL: '@usersteward.com',

@@ -87,6 +87,7 @@ const Service = {
       return BadRequestException(e.message);
     }
   },
+
   async backOfficeVerifyAccount(data: any): Promise<any> {
     // const validation = verifyUserValidator.validate(data);
     // if (validation.error) return ResourceNotFoundError(validation.error);

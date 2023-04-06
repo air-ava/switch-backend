@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { parsePhoneNumber } from 'libphonenumber-js';
 import randomstring from 'randomstring';
+import { ENVIRONMENT } from './secrets';
 const dateFns = require('date-fns');
 
 const table_prefix = {
@@ -158,3 +159,23 @@ export const singleDayStartAndEnd = (date: any = new Date()): { startDate: Date;
 
   return { startDate, endDate };
 };
+
+const Utils = {
+  isProd() {
+    return ENVIRONMENT === 'production';
+  },
+
+  isTest() {
+    return ENVIRONMENT === 'test';
+  },
+
+  isStaging() {
+    return ['development', 'staging', 'local'].includes(ENVIRONMENT);
+  },
+
+  isLive() {
+    return ['production', 'test'].includes(ENVIRONMENT);
+  },
+};
+
+export default Utils;

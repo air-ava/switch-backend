@@ -125,4 +125,3 @@ export const fetchUserBySlug = async (data: any): Promise<any> => {
     return BadRequestException(e.message);
   }
 };
-

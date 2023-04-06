@@ -74,6 +74,9 @@ export class Users {
   @Column('int')
   avatar: number;
 
+  @Column('int')
+  status: number;
+
   @CreateDateColumn()
   created_at: Date;
 

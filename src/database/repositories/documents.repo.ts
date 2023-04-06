@@ -17,11 +17,13 @@ export const Repo = {
           where: queryParam,
           ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
           ...(relationOptions && { relations: relationOptions }),
+          order: { created_at: 'DESC' },
         })
       : getRepository(Documents).find({
           where: queryParam,
           ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
           ...(relationOptions && { relations: relationOptions }),
+          order: { created_at: 'DESC' },
         });
   },
 
@@ -38,6 +40,25 @@ export const Repo = {
       .getMany();
   },
 
+  async findDocument(
+    queryParam: Partial<IDocuments | any>,
+    selectOptions: Array<keyof Documents>,
+    relationOptions?: any[],
+    t?: QueryRunner,
+  ): Promise<Documents | undefined | any> {
+    return t
+      ? t.manager.findOne(Documents, {
+          where: queryParam,
+          ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+          ...(relationOptions && { relations: relationOptions }),
+        })
+      : getRepository(Documents).findOne({
+          where: queryParam,
+          ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+          ...(relationOptions && { relations: relationOptions }),
+        });
+  },
+
   async saveDocuments(payload: Partial<IDocuments>, t?: QueryRunner): Promise<Documents> {
     const { ...rest } = payload;
     return t ? t.manager.save(Documents, rest) : getRepository(Documents).save(rest);
@@ -46,4 +67,8 @@ export const Repo = {
   async updateDocuments(queryParams: Partial<IDocuments>, updateFields: Partial<IDocuments>, t?: QueryRunner): Promise<UpdateResult> {
     return t ? t.manager.update(Documents, queryParams, updateFields) : getRepository(Documents).update(queryParams, updateFields);
   },
+
+  // verifyDocuments(queryParams: Partial<IDocuments>, updateFields: Partial<IDocuments>, t?: QueryRunner): Promise<UpdateResult> {
+  //   return t ? t.manager.update(Documents, queryParams, updateFields) : getRepository(Documents).update(queryParams, updateFields);
+  // },
 };

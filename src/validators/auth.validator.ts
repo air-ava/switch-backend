@@ -51,7 +51,7 @@ export const resendToken = joi
         countryCode: joi.string().required(),
         localFormat: joi.string().required(),
       })
-      .optional()
+      .optional(),
   })
   .xor('phone_number', 'email');
 
@@ -70,7 +70,13 @@ export const shopperLoginValidator = joi
   .xor('phone_number', 'email');
 
 export const forgotPasswordValidator = joi.object().keys({
-  email: joi.string().email().required(),
+  email: joi.string().email().optional(),
+  phone_number: joi
+    .object({
+      countryCode: joi.string().required(),
+      localFormat: joi.string().required(),
+    })
+    .optional(),
 });
 
 export const verifyUserValidator = joi.object().keys({

@@ -378,13 +378,7 @@ export const Service: any = {
     transactionAmount: number;
     t?: QueryRunner;
   }): Promise<ControllerResponse> {
-    const feesConfig = Settings.get('TRANSACTION_FEES');
-    const arrayOfFees = await Promise.all(
-      feesNames.map((fee) => {
-        return Service.generateFee(feesConfig[fee], transactionAmount);
-      }),
-    );
-    const allFees = sumOfArray(arrayOfFees, 'fee');
+    const { allFees, arrayOfFees } = await Service.getAllFees(transactionAmount, feesNames);
     const checkArray = [];
     const checkArrayError = [];
     for (let index = 0; index < arrayOfFees.length; index++) {
@@ -403,6 +397,21 @@ export const Service: any = {
     }
     if (!checkArray.includes(true)) return { success: false, error: checkArrayError[0] };
     return sendObjectResponse('message', allFees);
+  },
+
+  async getAllFees(transactionAmount: number, feesNames: string[]): Promise<any> {
+    // const { transactionAmount, feesNames } = data;
+    const feesConfig = Settings.get('TRANSACTION_FEES');
+    const arrayOfFees = await Promise.all(
+      feesNames.map((fee) => {
+        return Service.generateFee(feesConfig[fee], transactionAmount);
+      }),
+    );
+    const allFees = sumOfArray(arrayOfFees, 'fee');
+    return {
+      allFees: allFees || 0,
+      arrayOfFees: arrayOfFees || [],
+    };
   },
 
   async generateFee(

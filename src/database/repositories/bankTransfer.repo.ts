@@ -35,11 +35,13 @@ const Repo = {
           where: queryParam,
           ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
           ...(relationOptions && { relations: relationOptions }),
+          order: { created_at: 'DESC' },
         })
       : getRepository(BankTransfers).find({
           where: queryParam,
           ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
           ...(relationOptions && { relations: relationOptions }),
+          order: { created_at: 'DESC' },
         });
   },
 

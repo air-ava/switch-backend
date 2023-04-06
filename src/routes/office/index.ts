@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 
 // eslint-disable-next-line prettier/prettier
 import authRouter from './auth.office.routes';
-// import businessRouter from './business.routes';
+import businessRouter from './business.office.routes';
 import schoolRouter from './school.office.routes';
 import documentRouter from './document.office.routes';
 // import studentRouter from './student.routes';
@@ -14,7 +14,7 @@ import documentRouter from './document.office.routes';
 import userRouter from './user.office.routes';
 // import webhookRouter from './webhook.routes';
 // import miscillaneousRouter from './miscillaneous.routes';
-// import banksRouter from './bank.routes';
+import banksRouter from './bank.office.routes';
 // import settlementsRouter from './settlements.routes';
 // import scholarshipRouter from './scholarship.routes';
 // import transactionsRouter from './transactions.routes';
@@ -33,7 +33,8 @@ router.use('/users', userRouter);
 router.use('/payments', paymentsRouter);
 router.use('/schools', schoolRouter);
 router.use('/documents', documentRouter);
-// router.use('/business', businessRouter);
+router.use('/organisation', businessRouter);
+router.use('/banks', banksRouter);
 // router.use('/students', studentRouter);
 // router.use('/scholarship', scholarshipRouter);
 // router.use('/transactions', transactionsRouter);
@@ -43,7 +44,6 @@ router.use('/documents', documentRouter);
 // router.use('/cart', cartRouter);
 // router.use('/checkout', checkoutRouter);
 // router.use('/misc', miscillaneousRouter);
-// router.use('/banks', banksRouter);
 // router.use('/settlements', settlementsRouter);
 
 export default router;

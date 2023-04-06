@@ -34,6 +34,12 @@ export class BankTransfers {
   @Column('text')
   sessionId: string;
 
+  @Column('text')
+  document_reference: string;
+
+  @Column('text')
+  metadata: string;
+
   @CreateDateColumn()
   created_at: Date;
 

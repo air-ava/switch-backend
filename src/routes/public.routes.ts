@@ -1,6 +1,6 @@
 import express from 'express';
 import { getAddressCONTROLLER } from '../controllers/address.controller';
-import { allBusinessCONTROLLER } from '../controllers/business.controller';
+import { viewAllBusinessCONTROLLER } from '../controllers/business.controller';
 import { countriesCONTROLLER } from '../controllers/miscillaneous.controller';
 import { viewAllProductCategoriesCONTROLLER, viewAllProductCONTROLLER } from '../controllers/product.controller';
 import { allBusinessAndProductsCONTROLLER, getPartnershipScholarshipCONTROLLER, getScholarshipsCONTROLLER } from '../controllers/public.controller';
@@ -137,7 +137,7 @@ router.get('/address/:business', getAddressCONTROLLER);
  *       '500':
  *         description: Internal error
  */
-router.get('/business', allBusinessCONTROLLER);
+router.get('/business', viewAllBusinessCONTROLLER);
 
 export default router;
 

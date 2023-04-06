@@ -1,4 +1,4 @@
-import { QueryRunner, getRepository, InsertResult } from 'typeorm';
+import { QueryRunner, getRepository, InsertResult, UpdateResult } from 'typeorm';
 import { IPhoneNumber } from '../modelInterfaces';
 import { PhoneNumbers } from '../models/phoneNumber.model';
 
@@ -26,9 +26,17 @@ export const createAPhoneNumber = async ({
   queryParams,
   transaction,
 }: {
-  queryParams: Omit<IPhoneNumber, 'active' | 'is_verified' | 'id' | 'created_at' | 'updated_at'>;
+  queryParams: Partial<IPhoneNumber>;
   transaction?: QueryRunner;
 }): Promise<InsertResult> => {
   console.log({ queryParams });
   return transaction ? transaction.manager.insert(PhoneNumbers, queryParams) : getRepository(PhoneNumbers).insert(queryParams);
+};
+
+export const updatePhoneNumber = (
+  queryParams: Pick<IPhoneNumber, 'id'>,
+  updateFields: Partial<IPhoneNumber>,
+  t?: QueryRunner,
+): Promise<UpdateResult> => {
+  return t ? t.manager.update(PhoneNumbers, queryParams, updateFields) : getRepository(PhoneNumbers).update(queryParams, updateFields);
 };

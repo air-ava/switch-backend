@@ -12,8 +12,9 @@ import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';
 import Settings from './settings.service';
 import { getOneTransactionREPO, updateTransactionREPO } from '../database/repositories/transaction.repo';
-import { updateBankTransfer } from '../validators/payment.validator';
+import { completeBankTransfer, updateBankTransfer } from '../validators/payment.validator';
 import { findUser } from '../database/repositories/user.repo';
+import { createAsset } from './assets.service';
 
 const Service = {
   async recordBankTransfer(data: any): Promise<theResponse> {
@@ -107,10 +108,10 @@ const Service = {
   },
 
   async completeBankTransfer(data: any): Promise<theResponse> {
-    const { reference, user, bankDraftCode, status } = data;
+    const { reference, user, bankDraftCode, bankName, accountName, accountNumber, documents } = data;
 
-    // const validation = updateBankTransfer.validate(data);
-    // if (validation.error) return ResourceNotFoundError(validation.error);
+    const validation = completeBankTransfer.validate(data);
+    if (validation.error) return ResourceNotFoundError(validation.error);
 
     const foundUser = await findUser({ id: user }, []);
     if (!foundUser) throw Error('User account Not Found');
@@ -133,11 +134,33 @@ const Service = {
     const foundBank = bankTransfer.Bank;
 
     const narration = `STW:${bankDraftCode}:${transaction.description}:${foundBank.number}:${foundBank.account_name}:${foundBank.bank_name}:${foundBank.bank_routing_number}`;
+    const process = 'completeBankTransfer';
+
+    await Promise.all(
+      documents.map((document: string) =>
+        createAsset({
+          imagePath: document,
+          user: user.id,
+          trigger: `${process}:add_reciepts`,
+          reference,
+          organisation: user.organisation,
+          entity: 'bankTransfer',
+          entity_id: bankTransfer.id,
+        }),
+      ),
+    );
 
     // todo: Check SessionId against Bank if it is same stop
+    // todo: Save all banks recorded
     await BankTransferRepo.updateBankTransfer(
       { tx_reference: reference },
-      { updated_at: new Date(), status: STATUSES.APPROVED, sessionId: bankDraftCode },
+      {
+        updated_at: new Date(),
+        status: STATUSES.APPROVED,
+        sessionId: bankDraftCode,
+        ...(documents && { document_reference: reference }),
+        metadata: JSON.stringify({ bankName, accountName, accountNumber }),
+      },
     );
 
     const {

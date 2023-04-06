@@ -97,6 +97,7 @@ export interface IUser {
   image: string;
   title: string;
   organisation: number;
+  status: number;
   job_title: string;
   country: string;
   provider: string;
@@ -137,6 +138,8 @@ export interface IPhoneNumber {
   internationalFormat: string;
   active: boolean;
   is_verified: boolean;
+  remember_token: string;
+  verified_at: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -789,6 +792,8 @@ export interface IBankTransfers {
   processor: string;
   response: string;
   sessionId: string;
+  document_reference: string;
+  metadata: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -810,6 +815,18 @@ export interface IBackOfficeUsers {
 export interface IJobTitle {
   id: number;
   name: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface IBackOfficeBanks {
+  id: number;
+  country: string;
+  currency: string;
+  number: string;
+  account_name: string;
+  bank_name: string;
+  status: number;
   created_at: Date;
   updated_at?: Date;
 }

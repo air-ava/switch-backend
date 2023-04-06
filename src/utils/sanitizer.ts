@@ -169,6 +169,7 @@ export const Sanitizer = {
       School,
       Organisation,
       Wallet,
+      status,
       ...rest
     } = Sanitizer.jsonify(payload);
 
@@ -180,6 +181,7 @@ export const Sanitizer = {
       address: Address && Sanitizer.sanitizeAddress(Address),
       emailVerified: !!email_verified_at,
       email_verified_at,
+      userVerified: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       ...(phoneNumber && { phone_number: phoneNumber.internationalFormat }),
       phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
       school: School && Sanitizer.sanitizeSchool(School),
@@ -231,7 +233,7 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  sanitizeWallet(payload: IScholarshipApplication): any {
+  sanitizeWallet(payload: IScholarshipApplication, addUserId?: boolean): any {
     if (!payload) return null;
     const { id, userId, User, status, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
@@ -239,6 +241,7 @@ export const Sanitizer = {
       isPinSet: !!transaction_pin,
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      ...(addUserId && { userId }),
       owner: User && Sanitizer.sanitizeUser(User),
     };
     return sanitized;
@@ -372,8 +375,12 @@ export const Sanitizer = {
 
   sanitizePhoneNumber(payload: IPhoneNumber): any {
     if (!payload) return null;
-    const { id, ...rest } = Sanitizer.jsonify(payload);
-    return rest;
+    const { id, is_verified, verified_at, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      phoneVerified: is_verified,
+      phone_verified_at: verified_at,
+    };
   },
 
   sanitizeLink(payload: ILink): any {
@@ -446,7 +453,7 @@ export const Sanitizer = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       bank: Bank && Sanitizer.sanitizeBank(Bank),
-      wallet: Wallet && Sanitizer.sanitizeWallet(Wallet),
+      wallet: Wallet && Sanitizer.sanitizeWallet(Wallet, true),
       transactions: Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeTransaction),
     };
   },
@@ -460,6 +467,15 @@ export const Sanitizer = {
   filterTransactionsByPurpose(transactions: ITransactions[], purpose: string): any {
     const filteredTransaction = transactions.filter((transaction) => transaction.purpose.includes(purpose));
     return filteredTransaction[0];
+  },
+
+  sanitizeDocument(payload: any): any {
+    if (!payload) return null;
+    const { Asset, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      Assets: Asset && [Asset],
+    };
   },
 
   sanitizeSettlement(payload: any): any {

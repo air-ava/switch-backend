@@ -6,6 +6,7 @@ import { theResponse } from '../utils/interface';
 import { buildCollectionRequestPayload } from './payment.service';
 import Settings from './settings.service';
 import { Service as BayonicService } from './mobileMoney.service';
+import { Service as WalletService } from './wallet.service';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { STEWARD_BASE_URL } from '../utils/secrets';
 
@@ -19,11 +20,10 @@ const Service = {
 
     const { class: ClassName, class_short_name } = studentCurrentClass.ClassLevel;
 
-    const baseResponse = `CON School: ${School.name},
-    Student: ${User.first_name} ${User.last_name},
-    Class: ${ClassName} (${class_short_name}),
-    Fee: UGX${Settings.get('TRANSACTION_FEES')['mobile-money-fee'].flat}.
-    Enter Amount
+    const baseResponse = `CON ${School.name},
+    ${User.first_name} ${User.last_name},
+    ${ClassName} (${class_short_name}),
+    Enter the amount you want to pay
     `;
 
     saveThirdPartyLogsREPO({
@@ -47,25 +47,44 @@ const Service = {
 
     const paths = text?.split('*');
 
+    const choices = ['1'];
+    const [paySchoolFees] = choices;
     const baseResponse = `CON Welcome to Steward School Fees Payment
-    Enter Student Code`;
+      1. School fees payment
+    `;
+
+    const choiceSchoolFees = `CON Enter Student Code`;
+    const badChoice = `END We currently do not provide this service.`;
+
     if (serviceCode !== Settings.get('USSD').serviceCode) return BadRequestException('END Invalid ussd code');
     if (!paths || !paths.length) return sendObjectResponse(baseResponse);
 
-    const [studentId, incomingAmount] = paths;
+    const [choice, studentId, incomingAmount] = paths;
 
-    if (!studentId) return sendObjectResponse(baseResponse);
+    const { allFees: fees } = await WalletService.getAllFees(incomingAmount, [
+      'mobile-money-subscription-school-fees',
+      'steward-charge-school-fees',
+      'mobile-money-collection-fees',
+    ]);
+
+    const amountBaseResponse = `END
+    Amount: UGX${incomingAmount}
+    Fee: UGX${fees}
+    School fees payment completed`;
+
+    if (!choice) return sendObjectResponse(baseResponse);
+    if (choice !== '1') return sendObjectResponse(badChoice);
+    if (!choices.includes(choice)) return sendObjectResponse(badChoice);
+    if (!studentId && choice === paySchoolFees) return sendObjectResponse(choiceSchoolFees);
     if (studentId.length !== 9) return BadRequestException('END Invalid student code');
     if (studentId.length === 9) {
       if (incomingAmount) {
         if (networkCode === '99999') phoneNumber = '+80000000003';
-        if (Number(incomingAmount) > 1000) return BadRequestException('END Incoming Amount is higher than 1000');
+        if (networkCode === '99999' && Number(incomingAmount) > 1000) return BadRequestException('END Incoming Amount is higher than 1000');
 
         const query = await buildCollectionRequestPayload({ studentId, phoneNumber, amount: incomingAmount * 100 });
         const response = await BayonicService.initiateCollectionRequest(query);
-        return response.success
-          ? sendObjectResponse('END School Fees Payment Completed')
-          : BadRequestException('END Error With Completing School Fees Payment');
+        return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Completing School Fees Payment');
       }
       return Service.getStudent({
         studentId,
