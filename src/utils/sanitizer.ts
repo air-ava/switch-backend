@@ -448,11 +448,12 @@ export const Sanitizer = {
 
   sanitizeBankTransfer(payload: any): any {
     if (!payload) return null;
-    const { status, bankId, Bank, Wallet, walletId, Transactions, ...rest } = Sanitizer.jsonify(payload);
+    const { status, bankId, Bank, Wallet, walletId, Transactions, Assets, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       bank: Bank && Sanitizer.sanitizeBank(Bank),
+      assets: Assets && Sanitizer.sanitizeAsset(Assets),
       wallet: Wallet && Sanitizer.sanitizeWallet(Wallet, true),
       transactions: Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeTransaction),
     };

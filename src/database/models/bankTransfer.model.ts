@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IBanks, ITransactions, IWallets } from '../modelInterfaces';
+import { IAssets, IBanks, ITransactions, IWallets } from '../modelInterfaces';
 import { Transactions } from './transaction.model';
+import { Assets } from './assets.model';
 
 @Entity('bankTransfers')
 export class BankTransfers {
@@ -53,6 +54,10 @@ export class BankTransfers {
   @OneToOne('Banks', 'bankTransfers')
   @JoinColumn({ name: 'bankId', referencedColumnName: 'id' })
   Bank: IBanks;
+
+  @OneToOne('Assets', 'bankTransfers')
+  @JoinColumn({ name: 'document_reference', referencedColumnName: 'reference' })
+  Assets: IAssets[];
 
   @OneToMany(() => Transactions, (transaction) => transaction.BankTransfer)
   Transactions: ITransactions[];
