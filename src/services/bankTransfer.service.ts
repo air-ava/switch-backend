@@ -200,7 +200,11 @@ const Service = {
     // const validation = updateBankTransfer.validate(data);
     // if (validation.error) return ResourceNotFoundError(validation.error);
 
-    const bankTransfers = await BankTransferRepo.findBankTransfers({}, [], ['Wallet', 'Bank', 'Transactions', 'Assets']);
+    const bankTransfers = await BankTransferRepo.findBankTransfers(
+      { status: Not(STATUSES.FAILED) },
+      [],
+      ['Wallet', 'Bank', 'Transactions', 'Assets'],
+    );
     return sendObjectResponse('Bank Transfer successfully retrieved', Sanitizer.sanitizeAllArray(bankTransfers, Sanitizer.sanitizeBankTransfer));
   },
   // todo: Complete Bank transfer which update transaction status to 'failed' and bank transfer status to 'declined'
