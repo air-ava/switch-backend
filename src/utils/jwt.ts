@@ -11,6 +11,7 @@ export function generateToken(data: any) {
   const { first_name, id: userId } = data;
   const payload = {
     first_name,
+    type: 'user',
     userId,
     accessTypes: ['getTeams', 'addTeams', 'updateTeams', 'deleteTeams'],
   };

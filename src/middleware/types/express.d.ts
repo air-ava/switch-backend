@@ -49,6 +49,20 @@ declare namespace Express {
       created_at: Date;
       updated_at: Date;
     };
+    backOfficeUser: {
+      id: number;
+      email: string;
+      name: string;
+      slug: string;
+      role: string;
+      remember_token: string | null;
+      password: string;
+      avatar: number;
+      status: number;
+      created_at: Date;
+      email_verified_at?: Date;
+      updated_at?: Date;
+    };
   }
 }
 

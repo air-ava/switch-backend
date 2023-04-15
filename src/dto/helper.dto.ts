@@ -39,3 +39,16 @@ export interface businessCheckerDTO {
   owner?: number;
   reference?: string;
 }
+
+export interface jwtDTO {
+  userId: string;
+  first_name: string;
+  name: string;
+  type: 'user' | 'backOffice';
+}
+export interface jwtDecodedDTO {
+  id: string;
+  first_name: string;
+  name: string;
+  type: 'user' | 'backOffice';
+}

@@ -58,8 +58,10 @@ const Service: any = {
     const validation = verifyDocument.validate({ documentId, status, reason });
     if (validation.error) return ResourceNotFoundError(validation.error);
 
-    const response = await DocumentREPO.findDocument({ id: documentId }, [], ['Status', 'Assets']);
+    const response = await DocumentREPO.findDocument({ id: documentId }, [], []);
     if (!response) throw Error(`Document Not Found`);
+    if (status === 'approved' && response.status === STATUSES.APPROVED) throw Error(`Document has been approved already`);
+    if (status === 'rejected' && response.status === STATUSES.REJECTED) throw Error(`Document has been rejected already`);
 
     await DocumentREPO.updateDocuments(
       { id: documentId },

@@ -195,17 +195,25 @@ const Service = {
   },
 
   async listBankTransfer(data: any): Promise<theResponse> {
-    const { reference, user, bankDraftCode, status } = data;
-
-    // const validation = updateBankTransfer.validate(data);
-    // if (validation.error) return ResourceNotFoundError(validation.error);
-
     const bankTransfers = await BankTransferRepo.findBankTransfers(
       { status: Not(STATUSES.FAILED) },
       [],
       ['Wallet', 'Bank', 'Transactions', 'Assets'],
     );
     return sendObjectResponse('Bank Transfer successfully retrieved', Sanitizer.sanitizeAllArray(bankTransfers, Sanitizer.sanitizeBankTransfer));
+  },
+
+  async getBankTransfer(data: any): Promise<theResponse> {
+    const { id } = data;
+
+    // const validation = updateBankTransfer.validate(data);
+    // if (validation.error) return ResourceNotFoundError(validation.error);
+
+    const bankTransfer = await BankTransferRepo.findBankTransfer({ id }, [], ['Wallet', 'Bank', 'Transactions', 'Assets']);
+    if (!bankTransfer) return ResourceNotFoundError({ message: 'Bank transfer not found' });
+    if (bankTransfer.status === STATUSES.FAILED) return ResourceNotFoundError({ message: 'This is a failed bank transfer' });
+
+    return sendObjectResponse('Bank Transfer successfully retrieved', Sanitizer.sanitizeBankTransfer(bankTransfer));
   },
   // todo: Complete Bank transfer which update transaction status to 'failed' and bank transfer status to 'declined'
   // todo: on Decline Reverse amount back to wallet

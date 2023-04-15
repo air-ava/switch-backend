@@ -125,6 +125,19 @@ export const listBankTransferCONTROLLER: RequestHandler = async (req, res) => {
   }
 };
 
+export const getBankTransferCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const response = await BankTransferService.getBankTransfer(req.params);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    console.log({ error });
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
+  }
+};
+
 export const completeBankTransferCONTROLLER: RequestHandler = async (req, res) => {
   // const payload = {
   //   user: req.user,
