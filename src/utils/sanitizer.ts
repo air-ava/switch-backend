@@ -378,6 +378,7 @@ export const Sanitizer = {
     const { id, is_verified, verified_at, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
+      id,
       phoneVerified: is_verified,
       phone_verified_at: verified_at,
     };
