@@ -370,13 +370,13 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
       },
     );
 
-    // await WalletService.createDollarWallet({
-    //   user: userAlreadyExist,
-    //   currency: 'UGX',
-    //   type: 'permanent',
-    //   entity: 'school',
-    //   entityId: school.id,
-    // });
+    await WalletService.createDollarWallet({
+      user: userAlreadyExist,
+      currency: 'UGX',
+      type: 'permanent',
+      entity: 'school',
+      entityId: school.id,
+    });
 
     const token = generateToken(userAlreadyExist);
     return sendObjectResponse('user verified', { token });
