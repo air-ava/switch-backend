@@ -81,6 +81,7 @@ const Service = {
       if (incomingAmount) {
         if (networkCode === '99999') phoneNumber = '+80000000003';
         if (networkCode === '99999' && Number(incomingAmount) > 1000) return BadRequestException('END Incoming Amount is higher than 1000');
+        if (networkCode === '64110' && Number(incomingAmount) < 500) return BadRequestException('END Incoming Amount is lower than 500 required for MTN Uganda network');
 
         const query = await buildCollectionRequestPayload({ studentId, phoneNumber, amount: incomingAmount * 100 });
         const response = await BayonicService.initiateCollectionRequest(query);
