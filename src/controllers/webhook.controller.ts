@@ -21,6 +21,6 @@ export const beyonicWEBHOOK: RequestHandler = async (req, res): Promise<void> =>
     res.status(200).json({ success: true, message: 'OK', data: response }).end();
   } catch (error) {
     console.log(error);
-    res.status(400).json({ success: false, error }).end();
+    res.status(200).json({ success: false, error }).end();
   }
 };

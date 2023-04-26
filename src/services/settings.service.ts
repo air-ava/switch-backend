@@ -3,6 +3,7 @@ import { ISettings } from '../database/modelInterfaces';
 import { JobTitle } from '../database/models/jobTitle.model';
 import { findSettingsREPO } from '../database/repositories/settings.repo';
 import { Sanitizer } from '../utils/sanitizer';
+import Utils from '../utils/utils';
 
 const settings: any = {
   TRANSACTION_FEES: {
@@ -43,9 +44,9 @@ const settings: any = {
   DEFAULT_STUDENT_EMAIL: '@studentsteward.com',
   DEFAULT_EMAIL: '@usersteward.com',
   USSD: {
-    serviceCode: '*384*3124#',
+    serviceCode: Utils.isStaging() ? '*384*3124#' : '*284*76#',
     // serviceCode: '*284*76#',
-  }
+  },
 };
 
 // eslint-disable-next-line consistent-return
