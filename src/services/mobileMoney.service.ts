@@ -260,6 +260,7 @@ export const Service = {
         { reference, purpose: Not(In(purpose)) },
         {
           metadata: {
+            ...transactionMetadata,
             transactionFees,
             fees: feesPurposeNames,
           },
