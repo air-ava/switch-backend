@@ -259,7 +259,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
       recipientEmail: user.email,
       purpose: 'welcome_user',
       templateInfo: {
-        code: remember_token,
+        otp: remember_token,
         name: ` ${user.first_name}`,
       },
     });
@@ -511,7 +511,7 @@ export const forgotPassword = async (data: {
       recipientEmail: userAlreadyExist.email,
       purpose: 'welcome_user',
       templateInfo: {
-        code: otp,
+        otp,
         name: ` ${userAlreadyExist.first_name}`,
       },
     });
