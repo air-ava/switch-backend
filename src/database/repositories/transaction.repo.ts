@@ -131,7 +131,11 @@ export const getTotalDebited = (userId: string): Promise<{ total: number } | und
   return getRepository(Transactions)
     .createQueryBuilder('transaction')
     .select('SUM(transaction.amount)', 'totalOut')
-    .where('transaction.txn_type = :txn_type AND transaction.userId = :userId', { txn_type: 'debit', userId })
+    .where('transaction.txn_type = :txn_type AND transaction.userId = :userId AND transaction.purpose NOT LIKE :notPurpose', {
+      txn_type: 'debit',
+      userId,
+      notPurpose: `%Fees:%`,
+    })
     .getRawOne();
 };
 
@@ -280,8 +284,6 @@ export const getTransactionsByGroup = async (
     default:
       throw new Error('Invalid group type');
   }
-
-
 
   const query = getRepository(Transactions)
     .createQueryBuilder('transaction')

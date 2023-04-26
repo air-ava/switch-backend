@@ -255,14 +255,17 @@ export const Sanitizer = {
 
   async sanitizeTransaction(payload: any): Promise<any> {
     if (!payload) return null;
-    const { id, userId, User, status, Wallet, walletId, document_reference, Reciepts, metadata, ...rest } = Sanitizer.jsonify(payload);
+    const { amount, id, userId, User, status, Wallet, walletId, document_reference, Reciepts, metadata, ...rest } = Sanitizer.jsonify(payload);
     let Student;
     if (metadata && metadata.collectRequestId && String(metadata.username).length > 7) {
       Student = await getStudent({ uniqueStudentId: metadata.username }, [], ['User', 'Classes', 'Classes.ClassLevel']);
     }
+
+    const { transactionFees = 0 } = metadata || {};
     const sanitized = {
       id,
       ...rest,
+      amount: amount - (transactionFees || 0),
       metadata,
       recieptReference: document_reference,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),

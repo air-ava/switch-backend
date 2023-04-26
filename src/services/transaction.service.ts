@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { log } from 'winston';
 import randomstring from 'randomstring';
 import {
@@ -13,6 +14,7 @@ import { sendObjectResponse, BadRequestException } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { createAsset } from './assets.service';
 import { Like, Not } from 'typeorm';
+import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 
 const getTransactionReference = async (existingTransaction: any): Promise<string> => {
   const reference = existingTransaction.document_reference
@@ -29,7 +31,7 @@ export const listTransactions = async (data: any): Promise<any> => {
     const existingTransactions = await getTransactionsREPO(
       {
         userId,
-        purpose: purpose || Not(Like(`%Fees:`)),
+        purpose: purpose || Not(Like(`%Fees:%`)),
       },
       [],
       ['User', 'Wallet', 'Reciepts'],
@@ -115,12 +117,47 @@ export const addDocumentToTransaction = async (data: any): Promise<any> => {
 };
 
 export const getTransactionsAnalytics = async (data: any): Promise<any> => {
-  const { from, to, groupBy = 'daily', txnType = 'credit', wallet } = data;
-  try {
-    const transactionAnalytics = await getTransactionsByGroup(wallet, from && from, to && to, groupBy, txnType);
-    console.log({ data, transactionAnalytics });
+  const { from, to, groupBy = 'daily', userId } = data;
 
-    return sendObjectResponse('Transaction analytics gotten successfully', transactionAnalytics);
+  const foundWallet = await WalletREPO.findWallet({ userId, entity: 'school' }, []);
+  if (!foundWallet) throw Error('Wallet does not exist');
+  const { id: wallet } = foundWallet;
+
+  try {
+    const inflows = await getTransactionsByGroup(wallet, from && from, to && to, groupBy, 'credit');
+    const outflows = await getTransactionsByGroup(wallet, from && from, to && to, groupBy, 'debit');
+
+    const chartData: {
+      name: string;
+      inflow: number;
+      outflow: number;
+    }[] = [];
+
+    const monthTotals: { [date: string]: { inflow: number; outflow: number } } = {};
+
+    for (const { date, total } of inflows) {
+      if (!monthTotals[date]) monthTotals[date] = { inflow: 0, outflow: 0 };
+      monthTotals[date].inflow += Number(total);
+    }
+
+    for (const { date, total } of outflows) {
+      if (!monthTotals[date]) monthTotals[date] = { inflow: 0, outflow: 0 };
+      monthTotals[date].outflow += Number(total);
+    }
+
+    for (const date in monthTotals) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (monthTotals.hasOwnProperty(date)) {
+        const { inflow, outflow } = monthTotals[date];
+        chartData.push({ name: new Date(date).toISOString(), inflow, outflow });
+      }
+    }
+
+    return sendObjectResponse('Transaction analytics gotten successfully', {
+      // transactionAnalyticsForCredit: inflows,
+      // transactionAnalyticsForDebit: outflows,
+      chartData,
+    });
   } catch (e: any) {
     console.log({ e });
     return BadRequestException(e.message || 'Getting transaction analytics failed, kindly try again');

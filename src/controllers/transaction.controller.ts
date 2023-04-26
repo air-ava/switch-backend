@@ -75,7 +75,7 @@ export const addDocumentToTransactionCONTROLLER: RequestHandler = async (req, re
 
 export const getTransactionsAnalyticsCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const response = await getTransactionsAnalytics({ ...req.body });
+    const response = await getTransactionsAnalytics({ ...req.body, userId: req.userId });
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
     return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
