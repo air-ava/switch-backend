@@ -12,6 +12,7 @@ import {
 import { sendObjectResponse, BadRequestException } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { createAsset } from './assets.service';
+import { Like, Not } from 'typeorm';
 
 const getTransactionReference = async (existingTransaction: any): Promise<string> => {
   const reference = existingTransaction.document_reference
@@ -25,7 +26,14 @@ export const listTransactions = async (data: any): Promise<any> => {
   let purpose = '';
   if (type === 'school-fees') purpose = 'Payment:School-Fees';
   try {
-    const existingTransactions = await getTransactionsREPO({ userId, ...(purpose && { purpose }) }, [], ['User', 'Wallet', 'Reciepts']);
+    const existingTransactions = await getTransactionsREPO(
+      {
+        userId,
+        purpose: purpose || Not(Like(`%Fees:`)),
+      },
+      [],
+      ['User', 'Wallet', 'Reciepts'],
+    );
 
     return sendObjectResponse('Transactions retrieved successfully', existingTransactions);
   } catch (e: any) {
@@ -111,7 +119,7 @@ export const getTransactionsAnalytics = async (data: any): Promise<any> => {
   try {
     const transactionAnalytics = await getTransactionsByGroup(wallet, from && from, to && to, groupBy, txnType);
     console.log({ data, transactionAnalytics });
-    
+
     return sendObjectResponse('Transaction analytics gotten successfully', transactionAnalytics);
   } catch (e: any) {
     console.log({ e });

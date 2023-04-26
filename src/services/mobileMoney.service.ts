@@ -4,6 +4,7 @@ import { IStudentClass } from './../database/modelInterfaces';
 // chargeWalletOnMobileMoney
 
 import { v4 } from 'uuid';
+import { Not, In } from 'typeorm';
 import { getQueryRunner } from '../database/helpers/db';
 import { STATUSES } from '../database/models/status.model';
 import { saveMobileMoneyTransaction, updateMobileMoneyTransactionREPO } from '../database/repositories/mobileMoneyTransactions.repo';
@@ -17,30 +18,39 @@ import { creditLedgerWallet, debitLedgerWallet } from './lien.service';
 import { updateStatusOfALienTransaction } from '../database/repositories/lienTransaction.repo';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { ENVIRONMENT, STEWARD_BASE_URL } from '../utils/secrets';
+import Settings from './settings.service';
 import Utils from '../utils/utils';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
-    const { amount, user, student, reciever, phoneNumber, school } = payload;
+    const { amountWithFees, amount, user, student, reciever, phoneNumber, school } = payload;
 
     let { purpose } = payload;
     const reference = v4();
-    let metadata;
+    const metadata: any = {
+      amountWithFees,
+      amount,
+      charges: amountWithFees - amount,
+      tx_reference: reference,
+      transaction_type: purpose,
+    };
 
     if (purpose === 'school-fees') {
-      metadata = {
-        username: student.uniqueStudentId,
-        tx_reference: reference,
-        transaction_type: purpose,
-      };
+      // metadata = {
+      //   username: student.uniqueStudentId,
+      // tx_reference: reference,
+      // transaction_type: purpose,
+      // };
+      metadata.username = student.uniqueStudentId;
       purpose = 'Payment:School-Fees';
     }
     if (purpose === 'top-up') {
-      metadata = {
-        username: reciever.uniquePaymentId,
-        tx_reference: reference,
-        transaction_type: purpose,
-      };
+      // metadata = {
+      //   username: reciever.uniquePaymentId,
+      // tx_reference: reference,
+      // transaction_type: purpose,
+      // };
+      metadata.username = reciever.uniquePaymentId;
       purpose = 'Funding:Wallet';
     }
     const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
@@ -51,7 +61,8 @@ export const Service = {
       phonenumber: phoneNumber,
       first_name: initiator.first_name,
       last_name: initiator.last_name,
-      amount: amount / 100,
+      // amount: amount / 100,
+      amount: amountWithFees / 100,
       currency: Utils.isStaging() ? 'BXC' : wallet.currency,
       metadata,
       reason: `${purpose}`,
@@ -74,8 +85,10 @@ export const Service = {
     await saveTransaction({
       walletId: wallet.id,
       userId: user.id,
-      amount,
-      balance_after: Number(wallet.balance) + Number(amount),
+      // amount,
+      amount: amountWithFees,
+      // balance_after: Number(wallet.balance) + Number(amount),
+      balance_after: Number(wallet.balance) + Number(amountWithFees),
       balance_before: Number(wallet.balance),
       purpose,
       metadata: {
@@ -90,7 +103,8 @@ export const Service = {
       txn_type: 'credit',
     });
     await creditLedgerWallet({
-      amount: Number(amount),
+      // amount: Number(amount),
+      amount: Number(amountWithFees),
       user,
       walletId: wallet.id,
       reference,
@@ -194,6 +208,7 @@ export const Service = {
         User: user,
         description,
         amount,
+        metadata: transactionMetadata,
       } = await getOneTransactionREPO({ reference, txn_type: 'credit', channel: 'mobile-money' }, [], ['User', 'Wallet', 'Reciepts']);
       await debitLedgerWallet({
         amount,
@@ -222,14 +237,35 @@ export const Service = {
       );
       // loggerInfo = 'Lien Merhcant settlement complete';
 
-      await WalletService.debitTransactionFees({
+      const {
+        success: debitSuccess,
+        data: transactionFees,
+        error: debitError,
+      } = await WalletService.debitTransactionFees({
         wallet_id: wallet.id,
         reference,
         user,
         description,
         feesNames: ['mobile-money-subscription-school-fees', 'steward-charge-school-fees', 'mobile-money-collection-fees'],
-        transactionAmount: amount,
+        transactionAmount: transactionMetadata.amount ? transactionMetadata.amount : amount,
       });
+
+      const feesConfig = Settings.get('TRANSACTION_FEES');
+      const feesPurposeNames: string[] = [
+        feesConfig['mobile-money-subscription-school-fees'].purpose,
+        feesConfig['steward-charge-school-fees'].purpose,
+        feesConfig['mobile-money-collection-fees'].purpose,
+      ];
+      await updateTransactionREPO(
+        { reference, purpose: Not(In(purpose)) },
+        {
+          metadata: {
+            transactionFees,
+            fees: feesPurposeNames,
+          },
+        },
+        // t,
+      );
       // await t.commitTransaction();
     } catch (error) {
       console.log({ error });

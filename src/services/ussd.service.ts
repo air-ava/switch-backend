@@ -67,9 +67,12 @@ const Service = {
       'mobile-money-collection-fees',
     ]);
 
+    const sumTotal = Number(incomingAmount) + Number(fees);
+
     const amountBaseResponse = `END
     Amount: UGX${incomingAmount}
     Fee: UGX${fees}
+    Total: UGX${sumTotal}
     School fees payment completed`;
 
     if (!choice) return sendObjectResponse(baseResponse);
@@ -83,7 +86,7 @@ const Service = {
         if (networkCode === '99999' && Number(incomingAmount) > 1000) return BadRequestException('END Incoming Amount is higher than 1000');
         if (networkCode !== '99999' && Number(incomingAmount) < 500) return BadRequestException('END Incoming Amount is lower than 500');
 
-        const query = await buildCollectionRequestPayload({ studentId, phoneNumber, amount: incomingAmount * 100 });
+        const query = await buildCollectionRequestPayload({ studentId, phoneNumber, amount: incomingAmount * 100, amountWithFees: sumTotal * 100 });
         const response = await BayonicService.initiateCollectionRequest(query);
         return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Completing School Fees Payment');
       }

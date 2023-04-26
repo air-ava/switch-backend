@@ -28,7 +28,8 @@ const settings: any = {
     },
     'mobile-money-subscription-school-fees': {
       purpose: 'Fees:offset-Charge',
-      flat: 1755,
+      // flat: 1755,
+      flat: 17,
     },
     'steward-charge-school-fees': {
       purpose: 'Fees:steward-Charge',
@@ -42,8 +43,8 @@ const settings: any = {
   DEFAULT_STUDENT_EMAIL: '@studentsteward.com',
   DEFAULT_EMAIL: '@usersteward.com',
   USSD: {
-    // serviceCode: '*384*3124#',
-    serviceCode: '*284*76#',
+    serviceCode: '*384*3124#',
+    // serviceCode: '*284*76#',
   }
 };
 

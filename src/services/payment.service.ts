@@ -103,7 +103,7 @@ export const getPendingPayment = async ({
   return sendObjectResponse('Payment retrieved successfully', existingPayment);
 };
 
-export const buildCollectionRequestPayload = async ({ user, walletId, studentId, phoneNumber, amount }: any): Promise<any> => {
+export const buildCollectionRequestPayload = async ({ user, walletId, studentId, phoneNumber, amount, amountWithFees }: any): Promise<any> => {
   let school;
   let reciever;
   if (user) {
@@ -134,6 +134,7 @@ export const buildCollectionRequestPayload = async ({ user, walletId, studentId,
     ...(walletId && { reciever }),
     purpose: studentId ? 'school-fees' : 'top-up',
     school,
+    amountWithFees,
   };
 };
 
