@@ -459,8 +459,11 @@ export const resetPassword = async (data: resetPasswordDTO): Promise<theResponse
   if (validation.error) return ResourceNotFoundError(validation.error);
 
   const { id, password } = data;
+  let findUserQuery: any = { id };
+  if (id.length === 6) findUserQuery = { remember_token: id };
+
   try {
-    const userAlreadyExist = await findUser({ id }, [], []);
+    const userAlreadyExist = await findUser(findUserQuery, [], []);
     if (!userAlreadyExist) throw Error(`Wrong Token`);
 
     await updateUser({ id: userAlreadyExist.id }, { password: bcrypt.hashSync(password, 8) });
@@ -488,7 +491,6 @@ export const forgotPassword = async (data: {
     let internationalFormat;
     if (reqPhone) {
       const { message, data: phone } = await findOrCreatePhoneNumber(reqPhone);
-      console.log({ message, phone, reqPhone });
 
       phone_number = phone.id;
       internationalFormat = phone.completeInternationalFormat;
@@ -496,7 +498,7 @@ export const forgotPassword = async (data: {
     const userAlreadyExist = await findUser([{ email }, { phone_number }], [], []);
     if (!userAlreadyExist) throw Error(`User Not Found`);
 
-    const otp = otpGenerator.generate(5, {
+    const otp = otpGenerator.generate(6, {
       lowerCaseAlphabets: false,
       upperCaseAlphabets: false,
       specialChars: false,
@@ -514,17 +516,13 @@ export const forgotPassword = async (data: {
       },
     });
 
-    console.log({
-      phoneNumber: internationalFormat,
-      message: `Hi ${userAlreadyExist.first_name}, Here is your OTP ${otp}`,
-    });
     await sendSms({
       phoneNumber: internationalFormat,
       // message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
       message: `Hi ${userAlreadyExist.first_name}, Here is your OTP ${otp}`,
     });
 
-    return sendObjectResponse(`OTP sent to ${userAlreadyExist.email}`);
+    return sendObjectResponse(`OTP sent to ${reqPhone ? internationalFormat : userAlreadyExist.email}`);
   } catch (e: any) {
     console.log({ e });
     return BadRequestException(e.message);
