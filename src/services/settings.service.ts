@@ -42,8 +42,8 @@ const settings: any = {
   DEFAULT_STUDENT_EMAIL: '@studentsteward.com',
   DEFAULT_EMAIL: '@usersteward.com',
   USSD: {
-    // serviceCode: '*384*3124#',
-    serviceCode: '*284*76#',
+    serviceCode: '*384*3124#',
+    // serviceCode: '*284*76#',
   }
 };
 
