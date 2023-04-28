@@ -46,6 +46,10 @@ const Service = {
       };
     }
     const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
+
+    const bankList = await BankRepo.findBanks({ ...coreBankDetails, status: STATUSES.ACTIVE }, []);
+    if (bankList.length > 4) return { success: false, error: 'You can not add more than five(5) bank accounts' };
+
     const defaultBankDetails = { ...coreBankDetails, number, bank_name, bank_code, account_name, status: STATUSES.ACTIVE };
 
     const foundBank = await BankRepo.findBank(defaultBankDetails, []);

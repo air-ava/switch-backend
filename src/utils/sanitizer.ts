@@ -170,6 +170,8 @@ export const Sanitizer = {
       Organisation,
       Wallet,
       status,
+      JobTitle,
+      job_title,
       ...rest
     } = Sanitizer.jsonify(payload);
 
@@ -179,6 +181,7 @@ export const Sanitizer = {
       ...(School && { schoolOnboardingStatus: Sanitizer.getStatusById(STATUSES, School.status).toLowerCase() }),
       avatar: Avatar && Sanitizer.sanitizeAsset(Avatar),
       address: Address && Sanitizer.sanitizeAddress(Address),
+      job_title: JobTitle ? JobTitle.name : job_title,
       emailVerified: !!email_verified_at,
       email_verified_at,
       userVerified: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
@@ -261,11 +264,11 @@ export const Sanitizer = {
       Student = await getStudent({ uniqueStudentId: metadata.username }, [], ['User', 'Classes', 'Classes.ClassLevel']);
     }
 
-    const { transactionFees = 0 } = metadata || {};
+    const { transactionFees = 0, charges = 0 } = metadata || {};
     const sanitized = {
       id,
       ...rest,
-      amount: amount - (transactionFees || 0),
+      amount: amount - (transactionFees || charges || 0),
       metadata,
       recieptReference: document_reference,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),

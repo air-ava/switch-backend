@@ -66,7 +66,7 @@ export const updateUserProfile = async (data: any): Promise<any> => {
       },
     );
 
-    const userAlreadyExist = await findUser({ id: user.id }, [], ['phoneNumber', 'Address', 'Avatar']);
+    const userAlreadyExist = await findUser({ id: user.id }, [], ['phoneNumber', 'Address', 'Avatar', 'JobTitle']);
     if (!userAlreadyExist) throw Error('User not found');
 
     return sendObjectResponse('User details updated successful', Sanitizer.sanitizeUser(userAlreadyExist));
@@ -81,7 +81,7 @@ export const fetchUserProfile = async (data: any): Promise<any> => {
 
   const { user } = data;
   try {
-    const userAlreadyExist = await findUser({ id: user.id }, [], ['phoneNumber', 'Address', 'Avatar']);
+    const userAlreadyExist = await findUser({ id: user.id }, [], ['phoneNumber', 'Address', 'Avatar', 'JobTitle']);
     if (!userAlreadyExist) throw Error('User not found');
 
     const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, [], ['Organisation', 'Logo']);
@@ -103,7 +103,7 @@ export const listUsers = async (data: any): Promise<any> => {
   // if (validation.error) return ResourceNotFoundError(validation.error);
 
   try {
-    const users = await listUser({}, [], ['phoneNumber', 'Address', 'Avatar']);
+    const users = await listUser({}, [], ['phoneNumber', 'Address', 'Avatar', 'JobTitle']);
 
     return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeAllArray(users, Sanitizer.sanitizeUser));
   } catch (e: any) {
@@ -132,8 +132,12 @@ export const fetchUser = async (data: any): Promise<any> => {
 
   const { id } = data;
   try {
-    const userAlreadyExist = await findUser({ id }, [], ['phoneNumber', 'Address', 'Avatar']);
+    const userAlreadyExist = await findUser({ id }, [], ['phoneNumber', 'Address', 'Avatar', 'JobTitle']);
     if (!userAlreadyExist) throw Error('User not found');
+
+    console.log({
+      userAlreadyExist
+    });
 
     return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeUser(userAlreadyExist));
   } catch (e: any) {

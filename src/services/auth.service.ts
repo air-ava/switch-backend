@@ -211,7 +211,7 @@ export const userAuth = async (data: any): Promise<theResponse> => {
     }
 
     if (phoneNumber) phoneNumber = (phoneNumber as PhoneNumbers).id;
-    const userAlreadyExist: any = await findUser([{ email }, { phone_number: phoneNumber }], [], [addPhone && 'phoneNumber']);
+    const userAlreadyExist: any = await findUser([{ email }, { phone_number: phoneNumber }], [], [addPhone && 'phoneNumber', 'JobTitle']);
     if (!userAlreadyExist) throw Error(`Your credentials are incorrect`);
     // if (!userAlreadyExist.enabled) throw Error('Your account has been disabled');
     if (!userAlreadyExist.password) throw Error('Kindly set password');

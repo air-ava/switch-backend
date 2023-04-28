@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IAddress, IAssets, IOrganisation, IPhoneNumber } from '../modelInterfaces';
+import { IAddress, IAssets, IJobTitle, IOrganisation, IPhoneNumber } from '../modelInterfaces';
 // import { Addresses } from './Addresses';
 // import { Orders } from './Order';
 
@@ -98,75 +98,13 @@ export class Users {
   @JoinColumn({ name: 'avatar' })
   Avatar: IAssets;
 
+  @OneToOne('JobTitle', 'users')
+  @JoinColumn({ name: 'job_title' })
+  JobTitle: IJobTitle;
+
   @OneToOne('Organisation', 'users')
   @JoinColumn({ name: 'organisation' })
   Organization: IOrganisation;
-
-  // @Column('boolean')
-  // is_business: boolean;
-
-  // @Column('text')
-  // phone?: string;
-
-  // @Column('text')
-  // employer: string;
-
-  // @Column('text')
-  // industry_skills: string;
-
-  // @Column('text')
-  // job_status: string;
-
-  // @Column('text')
-  // state: string;
-
-  // @Column('text')
-  // area: string;
-
-  // @Column('text')
-  // city: string;
-
-  // @Column('text')
-  // bio: string;
-
-  // @Column('text')
-  // facebook: string;
-
-  // @Column('text')
-  // linkedin: string;
-
-  // @Column('text')
-  // twitter: string;
-
-  // @Column('text')
-  // website: string;
-
-  // @Column('text')
-  // organisation_headline: string;
-
-  // @Column('text')
-  // organisation_bio: string;
-
-  // @Column('text')
-  // organisation_code: string;
-
-  // @Column('text')
-  // organisation_phone: string;
-
-  // @Column('text')
-  // organisation_address: string;
-
-  // @Column('text')
-  // organisation_country: string;
-
-  // @Column('text')
-  // organisation_state: string;
-
-  // @Column('text')
-  // organisation_area: string;
-
-  // @Column('text')
-  // organisation_city: string;
 }
 
 export const countryMapping: { [key: string]: string } = {
