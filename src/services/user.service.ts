@@ -135,10 +135,6 @@ export const fetchUser = async (data: any): Promise<any> => {
     const userAlreadyExist = await findUser({ id }, [], ['phoneNumber', 'Address', 'Avatar', 'JobTitle']);
     if (!userAlreadyExist) throw Error('User not found');
 
-    console.log({
-      userAlreadyExist
-    });
-
     return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeUser(userAlreadyExist));
   } catch (e: any) {
     return BadRequestException(e.message);
