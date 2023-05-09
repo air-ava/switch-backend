@@ -1,3 +1,4 @@
+import { STATUSES } from './../database/models/status.model';
 /* eslint-disable no-restricted-syntax */
 import { log } from 'winston';
 import randomstring from 'randomstring';
@@ -32,6 +33,7 @@ export const listTransactions = async (data: any): Promise<any> => {
       {
         userId,
         purpose: purpose || Not(Like(`%Fees:%`)),
+        status: STATUSES.SUCCESS,
       },
       [],
       ['User', 'Wallet', 'Reciepts'],
