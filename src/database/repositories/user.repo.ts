@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { QueryRunner, getRepository, In, InsertResult, UpdateResult } from 'typeorm';
 import { IUser } from '../modelInterfaces';
 import { Users } from '../models/users.model';
@@ -23,24 +24,25 @@ export const findUser = async (
 };
 
 export const listUser = async (
-  queryParam: Partial<IUser> | any,
+  queryParam: Partial<IUser> | Partial<IUser>[] | any,
   selectOptions: Array<keyof Users>,
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<Users[]> => {
-  return t
+  const response =  t
     ? t.manager.find(Users, {
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
         order: { created_at: 'DESC' },
       })
-    : getRepository(Users).find({
+    : await getRepository(Users).find({
         where: queryParam,
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
         order: { created_at: 'DESC' },
       });
+  return response;
 };
 
 export const createAUser = async (payload: {
@@ -65,9 +67,9 @@ export const createAUser = async (payload: {
   return t ? t.manager.insert(Users, rest) : getRepository(Users).insert(rest);
 };
 
-export const saveAUser = async (payload: Partial<IUser>, t?: QueryRunner): Promise<Users> => {
+export const saveAUser = async (payload: Partial<IUser> | Partial<IUser>[] | any, t?: QueryRunner): Promise<Users> => {
   const { ...rest } = payload;
-  return t ? t.manager.save(Users, rest) : getRepository(Users).save(rest);
+  return t ? t.manager.save(Users, rest) : getRepository(Users).save(Array.isArray(payload) ? payload : rest);
 };
 
 export const updateUser = (queryParams: Pick<IUser, 'id'>, updateFields: Partial<IUser>, t?: QueryRunner): Promise<UpdateResult> => {

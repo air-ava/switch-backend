@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import StudentService from '../services/student.service';
+import ResponseService from '../utils/response';
 import { oldSendObjectResponse } from '../utils/errors';
 import { Sanitizer } from '../utils/sanitizer';
 
@@ -64,4 +65,20 @@ export const listStudentCONTROLLER: RequestHandler = async (req, res) => {
       ? res.status(400).json({ success: false, error: error.message })
       : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
   }
+};
+
+export const searchStudentCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const { students } = req.body;
+  const response = await StudentService.searchStudents({ schoolId: school.id, students });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const addBulkStudentsToSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const { students } = req.body;
+  const response = await StudentService.addBulkStudentsToSchool({ schoolId: school.id, students });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };

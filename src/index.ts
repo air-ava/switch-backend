@@ -20,6 +20,7 @@ import router from './routes';
 import office from './routes/office/index';
 import webhook from './routes/webhook.routes';
 import ussd from './routes/ussd.routes';
+import jobs from './routes/jobs';
 import swagger from './routes/swagger';
 import { PORT, BASE_URL } from './utils/secrets';
 import { Log, log } from './utils/logs';
@@ -41,6 +42,7 @@ async function startServer(): Promise<void> {
   app.use('/webhook', webhook);
   app.use('/ussd', ussd);
   app.use('/swagger', swagger);
+  app.use('/jobs', jobs);
 
   app.use((req, res, _next): void => {
     res.status(404).send({

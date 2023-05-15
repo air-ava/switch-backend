@@ -39,7 +39,10 @@ export const listStudentClass = async (
       });
 };
 
-export const saveStudentClassREPO = (queryParams: Partial<IStudentClass>, transaction?: QueryRunner): Promise<any> => {
+export const saveStudentClassREPO = (
+  queryParams: Partial<IStudentClass> | Partial<IStudentClass>[] | any,
+  transaction?: QueryRunner,
+): Promise<any> => {
   return transaction ? transaction.manager.save(StudentClass, queryParams) : getRepository(StudentClass).save(queryParams);
 };
 

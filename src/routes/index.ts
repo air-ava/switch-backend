@@ -19,6 +19,7 @@ import scholarshipRouter from './scholarship.routes';
 import transactionsRouter from './transactions.routes';
 import walletsRouter from './wallets.routes';
 import paymentsRouter from './payment.routes';
+import cronsRouter from './crons.routes';
 import { validateSession } from '../middleware/auth.middleware';
 import Settings from '../services/settings.service';
 
@@ -45,6 +46,7 @@ router.use('/checkout', checkoutRouter);
 router.use('/misc', miscillaneousRouter);
 router.use('/banks', banksRouter);
 router.use('/settlements', settlementsRouter);
+router.use('/crons', cronsRouter);
 
 // Settings.init();
 /**

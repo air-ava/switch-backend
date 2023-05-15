@@ -2,7 +2,16 @@
 /* eslint-disable no-console */
 // eslint-disable-next-line max-classes-per-file
 
+import AuthenticationError from './authenticationError';
+import CustomError from './customError';
+import ExistsError from './existsError';
+import FailedDependencyError from './failedDependencyError';
+import failedDependencyError from './failedDependencyError';
+import ForbiddenError from './forbiddenError';
+import HttpStatus from './httpStatus';
 import { Log, log } from './logs';
+import NotFoundError from './notFounfError';
+import ValidationError from './validationError';
 
 export const BadRequestError = (error: string) => {
   console.log(error);
@@ -51,3 +60,14 @@ export const BadRequestException = (error: string, data?: any): { success: boole
     data,
   };
 };
+
+export const catchErrors = (fn: any) => {
+  return (req: any, res: any, next: any) => {
+    fn(req, res, next).catch((err: { status?: number; message?: string; data?: any }) => {
+      const { status = 500, message = 'Internal Server Error', data = null } = err;
+      res.status(status).json({ success: false, error: message, data });
+    });
+  };
+};
+
+export { AuthenticationError, CustomError, ValidationError, NotFoundError, ForbiddenError, HttpStatus, ExistsError, FailedDependencyError };

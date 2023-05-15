@@ -176,6 +176,10 @@ const Utils = {
   isLive() {
     return ['production', 'test'].includes(ENVIRONMENT);
   },
+
+  getApiURL() {
+    return Utils.isProd() ? `https://steward-prod-rmq4b.ondigitalocean.app` : `https://king-prawn-app-ovupz.ondigitalocean.app`;
+  },
 };
 
 export default Utils;

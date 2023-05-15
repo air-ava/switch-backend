@@ -41,7 +41,7 @@ export const listStudent = async (
       });
 };
 
-export const saveStudentREPO = (queryParams: Partial<IStudent>, transaction?: QueryRunner): Promise<any> => {
+export const saveStudentREPO = (queryParams: Partial<IStudent> | Partial<IStudent>[] | any, transaction?: QueryRunner): Promise<any> => {
   return transaction ? transaction.manager.save(Student, queryParams) : getRepository(Student).save(queryParams);
 };
 
