@@ -82,3 +82,42 @@ export const addBulkStudentsToSchoolCONTROLLER: RequestHandler = async (req, res
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };
+
+export const addBulkStudentsToSchoolAdminCONTROLLER: RequestHandler = async (req, res) => {
+  const { students, school: schoolId } = req.body;
+  const response = await StudentService.addBulkStudentsToSchool({ schoolId, students });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const searchStudentAdminCONTROLLER: RequestHandler = async (req, res) => {
+  const { students, school: schoolId } = req.body;
+  const response = await StudentService.searchStudents({ schoolId, students });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const addStudentToSchoolAdminCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const response = await StudentService.addStudentToSchool(req.body);
+    const responseCode = response.success === true ? 200 : 400;
+    return res.status(responseCode).json(response);
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
+  }
+};
+
+export const listStudentAdminCONTROLLER: RequestHandler = async (req, res) => {
+  try {
+    const response = await StudentService.listStudents({ schoolId: req.query.id });
+    const responseCode = response.success === true ? 200 : 400;
+    const { data, message, error } = response;
+    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeStudent)));
+  } catch (error: any) {
+    return error.message
+      ? res.status(400).json({ success: false, error: error.message })
+      : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
+  }
+};

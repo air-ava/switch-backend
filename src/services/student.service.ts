@@ -24,6 +24,8 @@ const Service = {
   async addStudentToSchool(payload: any) {
     const { first_name, last_name, school, class: classId } = payload;
 
+    const schoolId = typeof school === 'number' ? school : school.id;
+
     // default student email
     let studentEmail = `${first_name}+${last_name}+student${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
     const studentsFound = await listUser({ email: Like(`%${first_name}+${last_name}%`) }, []);
@@ -43,7 +45,7 @@ const Service = {
     });
 
     const student = await saveStudentREPO({
-      schoolId: school.id,
+      schoolId,
       uniqueStudentId,
       userId: studentUserRecord.id,
     });
