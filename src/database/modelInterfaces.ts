@@ -121,6 +121,8 @@ export interface IIndividual {
   firstName: string;
   lastName: string;
   email: string;
+  gender: 'male' | 'female' | 'others';
+  type: string;
   avatar: number;
   job_title: number;
   status: number;
@@ -713,6 +715,8 @@ export interface IStudent {
   uniqueStudentId: string;
   userId: string;
   status: number;
+  paymentTypeId: number;
+  defaultEmail: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -829,4 +833,24 @@ export interface IBackOfficeBanks {
   status: number;
   created_at: Date;
   updated_at?: Date;
+}
+
+export interface IPaymentType {
+  id: number;
+  code: string;
+  value: string;
+  name: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface IStudentGuardian {
+  id: number;
+  code: string;
+  relationship: string;
+  studentId: number;
+  individualId: number;
+  status: number;
+  created_at: Date;
+  updated_at: Date;
 }

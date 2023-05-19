@@ -1,3 +1,4 @@
+import { StudentGuardian } from './../database/models/studentGuardian.model';
 import randomstring from 'randomstring';
 import { v4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
@@ -7,7 +8,7 @@ import { STATUSES } from '../database/models/status.model';
 import { listClassLevel } from '../database/repositories/classLevel.repo';
 import { saveMobileMoneyTransaction } from '../database/repositories/mobileMoneyTransactions.repo';
 import { saveTransaction } from '../database/repositories/transaction.repo';
-import { HttpStatus, CustomError, sendObjectResponse } from '../utils/errors';
+import { HttpStatus, CustomError, sendObjectResponse, ExistsError, ValidationError } from '../utils/errors';
 import {
   // getSearchUsers,
   listUser,
@@ -19,10 +20,13 @@ import { saveStudentClassREPO } from '../database/repositories/studentClass.repo
 import Settings from './settings.service';
 import { mapAnArray } from '../utils/utils';
 import { IUser } from '../database/modelInterfaces';
+import { saveIndividual } from '../database/repositories/individual.repo';
+import { listStudentGuardian, saveStudentGuardianREPO } from '../database/repositories/studentGuardian.repo';
 
 const Service = {
   async addStudentToSchool(payload: any) {
-    const { first_name, last_name, school, class: classId } = payload;
+    const { first_name, last_name, school, class: classId, guardians } = payload;
+    guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
 
     const schoolId = typeof school === 'number' ? school : school.id;
 
@@ -54,6 +58,37 @@ const Service = {
       studentId: student.id,
       classId,
     });
+
+    if (guardians) {
+      // check if guardian is been repeated use studentId, relationship and gender to check
+      const incomingGuardians: { relationship: string[]; gender: string[] } = {
+        relationship: [],
+        gender: [],
+      };
+      const studentGuardians = await listStudentGuardian({ studentId: student.id }, [], ['Guardian']);
+      if (studentGuardians.length > 1) throw new ValidationError('Only two Guardians are required');
+
+      incomingGuardians.relationship = mapAnArray(studentGuardians, 'relationship');
+      incomingGuardians.gender = mapAnArray(studentGuardians, 'Guardian.gender');
+      await Promise.all(
+        guardians.map(async (guardian: { relationship: string; firstName: any; lastName: any; gender: any }, index: string | number) => {
+          const { relationship, firstName, lastName, gender } = guardian;
+          if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
+          const individual = await saveIndividual({
+            firstName,
+            lastName,
+            school_id: school.id,
+            gender,
+            type: 'guardian',
+          });
+          await saveStudentGuardianREPO({
+            studentId: student.id,
+            relationship,
+            individualId: individual.id,
+          });
+        }),
+      );
+    }
 
     return sendObjectResponse('Student created successfully');
   },

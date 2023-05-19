@@ -19,6 +19,12 @@ export class Student {
   @Column()
   status: number;
 
+  @Column()
+  paymentTypeId: number;
+
+  @Column()
+  defaultEmail: boolean;
+
   @CreateDateColumn()
   created_at: Date;
 
