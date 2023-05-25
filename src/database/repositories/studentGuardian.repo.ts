@@ -1,3 +1,4 @@
+import randomstring from 'randomstring';
 import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
 import { IStudentGuardian } from '../modelInterfaces';
 import { StudentGuardian } from '../models/studentGuardian.model';
@@ -43,7 +44,11 @@ export const saveStudentGuardianREPO = (
   queryParams: Partial<IStudentGuardian> | Partial<IStudentGuardian>[] | any,
   transaction?: QueryRunner,
 ): Promise<any> => {
-  return transaction ? transaction.manager.save(StudentGuardian, queryParams) : getRepository(StudentGuardian).save(queryParams);
+  const payload = {
+    code: `stg_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    ...queryParams,
+  };
+  return transaction ? transaction.manager.save(StudentGuardian, payload) : getRepository(StudentGuardian).save(payload);
 };
 
 export const updateStudentGuardian = (

@@ -1,4 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne, BeforeInsert, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToOne,
+  BeforeInsert,
+  OneToMany,
+} from 'typeorm';
 import randomstring from 'randomstring';
 import { IClassLevel, IIndividual, IStudent } from '../modelInterfaces';
 import { Individual } from './individual.model';
@@ -8,7 +19,7 @@ export class StudentGuardian {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   code: string;
 
   @Column()

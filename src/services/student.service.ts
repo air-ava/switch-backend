@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { ILike, In, Like, Raw } from 'typeorm';
 import { IStudent, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
+import { PAYMENT_TYPE } from '../database/models/paymentType.model';
 import { listClassLevel } from '../database/repositories/classLevel.repo';
 import { saveMobileMoneyTransaction } from '../database/repositories/mobileMoneyTransactions.repo';
 import { saveTransaction } from '../database/repositories/transaction.repo';
@@ -22,10 +23,13 @@ import { mapAnArray } from '../utils/utils';
 import { IUser } from '../database/modelInterfaces';
 import { saveIndividual } from '../database/repositories/individual.repo';
 import { listStudentGuardian, saveStudentGuardianREPO } from '../database/repositories/studentGuardian.repo';
+import { findOrCreatePhoneNumber } from './helper.service';
 
 const Service = {
   async addStudentToSchool(payload: any) {
     const { first_name, last_name, school, class: classId, guardians } = payload;
+    let { partPayment = 'installmental' } = payload;
+    partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
 
     const schoolId = typeof school === 'number' ? school : school.id;
@@ -52,6 +56,7 @@ const Service = {
       schoolId,
       uniqueStudentId,
       userId: studentUserRecord.id,
+      paymentTypeId: PAYMENT_TYPE[partPayment as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'],
     });
 
     await saveStudentClassREPO({
@@ -60,37 +65,51 @@ const Service = {
     });
 
     if (guardians) {
-      // check if guardian is been repeated use studentId, relationship and gender to check
-      const incomingGuardians: { relationship: string[]; gender: string[] } = {
-        relationship: [],
-        gender: [],
-      };
-      const studentGuardians = await listStudentGuardian({ studentId: student.id }, [], ['Guardian']);
-      if (studentGuardians.length > 1) throw new ValidationError('Only two Guardians are required');
-
-      incomingGuardians.relationship = mapAnArray(studentGuardians, 'relationship');
-      incomingGuardians.gender = mapAnArray(studentGuardians, 'Guardian.gender');
-      await Promise.all(
-        guardians.map(async (guardian: { relationship: string; firstName: any; lastName: any; gender: any }, index: string | number) => {
-          const { relationship, firstName, lastName, gender } = guardian;
-          if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
-          const individual = await saveIndividual({
-            firstName,
-            lastName,
-            school_id: school.id,
-            gender,
-            type: 'guardian',
-          });
-          await saveStudentGuardianREPO({
-            studentId: student.id,
-            relationship,
-            individualId: individual.id,
-          });
-        }),
-      );
+      const { data: incomingGuardians } = await Service.findExistingGuardians(student);
+      await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
     }
 
     return sendObjectResponse('Student created successfully');
+  },
+
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async findExistingGuardians(student: any): Promise<theResponse> {
+    const incomingGuardians: { relationship: string[]; gender: string[] } = {
+      relationship: [],
+      gender: [],
+    };
+    const studentGuardians = await listStudentGuardian({ studentId: student.id }, [], ['Guardian']);
+    if (studentGuardians.length > 1) throw new ValidationError('Only two Guardians are required');
+
+    incomingGuardians.relationship = mapAnArray(studentGuardians, 'relationship');
+    incomingGuardians.gender = mapAnArray(studentGuardians, 'Guardian.gender');
+
+    return sendObjectResponse('Guardian search completed', incomingGuardians);
+  },
+
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async addGuardian(data: any): Promise<theResponse> {
+    const { student, school, incomingGuardians, guardian } = data;
+    guardian as { relationship: string; firstName: any; lastName: any; gender: any; email?: string; phone_number: any };
+    const { relationship, firstName, lastName, email, gender, phone_number } = guardian;
+    if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
+    const { data: phone } = await findOrCreatePhoneNumber(phone_number);
+    const individual = await saveIndividual({
+      firstName,
+      lastName,
+      school_id: school.id,
+      phone_number: phone.id,
+      email,
+      gender,
+      type: 'guardian',
+    });
+    await saveStudentGuardianREPO({
+      studentId: student.id,
+      relationship,
+      individualId: individual.id,
+    });
+
+    return sendObjectResponse('Guardian added successfully');
   },
 
   async listClassLevels(): Promise<theResponse> {
@@ -109,6 +128,18 @@ const Service = {
     const { schoolId } = criteria;
     const response = await listStudent({ schoolId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
     return sendObjectResponse('Students retrieved successfully', response);
+  },
+
+  async editStudents(criteria: any): Promise<theResponse> {
+    const { studentId, guardians } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
+    if (!student) throw Error('Student not found');
+
+    if (guardians) {
+      const { data: incomingGuardians } = await Service.findExistingGuardians(student);
+      await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
+    }
+    return sendObjectResponse('Students added successfully');
   },
 
   async searchStudents(criteria: any): Promise<theResponse> {

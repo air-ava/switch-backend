@@ -47,6 +47,18 @@ export class CreatePaymentTypeTable1684456448899 implements MigrationInterface {
             type: 'varchar',
             isNullable: false,
           },
+          {
+            name: 'created_at',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+            isNullable: false,
+          },
+          {
+            name: 'updated_at',
+            type: 'timestamp',
+            isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
+          },
         ],
       }),
     );

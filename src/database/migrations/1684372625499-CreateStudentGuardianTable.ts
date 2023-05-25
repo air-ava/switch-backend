@@ -42,6 +42,18 @@ export class CreateStudentGuardianTable1684372625499 implements MigrationInterfa
             length: '20', // Adjust the length as needed
             isNullable: false,
           },
+          {
+            name: 'created_at',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+            isNullable: false,
+          },
+          {
+            name: 'updated_at',
+            type: 'timestamp',
+            isNullable: true,
+            onUpdate: 'CURRENT_TIMESTAMP',
+          },
         ],
       }),
     );

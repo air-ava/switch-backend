@@ -1,3 +1,4 @@
+import randomstring from 'randomstring';
 import { QueryRunner, getRepository, In, InsertResult, UpdateResult } from 'typeorm';
 import { IIndividual, IUser } from '../modelInterfaces';
 import { Users } from '../models/users.model';
@@ -44,9 +45,13 @@ export const createIndividual = async (payload: {
   return t ? t.manager.insert(Individual, rest) : getRepository(Individual).insert(rest);
 };
 
-export const saveIndividual = async (payload: Partial<IIndividual>, t?: QueryRunner): Promise<Individual> => {
-  const { ...rest } = payload;
-  return t ? t.manager.save(Individual, rest) : getRepository(Individual).save(rest);
+export const saveIndividual = async (queryParams: Partial<IIndividual>, t?: QueryRunner): Promise<Individual> => {
+  // const { ...rest } = payload;
+  const payload = {
+    code: `ind_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    ...queryParams,
+  };
+  return t ? t.manager.save(Individual, payload) : getRepository(Individual).save(payload);
 };
 
 export const updateIndividual = (queryParams: Partial<IIndividual>, updateFields: Partial<IIndividual>, t?: QueryRunner): Promise<UpdateResult> => {
