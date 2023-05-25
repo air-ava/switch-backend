@@ -137,7 +137,7 @@ const Service = {
 
     if (guardians) {
       const { data: incomingGuardians } = await Service.findExistingGuardians(student);
-      await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
+      await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school: student.School, incomingGuardians, guardian })));
     }
     return sendObjectResponse('Students added successfully');
   },
