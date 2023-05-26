@@ -72,7 +72,7 @@ export const saveAUser = async (payload: Partial<IUser> | Partial<IUser>[] | any
   return t ? t.manager.save(Users, rest) : getRepository(Users).save(Array.isArray(payload) ? payload : rest);
 };
 
-export const updateUser = (queryParams: Pick<IUser, 'id'>, updateFields: Partial<IUser>, t?: QueryRunner): Promise<UpdateResult> => {
+export const updateUser = (queryParams: Partial<IUser>, updateFields: Partial<IUser>, t?: QueryRunner): Promise<UpdateResult> => {
   return t ? t.manager.update(Users, queryParams, updateFields) : getRepository(Users).update(queryParams, updateFields);
 };
 

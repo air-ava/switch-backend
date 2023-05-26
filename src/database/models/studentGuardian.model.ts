@@ -45,7 +45,15 @@ export class StudentGuardian {
   student: IStudent;
 
   @OneToMany(() => Individual, (individual) => individual.Guardian)
-  Guardian: IIndividual[];
+  Guardians: IIndividual[];
+
+  @OneToOne('Individual', 'studentGuardian')
+  @JoinColumn({ name: 'individualId', referencedColumnName: 'id' })
+  Guardian: IIndividual;
+
+  @ManyToOne('Student', 'studentGuardian')
+  @JoinColumn({ name: 'studentId', referencedColumnName: 'id' })
+  Student: IStudent;
 
   @BeforeInsert()
   generateCode() {

@@ -9,20 +9,21 @@ import { PAYMENT_TYPE } from '../database/models/paymentType.model';
 import { listClassLevel } from '../database/repositories/classLevel.repo';
 import { saveMobileMoneyTransaction } from '../database/repositories/mobileMoneyTransactions.repo';
 import { saveTransaction } from '../database/repositories/transaction.repo';
-import { HttpStatus, CustomError, sendObjectResponse, ExistsError, ValidationError } from '../utils/errors';
+import { HttpStatus, CustomError, sendObjectResponse, ExistsError, NotFoundError, ValidationError } from '../utils/errors';
 import {
   // getSearchUsers,
   listUser,
   saveAUser,
+  updateUser,
 } from '../database/repositories/user.repo';
 import { theResponse } from '../utils/interface';
-import { getStudent, listStudent, saveStudentREPO } from '../database/repositories/student.repo';
-import { saveStudentClassREPO } from '../database/repositories/studentClass.repo';
+import { getStudent, listStudent, saveStudentREPO, updateStudent } from '../database/repositories/student.repo';
+import { getStudentClass, saveStudentClassREPO, updateStudentClass } from '../database/repositories/studentClass.repo';
 import Settings from './settings.service';
 import { mapAnArray } from '../utils/utils';
 import { IUser } from '../database/modelInterfaces';
-import { saveIndividual } from '../database/repositories/individual.repo';
-import { listStudentGuardian, saveStudentGuardianREPO } from '../database/repositories/studentGuardian.repo';
+import { saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
+import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
 
 const Service = {
@@ -126,31 +127,79 @@ const Service = {
 
   async listStudents(criteria: any): Promise<theResponse> {
     const { schoolId } = criteria;
-    const response = await listStudent({ schoolId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
+    const response = await listStudent(
+      { schoolId },
+      [],
+      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian'],
+    );
     return sendObjectResponse('Students retrieved successfully', response);
   },
 
-  async editStudents(criteria: any): Promise<theResponse> {
-    const { studentId, guardians } = criteria;
-    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
-    if (!student) throw Error('Student not found');
+  async editStudent(criteria: any): Promise<theResponse> {
+    const { id: studentId, guardian, class: classId } = criteria;
+    let { partPayment } = criteria;
+    const student = await getStudent(
+      { id: studentId },
+      [],
+      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian'],
+    );
+    if (!student) throw new NotFoundError('Student');
 
-    if (guardians) {
-      const { data: incomingGuardians } = await Service.findExistingGuardians(student);
-      await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school: student.School, incomingGuardians, guardian })));
+    if (partPayment) {
+      partPayment = partPayment.toUpperCase();
+      await updateStudent({ id: student.id }, { paymentTypeId: PAYMENT_TYPE[partPayment as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'] });
     }
-    return sendObjectResponse('Students added successfully');
+    if (classId) {
+      const existingClass = await getStudentClass({ id: classId }, []);
+      if (!existingClass) throw new NotFoundError('class');
+      await updateStudentClass({ id: student.id }, { classId });
+    }
+    const studentPayload: any = {};
+    if (criteria.firstName) studentPayload.firstName = criteria.firstName;
+    if (criteria.lastName) studentPayload.lastName = criteria.lastName;
+    if (criteria.email) studentPayload.email = criteria.email;
+    await updateUser({ id: student.userId }, studentPayload);
+
+    if (guardian) {
+      const { details, code } = guardian;
+      const { relationship, gender, firstName, lastName, phone_number, email } = details;
+      const [guardianToEdit] = student.StudentGuardians.filter((value: any) => value.code === code);
+      if (!guardianToEdit) throw new NotFoundError('Guardian for this student');
+
+      if (relationship) await updateStudentGuardian({ id: guardianToEdit.id }, { relationship });
+
+      const individualPayload: any = {};
+      if (firstName) individualPayload.firstName = firstName;
+      if (lastName) individualPayload.lastName = lastName;
+      if (gender) individualPayload.gender = gender;
+      if (email) individualPayload.email = email;
+      if (phone_number) {
+        const { data: phone } = await findOrCreatePhoneNumber(phone_number);
+        individualPayload.phone_number = phone.id;
+      }
+      await updateIndividual({ id: guardianToEdit.Guardian.id }, individualPayload);
+    }
+
+    return sendObjectResponse('Students edited successfully');
+  },
+
+  async addGuardians(criteria: any): Promise<theResponse> {
+    const { id: studentId, guardians } = criteria;
+    const student = await getStudent(
+      { id: studentId },
+      [],
+      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian'],
+    );
+    if (!student) throw new NotFoundError('Student');
+    if (student.StudentGuardians.length > 1) throw new ValidationError('You have hit the max number of guardians for this student');
+
+    const { data: incomingGuardians } = await Service.findExistingGuardians(student);
+    await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school: student.School, incomingGuardians, guardian })));
+    return sendObjectResponse('Guardians added successfully');
   },
 
   async searchStudents(criteria: any): Promise<theResponse> {
     const { schoolId: school, students } = criteria as { schoolId: number; students: { class: number; last_name: string; first_name: string }[] };
-
-    // create the query to get all students with similar name regardless of name type
-    // const queriedParams = students.map((student) => ({
-    //   first_name: Raw((alias) => `LOWER(${alias}) = LOWER(:first_name)`, { first_name: student.first_name }),
-    //   last_name: Raw((alias) => `LOWER(${alias}) = LOWER(:last_name)`, { last_name: student.last_name }),
-    //   user_type: 'student',
-    // }));
 
     // create the query to get all students with similar name regardless of name type
     const queriedParams = students.map((student) => {

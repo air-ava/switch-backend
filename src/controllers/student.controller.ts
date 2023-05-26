@@ -39,6 +39,20 @@ export const addStudentToSchoolCONTROLLER: RequestHandler = async (req, res) => 
   }
 };
 
+export const addGuardiansToStudentCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { ...req.body, ...req.params };
+  const response = await StudentService.addGuardians(payload);
+  const { message, data, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const editStudentCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { ...req.body, ...req.params };
+  const response = await StudentService.editStudent(payload);
+  const { message, data, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
 export const getStudentCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const { code: studentId } = req.params;

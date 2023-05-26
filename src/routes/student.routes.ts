@@ -6,6 +6,8 @@ import {
   listStudentCONTROLLER,
   searchStudentCONTROLLER,
   addBulkStudentsToSchoolCONTROLLER,
+  addGuardiansToStudentCONTROLLER,
+  editStudentCONTROLLER,
 } from '../controllers/student.controller';
 import { catchErrors } from '../utils/errors';
 
@@ -16,5 +18,7 @@ router.post('/', addStudentToSchoolCONTROLLER);
 router.get('/:code', getStudentCONTROLLER);
 router.post('/search', catchErrors(searchStudentCONTROLLER));
 router.post('/bulk', catchErrors(addBulkStudentsToSchoolCONTROLLER));
+router.patch('/:id', catchErrors(editStudentCONTROLLER));
+router.patch('/:id/guardians', catchErrors(addGuardiansToStudentCONTROLLER));
 
 export default router;

@@ -47,7 +47,7 @@ export const saveStudentClassREPO = (
 };
 
 export const updateStudentClass = (
-  queryParams: Pick<IStudentClass, 'id'>,
+  queryParams: Partial<IStudentClass>,
   updateFields: Partial<IStudentClass>,
   t?: QueryRunner,
 ): Promise<UpdateResult> => {
