@@ -854,3 +854,116 @@ export interface IStudentGuardian {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface ISchoolClass {
+  id: number;
+  status: number;
+  classId: number;
+  schoolId: number;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchoolPeriod {
+  id: number;
+  schoolId: number;
+  education_level: string;
+  period: string;
+  scheduleId: number;
+  country: string;
+  status: number;
+  start_date: Date;
+  expiry_date: Date | null;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchoolSession {
+  id: number;
+  education_level: string;
+  session: string;
+  country: string;
+  scheduleId: number;
+  name: string;
+  status: number;
+  start_date: Date;
+  expiry_date: Date | null;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchedule {
+  id: number;
+  cron_id: string;
+  status: number;
+  cron_expression: string;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchoolProduct {
+  id: number;
+  name: string;
+  feature_name: string;
+  paymentTypeId: number;
+  description: string;
+  image: number;
+  amount: number;
+  currency: string;
+  schoolClassId: number | null;
+  schoolId: number;
+  status: number;
+  period: number | null;
+  session: number | null;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IProductTransactions {
+  id: number;
+  tx_reference: string;
+  beneficiaryProductPaymentId: number;
+  amount: number;
+  payer: number;
+  metadata: {
+      payment_method: string;
+      bank_details: string;
+      mobile_money_details: string;
+      card_details: string;
+  };
+  status: number;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IPaymentContacts {
+  id: number;
+  name: string;
+  school: number;
+  phone_number: number;
+  addressId: number;
+  email: string;
+  status: number;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IBeneficiaryProductPayment {
+  id: number;
+  beneficiaryType: string;
+  beneficiaryId: number;
+  productId: number;
+  amount_paid: number;
+  amount_outstanding: number;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
