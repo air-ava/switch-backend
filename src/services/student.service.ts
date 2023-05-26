@@ -120,7 +120,11 @@ const Service = {
 
   async getStudent(criteria: any): Promise<theResponse> {
     const { studentId } = criteria;
-    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
+    const student = await getStudent(
+      { uniqueStudentId: studentId },
+      [],
+      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian', 'StudentGuardians.Guardian.phoneNumber'],
+    );
     if (!student) throw Error('Student not found');
     return sendObjectResponse('Student retrieved successfully', student);
   },
@@ -130,7 +134,7 @@ const Service = {
     const response = await listStudent(
       { schoolId },
       [],
-      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian'],
+      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian', 'StudentGuardians.Guardian.phoneNumber'],
     );
     return sendObjectResponse('Students retrieved successfully', response);
   },
