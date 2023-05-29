@@ -69,8 +69,7 @@ const Service = {
 
     const sumTotal = Number(incomingAmount) + Number(fees);
 
-    const amountBaseResponse = `END
-    Amount: UGX${incomingAmount}
+    const amountBaseResponse = `END Amount: UGX${incomingAmount}
     Fee: UGX${fees}
     Total: UGX${sumTotal}
     School fees payment completed`;
