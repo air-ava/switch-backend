@@ -63,6 +63,19 @@ declare namespace Express {
       email_verified_at?: Date;
       updated_at?: Date;
     };
+    educationalSession?: Partial<{
+      id: number;
+      code: string;
+      session: string;
+      country: string;
+      schedule_id: number;
+      name: string;
+      status: number;
+      start_date: Date;
+      expiry_date: Date | null;
+      created_at: Date;
+      updated_at: Date;
+    }>;
   }
 }
 

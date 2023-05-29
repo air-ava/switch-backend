@@ -59,7 +59,7 @@ export class Individual {
   @OneToOne('Schools', 'individual')
   @JoinColumn({ name: 'school_id', referencedColumnName: 'id' })
   Organisation: IOrganisation;
-  
+
   @ManyToOne('StudentGuardian', 'individual')
   @JoinColumn({ name: 'id', referencedColumnName: 'individualId' })
   Guardian: IStudentGuardian;

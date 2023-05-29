@@ -6,6 +6,9 @@ export class ClassLevel {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ unique: true })
+  code: string;
+
   @Column()
   education_level: string;
 

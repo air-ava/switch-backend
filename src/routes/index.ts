@@ -20,6 +20,7 @@ import transactionsRouter from './transactions.routes';
 import walletsRouter from './wallets.routes';
 import paymentsRouter from './payment.routes';
 import cronsRouter from './crons.routes';
+import sessionRouter from './session.routes';
 import { validateSession } from '../middleware/auth.middleware';
 import Settings from '../services/settings.service';
 
@@ -33,6 +34,7 @@ router.use('/webhook', webhookRouter);
 router.use(validateSession);
 router.use('/user', userRouter);
 router.use('/business', businessRouter);
+router.use('/sessions', sessionRouter);
 router.use('/school', schoolRouter);
 router.use('/students', studentRouter);
 router.use('/scholarship', scholarshipRouter);

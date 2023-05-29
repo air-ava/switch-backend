@@ -40,6 +40,7 @@ export class createSchoolSessionTable1685070181869 implements MigrationInterface
           {
             name: 'start_date',
             type: 'date',
+            isNullable: true,
           },
           {
             name: 'expiry_date',

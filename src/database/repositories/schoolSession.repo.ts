@@ -52,7 +52,7 @@ export const saveSchoolSession = (
 };
 
 export const updateSchoolSession = (
-  queryParams: Pick<ISchoolSession, 'id'>,
+  queryParams: Partial<ISchoolSession> | any,
   updateFields: Partial<ISchoolSession> | any,
   t?: QueryRunner,
 ): Promise<UpdateResult> => {

@@ -6,7 +6,7 @@ import { ILike, In, Like, Raw } from 'typeorm';
 import { IStudent, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { PAYMENT_TYPE } from '../database/models/paymentType.model';
-import { listClassLevel } from '../database/repositories/classLevel.repo';
+import { getClassLevel, listClassLevel } from '../database/repositories/classLevel.repo';
 import { saveMobileMoneyTransaction } from '../database/repositories/mobileMoneyTransactions.repo';
 import { saveTransaction } from '../database/repositories/transaction.repo';
 import { HttpStatus, CustomError, sendObjectResponse, ExistsError, NotFoundError, ValidationError } from '../utils/errors';
@@ -25,6 +25,7 @@ import { IUser } from '../database/modelInterfaces';
 import { saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
+import { saveSchoolClass } from '../database/repositories/schoolClass.repo';
 
 const Service = {
   async addStudentToSchool(payload: any) {
@@ -321,6 +322,26 @@ const Service = {
 
     return sendObjectResponse('Students added successfully');
   },
+
+  async addClassToSchool(data: any): Promise<theResponse> {
+    const { school, class: classCode, periods } = data;
+    periods as { amount: number; periodCode: string; description: string, currency: string }[];
+    const foundClassLevel = await getClassLevel({ code: classCode }, []);
+    if (!foundClassLevel) throw new NotFoundError('Class Level');
+
+    // Create Adding Periods
+    // find the Periods - [ACTIVE] -  in the map
+    // find the Session - [ACTIVE]
+
+    const schoolClass = await saveSchoolClass({
+      schoolId: school.id,
+      classId: foundClassLevel.id,
+    });
+
+    // Add price amount for the period
+    return sendObjectResponse('Added Class to School Successfully');
+
+  }
 };
 
 export default Service;

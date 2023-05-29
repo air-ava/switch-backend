@@ -732,6 +732,7 @@ export interface IStudentClass {
 
 export interface IClassLevel {
   id: number;
+  code: string;
   education_level: string;
   class: string;
   class_short_name: string;
@@ -867,10 +868,11 @@ export interface ISchoolClass {
 
 export interface ISchoolPeriod {
   id: number;
-  schoolId: number;
+  school_id: number;
   education_level: string;
   period: string;
-  scheduleId: number;
+  session_id: number;
+  schedule_id: number;
   country: string;
   status: number;
   start_date: Date;
@@ -885,7 +887,7 @@ export interface ISchoolSession {
   education_level: string;
   session: string;
   country: string;
-  scheduleId: number;
+  schedule_id: number;
   name: string;
   status: number;
   start_date: Date;
@@ -963,6 +965,26 @@ export interface IBeneficiaryProductPayment {
   amount_paid: number;
   amount_outstanding: number;
   code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IEducationLevel {
+  id: number;
+  code: string;
+  feature_name: string;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IEducationPeriod {
+  id: number;
+  code: string;
+  level: string;
+  feature_name: string;
+  rank: number;
+  education_level: string;
   created_at: Date;
   updated_at: Date;
 }

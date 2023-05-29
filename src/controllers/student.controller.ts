@@ -111,6 +111,13 @@ export const searchStudentAdminCONTROLLER: RequestHandler = async (req, res) => 
   return ResponseService.success(res, message || error, data);
 };
 
+export const addClassToSchoolONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { educationalSession: req.educationalSession, ...req.body };
+  const response = await StudentService.searchStudents(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
 export const addStudentToSchoolAdminCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const response = await StudentService.addStudentToSchool(req.body);

@@ -26,6 +26,10 @@ export class createSchoolPeriodTable1685070071874 implements MigrationInterface 
             type: 'varchar',
           },
           {
+            name: 'session_id',
+            type: 'int',
+          },
+          {
             name: 'schedule_id',
             type: 'int',
           },
@@ -40,6 +44,7 @@ export class createSchoolPeriodTable1685070071874 implements MigrationInterface 
           {
             name: 'start_date',
             type: 'date',
+            isNullable: true,
           },
           {
             name: 'expiry_date',

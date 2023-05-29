@@ -41,6 +41,14 @@ const Service: any = {
     december: 12,
   },
 
+  METHODS: {
+    GET: 0,
+    POST: 1,
+    PUT: 4,
+    DELETE: 5,
+    PATCH: 8,
+  },
+
   cronConfig: {
     enabled: true,
     saveResponses: false,
@@ -70,10 +78,10 @@ const Service: any = {
     },
   }),
 
-  async createAJob(data: { title: string; url: string; schedule: Schedule }): Promise<any> {
-    const { title, url, schedule } = data;
+  async createAJob(data: { generate: boolean; body: any; method: number; title: string; url: string; schedule: Schedule }): Promise<any> {
+    const { body, method = 0, title, url, schedule, generate = true } = data;
 
-    const generateSchedule = await Service.generateSchedule(schedule);
+    const generateSchedule = generate ? await Service.generateSchedule(schedule) : schedule;
 
     try {
       const response = await Service.axiosInstance.put('/jobs', {
@@ -82,7 +90,13 @@ const Service: any = {
           url: `${Utils.getApiURL()}/jobs/${url}`,
           ...Service.cronConfig,
           schedule: generateSchedule,
-          extendedData: { headers: { Authorization: `Bearer ${process.env.CRON_TOKEN}` } },
+          requestMethod: method,
+          extendedData: {
+            headers: { 
+              Authorization: `Bearer ${process.env.INTRA_SERVICE_TOKEN}`,
+            },
+            body: body && `data=${JSON.stringify(body)}`,
+          },
         },
       });
       return response;

@@ -6,7 +6,7 @@ export class SchoolPeriod {
   id: number;
 
   @Column()
-  schoolId: number;
+  school_id: number;
 
   @Column()
   education_level: string;
@@ -15,7 +15,10 @@ export class SchoolPeriod {
   period: string;
 
   @Column()
-  scheduleId: number;
+  schedule_id: number;
+  
+  @Column()
+  session_id: number;
 
   @Column()
   country: string;

@@ -1,4 +1,5 @@
-import { QueryRunner, getRepository } from 'typeorm';
+import randomstring from 'randomstring';
+import { QueryRunner, getRepository, UpdateResult } from 'typeorm';
 import { IClassLevel } from '../modelInterfaces';
 import { ClassLevel } from '../models/class.model';
 
@@ -37,4 +38,16 @@ export const listClassLevel = async (
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
       });
+};
+
+export const saveClassLevel = (queryParams: Partial<IClassLevel> | Partial<IClassLevel>[] | any, transaction?: QueryRunner): Promise<any> => {
+  const payload = {
+    code: `cll_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    ...queryParams,
+  };
+  return transaction ? transaction.manager.save(ClassLevel, payload) : getRepository(ClassLevel).save(payload);
+};
+
+export const updateClassLevel = (queryParams: Partial<IClassLevel>, updateFields: Partial<IClassLevel>, t?: QueryRunner): Promise<UpdateResult> => {
+  return t ? t.manager.update(ClassLevel, queryParams, updateFields) : getRepository(ClassLevel).update(queryParams, updateFields);
 };

@@ -180,6 +180,46 @@ const Utils = {
   getApiURL() {
     return Utils.isProd() ? `https://steward-prod-rmq4b.ondigitalocean.app` : `https://king-prawn-app-ovupz.ondigitalocean.app`;
   },
+
+  getCurrentDate() {
+    return dateFns.format(new Date(), 'yyyy-MM-dd');
+  },
+
+  firstDateIsBeforeSecondDate(firstDate: Date, secondDate = new Date()) {
+    return dateFns.isBefore(firstDate, secondDate);
+  },
+
+  firstDateIsAfterSecondDate(firstDate: Date, secondDate = new Date()) {
+    return dateFns.isAfter(firstDate, secondDate);
+  },
+
+  isWithinInterval(dateToCheck: Date, firstDate: Date, secondDate = new Date()) {
+    return dateFns.isWithinInterval(dateToCheck, {
+      start: firstDate,
+      end: secondDate,
+    });
+  },
+
+  isDateToday(date: Date) {
+    return dateFns.isToday(new Date(date));
+  },
+
+  isDateTomorrow(date: Date) {
+    return dateFns.isTomorrow(new Date(date));
+  },
+
+  addDays(date: Date, daysCount: number) {
+    return dateFns.addDays(new Date(date), daysCount);
+  },
+
+  isSameDay(firstDate: Date, secondDate: Date) {
+    return dateFns.isSameDay(firstDate, secondDate);
+  },
+
+  parseISO(date: Date) {
+    return dateFns.parseISO(date);
+  },
+
 };
 
 export default Utils;

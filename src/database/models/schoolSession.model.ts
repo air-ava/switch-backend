@@ -15,7 +15,7 @@ export class SchoolSession {
   country: string;
 
   @Column()
-  scheduleId: number;
+  schedule_id: number;
 
   @Column()
   name: string;
