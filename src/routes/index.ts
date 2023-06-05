@@ -21,6 +21,7 @@ import walletsRouter from './wallets.routes';
 import paymentsRouter from './payment.routes';
 import cronsRouter from './crons.routes';
 import sessionRouter from './session.routes';
+import feesRouter from './fees.routes';
 import { validateSession } from '../middleware/auth.middleware';
 import Settings from '../services/settings.service';
 
@@ -49,6 +50,7 @@ router.use('/misc', miscillaneousRouter);
 router.use('/banks', banksRouter);
 router.use('/settlements', settlementsRouter);
 router.use('/crons', cronsRouter);
+router.use('/fees', feesRouter);
 
 // Settings.init();
 /**

@@ -5,7 +5,7 @@ import { IUser } from '../database/modelInterfaces';
 import { updateIndividual } from '../database/repositories/individual.repo';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool, listSchools, updateSchool } from '../database/repositories/schools.repo';
-import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
+import { sendObjectResponse, BadRequestException, ResourceNotFoundError, NotFoundError, ValidationError } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import Settings from './settings.service';
 import { findOrCreateAddress, findOrCreatePhoneNumber, findSchoolWithOrganization } from './helper.service';
@@ -18,6 +18,12 @@ import { getQuestion } from '../database/repositories/question.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import { updateUser } from '../database/repositories/user.repo';
 import { createAsset } from './assets.service';
+import { getSchoolProduct, listSchoolProduct, saveSchoolProduct } from '../database/repositories/schoolProduct.repo';
+import { getProductType, listProductTypes, saveProductType } from '../database/repositories/productType.repo';
+import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
+import { getClassLevel } from '../database/repositories/classLevel.repo';
+import { getEducationPeriod } from '../database/repositories/education_period.repo';
+import { getSchoolClass, listSchoolClass } from '../database/repositories/schoolClass.repo';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   //   const validation = createBusinessValidator.validate(data);
@@ -350,3 +356,17 @@ export const backOfficeVerifiesSchool = async (data: any): Promise<theResponse> 
     return BadRequestException(e.message);
   }
 };
+
+const Service = {
+  async listClassInSchool(data: any): Promise<theResponse> {
+    const { school, ...rest } = data;
+    // todo: repo for sum of students and a sum of expected tuition fee
+    const response = await listSchoolClass(
+      { school_id: school.id, ...rest },
+      [],
+      ['ClassLevel', 'School', 'Fees', 'Fees.ProductType', 'Fees.PaymentType', 'Fees.Period', 'Fees.Session'],
+    );
+    return sendObjectResponse('All Classes retrieved successfully', response);
+  },
+};
+export default Service;

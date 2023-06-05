@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { StudentGuardian } from './../database/models/studentGuardian.model';
 import randomstring from 'randomstring';
 import { v4 } from 'uuid';
@@ -25,7 +26,12 @@ import { IUser } from '../database/modelInterfaces';
 import { saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
-import { saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import FeesService from './fees.service';
+import { listSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
+import { getSchoolProduct, saveSchoolProduct } from '../database/repositories/schoolProduct.repo';
+import { getEducationPeriod } from '../database/repositories/education_period.repo';
+import { getProductType } from '../database/repositories/productType.repo';
 
 const Service = {
   async addStudentToSchool(payload: any) {
@@ -137,7 +143,27 @@ const Service = {
       [],
       ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian', 'StudentGuardians.Guardian.phoneNumber'],
     );
-    return sendObjectResponse('Students retrieved successfully', response);
+    const gottenFees = await Promise.all(response.map(Service.addModelsToStudent));
+
+    return sendObjectResponse('Students retrieved successfully', gottenFees);
+  },
+
+  async addModelsToStudent(data: any): Promise<any> {
+    const { School, Classes } = data;
+    const studentCurrentClass = Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+    const classFees = await listSchoolClass(
+      {
+        school_id: School.id,
+        class_id: studentCurrentClass[0].ClassLevel.id,
+      },
+      [],
+      ['Fees', 'Fees.ProductType', 'Fees.PaymentType', 'Fees.Period', 'Fees.Session'],
+    );
+
+    return {
+      ...data,
+      classFees,
+    };
   },
 
   async editStudent(criteria: any): Promise<theResponse> {
@@ -324,24 +350,53 @@ const Service = {
   },
 
   async addClassToSchool(data: any): Promise<theResponse> {
-    const { school, class: classCode, periods } = data;
-    periods as { amount: number; periodCode: string; description: string, currency: string }[];
-    const foundClassLevel = await getClassLevel({ code: classCode }, []);
-    if (!foundClassLevel) throw new NotFoundError('Class Level');
+    const {
+      forPeriod = false,
+      forSession = false,
+      expiresAtPeriodEnd = false,
+      description,
+      amount,
+      currency,
+      image,
+      school,
+      class: classCode,
+      eduPeriodCode,
+      periodCode,
+      paymentType = 'install-mental',
+      productType = 'tuition',
+      session,
+    } = data;
+    const {
+      data: { foundClassLevel, feature_name, paymentTypes, foundProductType, periodManagement, sessionUse, schoolClass: foundSchoolClass },
+    } = await FeesService.generateFeeData({ ...data, addClass: true });
+    if (foundSchoolClass) throw new ExistsError(`Class`);
 
-    // Create Adding Periods
-    // find the Periods - [ACTIVE] -  in the map
-    // find the Session - [ACTIVE]
-
+    // check if class and product exist
     const schoolClass = await saveSchoolClass({
-      schoolId: school.id,
-      classId: foundClassLevel.id,
+      school_id: school.id,
+      class_id: foundClassLevel,
+      status: STATUSES.ACTIVE,
     });
 
-    // Add price amount for the period
-    return sendObjectResponse('Added Class to School Successfully');
+    // Add School Product
+    await FeesService.findOrCreateASchoolProduct({
+      paymentTypes,
+      foundProductType,
+      description,
+      amount,
+      ...periodManagement,
+      sessionUse,
+      school,
+      schoolClass,
+      currency,
+      image,
+      feature_name,
+      status: STATUSES.ACTIVE,
+    });
 
-  }
+    // todo: Create a fee per student for the class and school
+    return sendObjectResponse('Added Class to School Successfully');
+  },
 };
 
 export default Service;

@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { IClassLevel, ISchoolProduct, ISchools } from '../modelInterfaces';
+import { SchoolProduct } from './schoolProduct.model';
 
 @Entity('school_class')
 export class SchoolClass {
@@ -9,10 +11,10 @@ export class SchoolClass {
   status: number;
 
   @Column()
-  classId: number;
+  class_id: number;
 
   @Column()
-  schoolId: number;
+  school_id: number;
 
   @Column({ unique: true })
   code: string;
@@ -22,4 +24,15 @@ export class SchoolClass {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne('ClassLevel', 'student_class')
+  @JoinColumn({ name: 'class_id', referencedColumnName: 'id' })
+  ClassLevel: IClassLevel;
+
+  @OneToOne('Schools', 'school_product')
+  @JoinColumn({ name: 'school_id' })
+  School: ISchools;
+
+  @OneToMany(() => SchoolProduct, (fee) => fee.SchoolClasses)
+  Fees: ISchoolProduct[];
 }

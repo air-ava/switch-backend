@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { IEducationPeriod, IPaymentType, IProductType, ISchoolClass, ISchools, ISchoolSession } from '../modelInterfaces';
 
 @Entity('school_product')
 export class SchoolProduct {
@@ -12,7 +13,10 @@ export class SchoolProduct {
   feature_name: string;
 
   @Column()
-  paymentTypeId: number;
+  payment_type_id: number;
+
+  @Column()
+  product_type_id: number;
 
   @Column()
   description: string;
@@ -27,10 +31,10 @@ export class SchoolProduct {
   currency: string;
 
   @Column({ nullable: true })
-  schoolClassId: number;
+  school_class_id: number;
 
   @Column()
-  schoolId: number;
+  school_id: number;
 
   @Column()
   status: number;
@@ -49,4 +53,32 @@ export class SchoolProduct {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne('EducationPeriod', 'school_product')
+  @JoinColumn({ name: 'period' })
+  Period: IEducationPeriod;
+
+  @OneToOne('PaymentType', 'school_product')
+  @JoinColumn({ name: 'payment_type_id' })
+  PaymentType: IPaymentType;
+
+  @OneToOne('ProductType', 'school_product')
+  @JoinColumn({ name: 'product_type_id' })
+  ProductType: IProductType;
+
+  @OneToOne('SchoolSession', 'school_product')
+  @JoinColumn({ name: 'session' })
+  Session: ISchoolSession;
+
+  @OneToOne('Schools', 'school_product')
+  @JoinColumn({ name: 'school_id' })
+  School: ISchools;
+
+  @OneToOne('SchoolClass', 'school_product')
+  @JoinColumn({ name: 'school_class_id' })
+  SchoolClass: ISchoolClass;
+
+  @ManyToOne('SchoolClass', 'school_product')
+  @JoinColumn({ name: 'school_class_id' })
+  SchoolClasses: ISchoolClass;
 }

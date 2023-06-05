@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Schedule } from './../../integrations/extra/cron.integrations';
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { IEducationPeriod, ISchoolSession } from '../modelInterfaces';
 
 @Entity('school_period')
 export class SchoolPeriod {
@@ -16,7 +18,7 @@ export class SchoolPeriod {
 
   @Column()
   schedule_id: number;
-  
+
   @Column()
   session_id: number;
 
@@ -40,4 +42,16 @@ export class SchoolPeriod {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne('SchoolSession', 'school_period')
+  @JoinColumn({ name: 'session_id' })
+  Session: ISchoolSession;
+
+  @OneToOne('Schedule', 'school_period')
+  @JoinColumn({ name: 'schedule_id' })
+  Schedule: Schedule;
+
+  @OneToOne('EducationPeriod', 'school_period')
+  @JoinColumn({ name: 'period', referencedColumnName: 'feature_name' })
+  Period: IEducationPeriod;
 }

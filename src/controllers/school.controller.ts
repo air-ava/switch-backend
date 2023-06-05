@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import {
+import SchoolService, {
   answerQuestionnaireService,
   backOfficeVerifiesSchool,
   getQuestions,
@@ -10,7 +10,10 @@ import {
   updateSchoolDetails,
   updateSchoolInfo,
 } from '../services/school.service';
+// import SchoolService from '../services/school.service';
 import DocumentService from '../services/document.service';
+import StudentService from '../services/student.service';
+import ResponseService from '../utils/response';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
@@ -168,3 +171,20 @@ export const verifySchoolCONTROLLER: RequestHandler = async (req, res) => {
       : res.status(500).json({ success: false, error: errorMessages.verifySchool, data: error });
   }
 };
+
+export const addClassToSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  const { school, user, educationalSession } = req;
+  const payload = { ...req.query, ...req.body, school, session: educationalSession };
+  const response = await StudentService.addClassToSchool(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const listClassInSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const payload = { school };
+  const response = await SchoolService.listClassInSchool(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+

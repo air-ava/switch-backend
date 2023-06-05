@@ -16,6 +16,7 @@ export class createSchoolProductTable1685070376047 implements MigrationInterface
           {
             name: 'name',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'feature_name',
@@ -32,6 +33,7 @@ export class createSchoolProductTable1685070376047 implements MigrationInterface
           {
             name: 'image',
             type: 'int',
+            isNullable: true,
           },
           {
             name: 'amount',
@@ -59,6 +61,11 @@ export class createSchoolProductTable1685070376047 implements MigrationInterface
           {
             name: 'period',
             type: 'int',
+            isNullable: true,
+          },
+          {
+            name: 'school_period',
+            type: 'varchar',
             isNullable: true,
           },
           {

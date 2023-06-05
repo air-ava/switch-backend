@@ -1,4 +1,5 @@
 import express from 'express';
+import { listSchoolPeriodsCONTROLLER } from '../controllers/session.controller';
 import {
   accountUseCaseQuestionnaireCONTROLLER,
   schoolInfoCONTROLLER,
@@ -9,7 +10,10 @@ import {
   updateSchoolCONTROLLER,
   getDocumentRequirementCONTROLLER,
   addOnboardingDocumentsCONTROLLER,
+  addClassToSchoolCONTROLLER,
+  listClassInSchoolCONTROLLER,
 } from '../controllers/school.controller';
+import { catchErrors } from '../utils/errors';
 
 const router = express.Router();
 
@@ -22,5 +26,8 @@ router.get('/documents', getDocumentRequirementCONTROLLER);
 router.post('/documents', addOnboardingDocumentsCONTROLLER);
 router.get('/questionnaire', accountUseCaseQuestionnaireCONTROLLER);
 router.post('/questionnaire', answerUseCaseQuestionnaireCONTROLLER);
+router.post('/class', catchErrors(addClassToSchoolCONTROLLER));
+router.get('/class', catchErrors(listClassInSchoolCONTROLLER));
+router.get('/periods', catchErrors(listSchoolPeriodsCONTROLLER));
 
 export default router;

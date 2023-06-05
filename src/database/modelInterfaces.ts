@@ -859,8 +859,8 @@ export interface IStudentGuardian {
 export interface ISchoolClass {
   id: number;
   status: number;
-  classId: number;
-  schoolId: number;
+  class_id: number;
+  school_id: number;
   code: string;
   created_at: Date;
   updated_at: Date;
@@ -911,13 +911,14 @@ export interface ISchoolProduct {
   id: number;
   name: string;
   feature_name: string;
-  paymentTypeId: number;
+  payment_type_id: number;
+  product_type_id: number;
   description: string;
   image: number;
   amount: number;
   currency: string;
-  schoolClassId: number | null;
-  schoolId: number;
+  school_class_id: number | null;
+  school_id: number;
   status: number;
   period: number | null;
   session: number | null;
@@ -989,3 +990,14 @@ export interface IEducationPeriod {
   updated_at: Date;
 }
 
+export interface IProductType {
+  id: number;
+  code: string;
+  name: string;
+  slug: string;
+  school_id: number | null;
+  status: number;
+  description: string;
+  created_at: Date;
+  updated_at: Date;
+}

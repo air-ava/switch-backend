@@ -1,0 +1,44 @@
+import { RequestHandler } from 'express';
+import SchoolService from '../services/school.service';
+import FeesService from '../services/fees.service';
+import ResponseService from '../utils/response';
+
+export const getSchoolProductCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { ...req.params };
+  const response = await FeesService.getSchoolProduct(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const listFeesCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const { type: feature_name } = req.query;
+  const payload = { feature_name, school };
+  const response = await FeesService.listFeesInSchool(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const listFeeTypesCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const payload = { ...req.query, school };
+  const response = await FeesService.listFeeTypes(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const addFeeTypeCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const payload = { ...req.body, school };
+  const response = await FeesService.createAFeeType(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const addFeeCONTROLLER: RequestHandler = async (req, res) => {
+  const { school, user, educationalSession } = req;
+  const payload = { ...req.query, ...req.body, school, session: educationalSession };
+  const response = await FeesService.createAFee(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};

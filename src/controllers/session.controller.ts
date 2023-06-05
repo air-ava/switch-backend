@@ -24,6 +24,13 @@ export const listPeriodsCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, data);
 };
 
+export const listSchoolPeriodsCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { ...req.query };
+  const response = await SessionService.listSchoolPeriods(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
 export const listEducationalLevels: RequestHandler = async (req, res) => {
   const payload = { ...req.query };
   const response = await SessionService.listEducationalLevels(payload);

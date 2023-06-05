@@ -5,7 +5,7 @@ import Settings from './settings.service';
 import ScheduleService from './schedule.service';
 import { saveSchoolSession } from '../database/repositories/schoolSession.repo';
 import { STATUSES } from '../database/models/status.model';
-import { saveSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
+import { listSchoolPeriod, saveSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import Utils from '../utils/utils';
 import { theResponse } from '../utils/interface';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
@@ -99,6 +99,11 @@ const Service = {
   async listPeriods(data: any): Promise<theResponse> {
     const existingEducationalPeriods = await listEducationPeriod({}, []);
     return sendObjectResponse('Educational periods retrieved successfully', existingEducationalPeriods);
+  },
+  
+  async listSchoolPeriods(data: any): Promise<theResponse> {
+    const existingSchoolPeriods = await listSchoolPeriod({}, []);
+    return sendObjectResponse('School periods retrieved successfully', existingSchoolPeriods);
   },
 
   async listEducationalLevels(data: any): Promise<theResponse> {
