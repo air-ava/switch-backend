@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { IBeneficiaryProductPayment } from '../modelInterfaces';
 
 @Entity('product_transactions')
 export class ProductTransactions {
@@ -9,7 +10,7 @@ export class ProductTransactions {
   tx_reference: string;
 
   @Column()
-  beneficiaryProductPaymentId: number;
+  beneficiary_product_payment_id: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
@@ -31,4 +32,8 @@ export class ProductTransactions {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @ManyToOne('BeneficiaryProductPayment', 'product_transactions')
+  @JoinColumn({ name: 'beneficiary_product_payment_id' })
+  Fee: IBeneficiaryProductPayment;
 }

@@ -131,7 +131,22 @@ const Service = {
     const student = await getStudent(
       { uniqueStudentId: studentId },
       [],
-      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian', 'StudentGuardians.Guardian.phoneNumber'],
+      [
+        'Fees',
+        'Fees.FeesHistory',
+        'Fees.Fee',
+        'Fees.Fee.ProductType',
+        'Fees.Fee.PaymentType',
+        'Fees.Fee.Period',
+        'Fees.Fee.Session',
+        'User',
+        'School',
+        'Classes',
+        'Classes.ClassLevel',
+        'StudentGuardians',
+        'StudentGuardians.Guardian',
+        'StudentGuardians.Guardian.phoneNumber',
+      ],
     );
     if (!student) throw Error('Student not found');
     return sendObjectResponse('Student retrieved successfully', student);
@@ -142,11 +157,26 @@ const Service = {
     const response = await listStudent(
       { schoolId },
       [],
-      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian', 'StudentGuardians.Guardian.phoneNumber'],
+      [
+        'User',
+        'Fees',
+        'Fees.FeesHistory',
+        'Fees.Fee',
+        'Fees.Fee.ProductType',
+        'Fees.Fee.PaymentType',
+        'Fees.Fee.Period',
+        'Fees.Fee.Session',
+        'School',
+        'Classes',
+        'Classes.ClassLevel',
+        'StudentGuardians',
+        'StudentGuardians.Guardian',
+        'StudentGuardians.Guardian.phoneNumber',
+      ],
     );
-    const gottenFees = await Promise.all(response.map(Service.addModelsToStudent));
+    // const gottenFees = await Promise.all(response.map(Service.addModelsToStudent));
 
-    return sendObjectResponse('Students retrieved successfully', gottenFees);
+    return sendObjectResponse('Students retrieved successfully', response);
   },
 
   async addModelsToStudent(data: any): Promise<any> {
@@ -414,8 +444,12 @@ const Service = {
         status: statusId,
       },
       [],
+      ['student.Fees', 'student.Fees.FeesHistory'],
     );
-    return sendObjectResponse('Added Class to School Successfully', studentClass);
+    // todo: fee analytic for this class
+    // todo: gender and student count
+
+    return sendObjectResponse('Added Class to School Successfully', { class: foundClassLevel, students: studentClass});
   },
 };
 

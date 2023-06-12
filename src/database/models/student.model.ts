@@ -1,7 +1,8 @@
-import { StudentGuardian } from './studentGuardian.model';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne, OneToMany } from 'typeorm';
-import { IUser, ISchools } from '../modelInterfaces';
+import { StudentGuardian } from './studentGuardian.model';
+import { IUser, ISchools, IBeneficiaryProductPayment } from '../modelInterfaces';
 import { StudentClass } from './studentClass.model';
+import { BeneficiaryProductPayment } from './beneficiaryProductPayment.model';
 
 @Entity('students')
 export class Student {
@@ -53,4 +54,7 @@ export class Student {
 
   @OneToMany(() => StudentGuardian, (guardian) => guardian.Student)
   StudentGuardians: StudentGuardian[];
+
+  @OneToMany(() => BeneficiaryProductPayment, (fee) => fee.Students)
+  Fees: IBeneficiaryProductPayment[];
 }

@@ -51,7 +51,7 @@ export const listStundentsInSchoolClass = async (
   const repository = t ? t.manager.getRepository(StudentClass) : getRepository(StudentClass);
   const { schoolId, classId, status } = queryParam;
   if (!relationOptions) relationOptions = [];
-  relationOptions.push('student', 'student.School');
+  relationOptions.push('student');
 
   return repository.find({
     where: {

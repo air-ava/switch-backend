@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { IProductTransactions, ISchoolProduct, IStudent } from '../modelInterfaces';
+import { ProductTransactions } from './productTransactions.model';
 
 @Entity('beneficiary_product_payment')
 export class BeneficiaryProductPayment {
@@ -31,4 +33,19 @@ export class BeneficiaryProductPayment {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne('SchoolProduct', 'beneficiary_product_payment')
+  @JoinColumn({ name: 'product_id' })
+  Fee: ISchoolProduct;
+
+  @OneToOne('Student', 'beneficiary_product_payment')
+  @JoinColumn({ name: 'beneficiary_id' })
+  Student: IStudent;
+
+  @OneToMany(() => ProductTransactions, (transaction) => transaction.Fee)
+  FeesHistory: IProductTransactions[];
+
+  @ManyToOne('Student', 'beneficiary_product_payment')
+  @JoinColumn({ name: 'beneficiary_id' })
+  Students: IStudent;
 }
