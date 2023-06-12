@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
-import { IAssets, IAddress, IOrganisation, IPhoneNumber } from '../modelInterfaces';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
+import { IAssets, IAddress, IOrganisation, IPhoneNumber, IStudent } from '../modelInterfaces';
+import { Student } from './student.model';
 
 @Entity('schools')
 export class Schools {
@@ -66,4 +67,7 @@ export class Schools {
   @OneToOne('Assets', 'schools')
   @JoinColumn({ name: 'logo' })
   Logo: IAssets;
+
+  @OneToMany(() => Student, (student) => student.Schools)
+  Students: IStudent[];
 }

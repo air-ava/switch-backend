@@ -6,13 +6,16 @@ export class BeneficiaryProductPayment {
   id: number;
 
   @Column()
-  beneficiaryType: string;
+  beneficiary_type: string;
 
   @Column()
-  beneficiaryId: number;
+  product_currency: string;
 
   @Column()
-  productId: number;
+  beneficiary_id: number;
+
+  @Column()
+  product_id: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount_paid: number;

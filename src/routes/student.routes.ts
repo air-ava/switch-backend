@@ -8,6 +8,7 @@ import {
   addBulkStudentsToSchoolCONTROLLER,
   addGuardiansToStudentCONTROLLER,
   editStudentCONTROLLER,
+  listStundentsInSchoolClassCONTROLLER,
 } from '../controllers/student.controller';
 import { catchErrors } from '../utils/errors';
 
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.get('/', listStudentCONTROLLER);
 router.post('/', addStudentToSchoolCONTROLLER);
+router.get('/class', listStundentsInSchoolClassCONTROLLER);
 router.get('/:code', getStudentCONTROLLER);
 router.post('/search', catchErrors(searchStudentCONTROLLER));
 router.post('/bulk', catchErrors(addBulkStudentsToSchoolCONTROLLER));

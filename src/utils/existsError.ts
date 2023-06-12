@@ -4,7 +4,7 @@ export default class ExistsError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ExistsError';
-    this.message = `${message} already esists`;
+    this.message = `${message} already exists`;
     this.status = 409;
   }
 }

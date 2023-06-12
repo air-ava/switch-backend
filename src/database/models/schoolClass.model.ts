@@ -25,11 +25,11 @@ export class SchoolClass {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToOne('ClassLevel', 'student_class')
+  @OneToOne('ClassLevel', 'school_class')
   @JoinColumn({ name: 'class_id', referencedColumnName: 'id' })
   ClassLevel: IClassLevel;
 
-  @OneToOne('Schools', 'school_product')
+  @OneToOne('Schools', 'school_class')
   @JoinColumn({ name: 'school_id' })
   School: ISchools;
 

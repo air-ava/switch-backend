@@ -26,6 +26,10 @@ export class createBeneficiaryProductPaymentTable1685070525649 implements Migrat
             type: 'int',
           },
           {
+            name: 'product_currency',
+            type: 'int',
+          },
+          {
             name: 'amount_paid',
             type: 'decimal',
             precision: 10,

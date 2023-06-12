@@ -1,7 +1,9 @@
+/* eslint-disable no-param-reassign */
 import randomstring from 'randomstring';
 import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
 import { ISchoolClass } from '../modelInterfaces';
 import { SchoolClass } from '../models/schoolClass.model';
+import { StudentClass } from '../models/studentClass.model';
 
 export const getSchoolClass = async (
   queryParam: Partial<ISchoolClass> | any,
@@ -38,6 +40,31 @@ export const listSchoolClass = async (
         ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
         ...(relationOptions && { relations: relationOptions }),
       });
+};
+
+export const listStundentsInSchoolClass = async (
+  queryParam: { schoolId: number; classId: number; status: number },
+  selectOptions: Array<keyof StudentClass>,
+  relationOptions?: any[],
+  t?: QueryRunner,
+): Promise<StudentClass[]> => {
+  const repository = t ? t.manager.getRepository(StudentClass) : getRepository(StudentClass);
+  const { schoolId, classId, status } = queryParam;
+  if (!relationOptions) relationOptions = [];
+  relationOptions.push('student', 'student.School');
+
+  return repository.find({
+    where: {
+      classId,
+      status,
+      student: {
+        status,
+        schoolId,
+      },
+    },
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+    ...(relationOptions && { relations: relationOptions }),
+  });
 };
 
 export const saveSchoolClass = (queryParams: Partial<ISchoolClass> | Partial<ISchoolClass>[] | any, transaction?: QueryRunner): Promise<any> => {

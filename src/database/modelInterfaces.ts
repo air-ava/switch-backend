@@ -960,9 +960,10 @@ export interface IPaymentContacts {
 
 export interface IBeneficiaryProductPayment {
   id: number;
-  beneficiaryType: string;
-  beneficiaryId: number;
-  productId: number;
+  beneficiary_type: string;
+  product_currency: string;
+  beneficiary_id: number;
+  product_id: number;
   amount_paid: number;
   amount_outstanding: number;
   code: string;

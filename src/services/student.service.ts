@@ -19,7 +19,7 @@ import {
 } from '../database/repositories/user.repo';
 import { theResponse } from '../utils/interface';
 import { getStudent, listStudent, saveStudentREPO, updateStudent } from '../database/repositories/student.repo';
-import { getStudentClass, saveStudentClassREPO, updateStudentClass } from '../database/repositories/studentClass.repo';
+import { getStudentClass, listStudentClass, saveStudentClassREPO, updateStudentClass } from '../database/repositories/studentClass.repo';
 import Settings from './settings.service';
 import { mapAnArray } from '../utils/utils';
 import { IUser } from '../database/modelInterfaces';
@@ -27,11 +27,12 @@ import { saveIndividual, updateIndividual } from '../database/repositories/indiv
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
-import { listSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import { listSchoolClass, listStundentsInSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
 import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import { getSchoolProduct, saveSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
 import { getProductType } from '../database/repositories/productType.repo';
+import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
 
 const Service = {
   async addStudentToSchool(payload: any) {
@@ -356,7 +357,7 @@ const Service = {
       expiresAtPeriodEnd = false,
       description,
       amount,
-      currency,
+      currency = 'UGX',
       image,
       school,
       class: classCode,
@@ -369,6 +370,7 @@ const Service = {
     const {
       data: { foundClassLevel, feature_name, paymentTypes, foundProductType, periodManagement, sessionUse, schoolClass: foundSchoolClass },
     } = await FeesService.generateFeeData({ ...data, addClass: true });
+    console.log({ foundSchoolClass });
     if (foundSchoolClass) throw new ExistsError(`Class`);
 
     // check if class and product exist
@@ -379,7 +381,7 @@ const Service = {
     });
 
     // Add School Product
-    await FeesService.findOrCreateASchoolProduct({
+    const fee = await FeesService.findOrCreateASchoolProduct({
       paymentTypes,
       foundProductType,
       description,
@@ -392,10 +394,28 @@ const Service = {
       image,
       feature_name,
       status: STATUSES.ACTIVE,
+      foundClassLevel,
+      beneficiary_type: 'student',
     });
-
-    // todo: Create a fee per student for the class and school
     return sendObjectResponse('Added Class to School Successfully');
+  },
+
+  async listStundentsInSchoolClass(data: { status: 'ACTIVE' | 'INACTIVE'; school: any; classCode: string }): Promise<theResponse> {
+    const { school, classCode, status = 'ACTIVE' } = data;
+    const foundClassLevel = await getClassLevel({ code: classCode }, []);
+    if (!foundClassLevel) throw new NotFoundError('Class Level');
+
+    const statusId = STATUSES[status];
+
+    const studentClass = await listStundentsInSchoolClass(
+      {
+        schoolId: school.id,
+        classId: foundClassLevel.id,
+        status: statusId,
+      },
+      [],
+    );
+    return sendObjectResponse('Added Class to School Successfully', studentClass);
   },
 };
 

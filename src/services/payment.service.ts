@@ -1,3 +1,4 @@
+import { theResponse } from './../utils/interface';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import randomstring from 'randomstring';
 import { In, Not } from 'typeorm';
@@ -18,6 +19,7 @@ import BankRepo from '../database/repositories/bank.repo';
 import { saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
 import Settings from './settings.service';
 import { getQueryRunner } from '../database/helpers/db';
+import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
 
 export const createPendingPayment = async (data: any): Promise<any> => {
   const { org_id, sender_id, recipient_id, scholarship_id, description, amount, ...rest } = data;

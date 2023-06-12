@@ -3,7 +3,7 @@ import { STATUSES } from '../database/models/status.model';
 import { getClassLevel } from '../database/repositories/classLevel.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
 import { listProductTypes, getProductType, saveProductType } from '../database/repositories/productType.repo';
-import { getSchoolClass } from '../database/repositories/schoolClass.repo';
+import { getSchoolClass, listStundentsInSchoolClass } from '../database/repositories/schoolClass.repo';
 import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import { getSchoolProduct, listSchoolProduct, saveSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { ExistsError, sendObjectResponse } from '../utils/errors';
@@ -11,6 +11,9 @@ import { theResponse } from '../utils/interface';
 import NotFoundError from '../utils/notFounfError';
 import ValidationError from '../utils/validationError';
 import { generate } from 'randomstring';
+import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
+import { SchoolProduct } from '../database/models/schoolProduct.model';
+import { listStudent } from '../database/repositories/student.repo';
 
 const Service = {
   async getSchoolProduct(data: any): Promise<theResponse> {
@@ -118,9 +121,9 @@ const Service = {
   },
 
   async createAFee(data: any): Promise<theResponse> {
-    const { description, amount, currency, image, school, name } = data;
+    const { description, amount, currency, image, school, name, class: classCode } = data;
     const {
-      data: { feature_name, paymentTypes, foundProductType, periodManagement, sessionUse, schoolClass },
+      data: { foundClassLevel, feature_name, paymentTypes, foundProductType, periodManagement, sessionUse, schoolClass },
     } = await Service.generateFeeData(data);
 
     const createdFee = await Service.findOrCreateASchoolProduct({
@@ -137,6 +140,8 @@ const Service = {
       image,
       feature_name,
       status: STATUSES.ACTIVE,
+      ...(classCode && { foundClassLevel }),
+      beneficiary_type: 'student',
     });
 
     return sendObjectResponse('Fee created successfully', createdFee.data);
@@ -157,6 +162,8 @@ const Service = {
       feature_name,
       status = STATUSES.ACTIVE,
       code: productCode,
+      foundClassLevel,
+      beneficiary_type = 'student',
     } = data;
 
     const findCriteria = {
@@ -170,12 +177,45 @@ const Service = {
       ...periodManagement,
     };
 
+    console.log({ findCriteria });
+
     const schoolProductCriteria = productCode ? { code: productCode } : findCriteria;
     let schoolProduct = await getSchoolProduct(schoolProductCriteria, []);
     if (schoolProduct) throw new ExistsError(`Fee for this school`);
     schoolProduct = await saveSchoolProduct({ description, amount, currency, image, ...findCriteria });
 
+    // todo: Create a fee per student for the class and school
+    const students = foundClassLevel
+      ? await listStundentsInSchoolClass(
+          {
+            schoolId: school.id,
+            status: STATUSES.ACTIVE,
+            classId: foundClassLevel,
+          },
+          [],
+        )
+      : await listStudent({ schoolId: school.id, status: STATUSES.ACTIVE }, []);
+    await Promise.all(
+      students.map((student: any) =>
+        saveBeneficiaryProductPayment({
+          beneficiary_type,
+          beneficiary_id: student.studentId ? student.studentId : student.id,
+          product_id: (schoolProduct as SchoolProduct).id,
+          amount_paid: 0,
+          amount_outstanding: (schoolProduct as SchoolProduct).amount,
+          product_currency: (schoolProduct as SchoolProduct).currency,
+        }),
+      ),
+    );
+
     return sendObjectResponse('Fee created successfully', schoolProduct);
+  },
+
+  async createFeePaymentStatus(data: any): Promise<theResponse> {
+    const { beneficiaryType = 'student', beneficiaryId, product, amount_paid = 0 } = data;
+    const { amount, id: productId } = product;
+    await saveBeneficiaryProductPayment({ beneficiaryType, beneficiaryId, productId, amount_paid, amount_outstanding: amount });
+    return sendObjectResponse('Fee Payment Created');
   },
 };
 export default Service;

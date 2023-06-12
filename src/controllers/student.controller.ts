@@ -142,3 +142,11 @@ export const listStudentAdminCONTROLLER: RequestHandler = async (req, res) => {
       : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
   }
 };
+
+export const listStundentsInSchoolClassCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const payload = { school, ...req.body };
+  const response = await StudentService.listStundentsInSchoolClass(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
