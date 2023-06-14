@@ -21,19 +21,19 @@ export const listPeriodsCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { ...req.query };
   const response = await SessionService.listPeriods(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, data);
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizePeriod));
 };
 
 export const listSchoolPeriodsCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { ...req.query };
   const response = await SessionService.listSchoolPeriods(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, data);
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizePeriod));
 };
 
 export const listEducationalLevels: RequestHandler = async (req, res) => {
   const payload = { ...req.query };
   const response = await SessionService.listEducationalLevels(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, data);
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeEducationLevel));
 };

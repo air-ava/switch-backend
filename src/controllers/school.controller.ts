@@ -188,4 +188,3 @@ export const listClassInSchoolCONTROLLER: RequestHandler = async (req, res) => {
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeSchoolClass));
 };
-

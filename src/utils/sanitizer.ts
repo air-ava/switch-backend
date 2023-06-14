@@ -333,6 +333,15 @@ export const Sanitizer = {
     return sanitized;
   },
   
+  sanitizeEducationLevel(payload: any): any {
+    if (!payload) return null;
+    const { id,  ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+    };
+    return sanitized;
+  },
+  
   sanitizeSchoolClass(payload: any): any {
     if (!payload) return null;
     const { id, class_id, status, school_id, ClassLevel, Fees, School, ...rest } = Sanitizer.jsonify(payload);
@@ -360,14 +369,30 @@ export const Sanitizer = {
 
   sanitizeFee(payload: any): any {
     if (!payload) return null;
-    const { id, Period, Session, ProductType, PaymentType, school_id, school_class_id, status, payment_type_id, product_type_id, ...rest } = Sanitizer.jsonify(payload);
+    const {
+      id,
+      Period,
+      Session,
+      School,
+      SchoolClass,
+      ProductType,
+      PaymentType,
+      school_id,
+      school_class_id,
+      status,
+      payment_type_id,
+      product_type_id,
+      ...rest
+    } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       feeType: ProductType && Sanitizer.sanitizeFeeType(ProductType),
       paymentType: PaymentType && Sanitizer.sanitizePaymentType(PaymentType),
       period: Period && Sanitizer.sanitizePeriod(Period),
-      session: Session && Session,
+      session: Session && Sanitizer.sanitizeSession(Session),
+      schoolClass: SchoolClass && Sanitizer.sanitizeSchoolClass(SchoolClass),
+      school: School && Sanitizer.sanitizeSchool(School),
     };
     return sanitized;
   },
@@ -394,10 +419,33 @@ export const Sanitizer = {
   
   sanitizePeriod(payload: any): any {
     if (!payload) return null;
-    const { id, feature_name, status, ...rest } = Sanitizer.jsonify(payload);
+    const { id, feature_name, Schedule, school_id, schedule_id, session_id, Session, status, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      schedule: Schedule && Sanitizer.sanitizeSchedule(Schedule),
+      session: Session && Sanitizer.sanitizeSession(Session),
+    };
+    return sanitized;
+  },
+  
+  sanitizeSchedule(payload: any): any {
+    if (!payload) return null;
+    const { id, cron_id, cron_expression, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+  
+  sanitizeSession(payload: any): any {
+    if (!payload) return null;
+    const { id, schedule_id, Schedule, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      schedule: Schedule && Sanitizer.sanitizeSchedule(Schedule),
     };
     return sanitized;
   },

@@ -11,6 +11,7 @@ import { theResponse } from '../utils/interface';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 import { getEducationPeriod, listEducationPeriod } from '../database/repositories/education_period.repo';
 
+
 const Service = {
   async createSchoolPeriod(data: any): Promise<theResponse> {
     const { country = 'UGANDA', school, educationalSession, educationLevel: educationalCode, period: periodCode, periodSchedule } = data;
@@ -102,7 +103,7 @@ const Service = {
   },
   
   async listSchoolPeriods(data: any): Promise<theResponse> {
-    const existingSchoolPeriods = await listSchoolPeriod({}, []);
+    const existingSchoolPeriods = await listSchoolPeriod({}, [], ['Schedule', 'Session']);
     return sendObjectResponse('School periods retrieved successfully', existingSchoolPeriods);
   },
 
