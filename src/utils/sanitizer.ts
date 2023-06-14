@@ -296,7 +296,7 @@ export const Sanitizer = {
 
   sanitizeStudent(payload: any): any {
     if (!payload) return null;
-    const { id, StudentGuardians, status, User, userId, School, schoolId, uniqueStudentId, Classes, ...rest } = Sanitizer.jsonify(payload);
+    const { id, StudentGuardians, status, User, userId, School, schoolId, Fees, uniqueStudentId, Classes, ...rest } = Sanitizer.jsonify(payload);
     const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
     const sanitized = {
       id,
@@ -307,7 +307,97 @@ export const Sanitizer = {
       school: School && Sanitizer.sanitizeSchool(School),
       class: Classes && studentCurrentClass[0].ClassLevel,
       classes: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
+      fees: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeBeneficiaryFee),
       studentGuardians: StudentGuardians && Sanitizer.sanitizeAllArray(StudentGuardians, Sanitizer.sanitizeStudentGuardian),
+    };
+    return sanitized;
+  },
+  
+  sanitizeStudentInClass(payload: any): any {
+    if (!payload) return null;
+    const { id, class: classLevel, students, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      class: classLevel && Sanitizer.sanitizeClassLevel(classLevel),
+      students: students && Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudentClass),
+    };
+    return sanitized;
+  },
+  
+  sanitizeClassLevel(payload: any): any {
+    if (!payload) return null;
+    const { id,  ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+    };
+    return sanitized;
+  },
+  
+  sanitizeSchoolClass(payload: any): any {
+    if (!payload) return null;
+    const { id, class_id, status, school_id, ClassLevel, Fees, School, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      classLevel: ClassLevel && Sanitizer.sanitizeClassLevel(ClassLevel),
+      school: School && Sanitizer.sanitizeClassLevel(School),
+      classFees: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeFee),
+    };
+    return sanitized;
+  },
+
+  sanitizeBeneficiaryFee(payload: any): any {
+    if (!payload) return null;
+    const { id, Fee, FeesHistory, status, product_id, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      feeHistory: FeesHistory && Sanitizer.sanitizeAllArray(FeesHistory, Sanitizer.sanitizeFee),
+      fee: Fee && Sanitizer.sanitizeFee(Fee),
+    };
+    return sanitized;
+  },
+
+  sanitizeFee(payload: any): any {
+    if (!payload) return null;
+    const { id, Period, Session, ProductType, PaymentType, school_id, school_class_id, status, payment_type_id, product_type_id, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      feeType: ProductType && Sanitizer.sanitizeFeeType(ProductType),
+      paymentType: PaymentType && Sanitizer.sanitizePaymentType(PaymentType),
+      period: Period && Sanitizer.sanitizePeriod(Period),
+      session: Session && Session,
+    };
+    return sanitized;
+  },
+
+  sanitizeFeeType(payload: any): any {
+    if (!payload) return null;
+    const { id, slug, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+  
+  sanitizePaymentType(payload: any): any {
+    if (!payload) return null;
+    const { id, slug, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+  
+  sanitizePeriod(payload: any): any {
+    if (!payload) return null;
+    const { id, feature_name, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
     return sanitized;
   },
@@ -338,12 +428,12 @@ export const Sanitizer = {
 
   sanitizeStudentClass(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { id, status, ClassLevel, classId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, ClassLevel, classId, Student, student, studentId, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
-      student: Student && Sanitizer.sanitizeStudent(Student),
+      student: (Student || student) && Sanitizer.sanitizeStudent(Student || student),
       classLevel: ClassLevel && Sanitizer.sanitizeSchool(ClassLevel),
     };
     return sanitized;

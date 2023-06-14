@@ -14,6 +14,7 @@ import SchoolService, {
 import DocumentService from '../services/document.service';
 import StudentService from '../services/student.service';
 import ResponseService from '../utils/response';
+import { Sanitizer } from '../utils/sanitizer';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
@@ -185,6 +186,6 @@ export const listClassInSchoolCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { school };
   const response = await SchoolService.listClassInSchool(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, data);
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeSchoolClass));
 };
 

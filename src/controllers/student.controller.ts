@@ -148,5 +148,5 @@ export const listStundentsInSchoolClassCONTROLLER: RequestHandler = async (req, 
   const payload = { school, ...req.body };
   const response = await StudentService.listStundentsInSchoolClass(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, data);
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeStudentInClass(data));
 };
