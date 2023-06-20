@@ -67,7 +67,7 @@ const Service = {
       'mobile-money-collection-fees',
     ]);
 
-    // const sumTotal = Number(incomingAmount) + Number(fees);
+    const sumTotal = Number(incomingAmount) + Number(fees);
 
     const amountBaseResponse = `END Amount: UGX${incomingAmount}
     Fee: UGX${fees}
