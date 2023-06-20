@@ -71,7 +71,7 @@ const Service = {
 
     const amountBaseResponse = `END Amount: UGX${incomingAmount}
     Fee: UGX${fees}
-    School fees payment completed`;
+    Proceed to confirm payment`;
 
     if (!choice) return sendObjectResponse(baseResponse);
     if (choice !== '1') return sendObjectResponse(badChoice);
