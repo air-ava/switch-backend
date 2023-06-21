@@ -145,7 +145,7 @@ export const listStudentAdminCONTROLLER: RequestHandler = async (req, res) => {
 
 export const listStundentsInSchoolClassCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
-  const payload = { school, ...req.query };
+  const payload = { school, classCode: req.query.classCode };
   const response = await StudentService.listStundentsInSchoolClass(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeStudentInClass(data));
