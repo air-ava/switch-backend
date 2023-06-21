@@ -16,7 +16,7 @@ const router = express.Router();
 
 router.get('/', listStudentCONTROLLER);
 router.post('/', addStudentToSchoolCONTROLLER);
-router.get('/class', listStundentsInSchoolClassCONTROLLER);
+router.get('/class', catchErrors(listStundentsInSchoolClassCONTROLLER));
 router.get('/:code', getStudentCONTROLLER);
 router.post('/search', catchErrors(searchStudentCONTROLLER));
 router.post('/bulk', catchErrors(addBulkStudentsToSchoolCONTROLLER));
