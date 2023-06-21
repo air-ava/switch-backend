@@ -36,20 +36,10 @@ export const Service = {
     };
 
     if (purpose === 'school-fees') {
-      // metadata = {
-      //   username: student.uniqueStudentId,
-      // tx_reference: reference,
-      // transaction_type: purpose,
-      // };
       metadata.username = student.uniqueStudentId;
       purpose = 'Payment:School-Fees';
     }
     if (purpose === 'top-up') {
-      // metadata = {
-      //   username: reciever.uniquePaymentId,
-      // tx_reference: reference,
-      // transaction_type: purpose,
-      // };
       metadata.username = reciever.uniquePaymentId;
       purpose = 'Funding:Wallet';
     }

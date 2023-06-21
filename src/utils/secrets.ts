@@ -36,3 +36,4 @@ export const BAYONIC_BASE_URL = throwIfUndefined('BAYONIC_BASE_URL');
 export const BAYONIC_KEY = throwIfUndefined('BAYONIC_KEY');
 export const STEWARD_BASE_URL = throwIfUndefined('STEWARD_BASE_URL');
 export const AFRICA_TALKING_USSD_TOKEN = throwIfUndefined('AFRICA_TALKING_USSD_TOKEN');
+export const SLACK_TOKEN = throwIfUndefined('SLACK_TOKEN');

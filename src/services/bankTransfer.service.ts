@@ -15,10 +15,11 @@ import { getOneTransactionREPO, updateTransactionREPO } from '../database/reposi
 import { completeBankTransfer, updateBankTransfer } from '../validators/payment.validator';
 import { findUser } from '../database/repositories/user.repo';
 import { createAsset } from './assets.service';
+import { sendSlackMessage } from '../integrations/extra/slack.integration';
 
 const Service = {
   async recordBankTransfer(data: any): Promise<theResponse> {
-    const { bankId, user, walletId, bankDetails, description, note, amount, transactionPin } = data;
+    const { bankId, user, walletId, bankDetails, description, note, amount, transactionPin, school } = data;
     const reference = v4();
     const purpose = 'Withdraw:Bank-Transfer';
     const channel = 'bank-transfer';
@@ -52,7 +53,7 @@ const Service = {
     }
     if (!foundBank) return { success: false, error: 'Bank not found' };
 
-    await BankTransferRepo.saveBankTransfer({
+    const createdBankTransfer = await BankTransferRepo.saveBankTransfer({
       amount,
       status: STATUSES.INITIATED,
       bankId: foundBank.id,
@@ -92,6 +93,21 @@ const Service = {
 
     const transaction = await getOneTransactionREPO({ reference }, ['description', 'metadata', 'amount', 'walletId']);
     await updateTransactionREPO({ reference }, { note });
+
+    await sendSlackMessage({
+      body: {
+        amount: `${wallet.currency}${amount}`,
+        reference,
+        bankName: foundBank.bank_name,
+        schoolName: school.name,
+        initiator: `${user.first_name} ${user.last_name}`,
+        createdAt: `${createdBankTransfer.created_at}`,
+        accountName: foundBank.account_name,
+        narration: description,
+        accountNumber: foundBank.number,
+      },
+      feature: 'bank_transfer',
+    });
 
     return sendObjectResponse('Transaction successfully', transaction);
   },
@@ -218,6 +234,13 @@ const Service = {
   // todo: Complete Bank transfer which update transaction status to 'failed' and bank transfer status to 'declined'
   // todo: on Decline Reverse amount back to wallet
   // todo: Write a Cron to trigger a reminder of a pending transaction
+
+  async notifySlack(data: any): Promise<theResponse> {
+    const { body, feature = 'bank_transfer' } = data;
+    const { amount, reference, bankName, userMobile } = body;
+    await sendSlackMessage({ body, feature });
+    return sendObjectResponse('Slack Notification sent successfully');
+  },
 };
 
 export default Service;

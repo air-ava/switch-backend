@@ -5,6 +5,7 @@ import {
   getPaymentCONTROLLER,
   initiatePaymentCONTROLLER,
   listPaymentsCONTROLLER,
+  notifySlackCONTROLLER,
   recordBankTransferCONTROLLER,
   updateBankTransferCONTROLLER,
 } from '../controllers/payment.controller';
@@ -21,5 +22,6 @@ router.post('/top-up', fundWalletCONTROLLER);
 router.post('/withdraw', withdrawFromWalletCONTROLLER);
 router.get('/', listPaymentsCONTROLLER);
 router.get('/:code', getPaymentCONTROLLER);
+router.post('/slack', notifySlackCONTROLLER);
 
 export default router;
