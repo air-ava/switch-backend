@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { getStudent } from '../database/repositories/student.repo';
