@@ -96,7 +96,7 @@ const Service = {
 
     await sendSlackMessage({
       body: {
-        amount: `${wallet.currency}${amount}`,
+        amount: `${wallet.currency}${amount / 100}`,
         reference,
         bankName: foundBank.bank_name,
         schoolName: school.name,
