@@ -22,6 +22,7 @@ import paymentsRouter from './payment.routes';
 import cronsRouter from './crons.routes';
 import sessionRouter from './session.routes';
 import feesRouter from './fees.routes';
+import notificationRouter from './notification.routes';
 import { validateSession } from '../middleware/auth.middleware';
 import Settings from '../services/settings.service';
 
@@ -51,6 +52,7 @@ router.use('/banks', banksRouter);
 router.use('/settlements', settlementsRouter);
 router.use('/crons', cronsRouter);
 router.use('/fees', feesRouter);
+router.use('/notifications', notificationRouter);
 
 // Settings.init();
 /**

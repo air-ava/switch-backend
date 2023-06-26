@@ -934,10 +934,10 @@ export interface IProductTransactions {
   amount: number;
   payer: number;
   metadata: {
-      payment_method: string;
-      bank_details: string;
-      mobile_money_details: string;
-      card_details: string;
+    payment_method: string;
+    bank_details: string;
+    mobile_money_details: string;
+    card_details: string;
   };
   status: number;
   code: string;
@@ -999,6 +999,17 @@ export interface IProductType {
   school_id: number | null;
   status: number;
   description: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IPreference {
+  id: number;
+  code: string;
+  entity: string;
+  entity_id: number;
+  configuration: JSON;
+  status: number;
   created_at: Date;
   updated_at: Date;
 }
