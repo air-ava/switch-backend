@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { getStudent } from '../database/repositories/student.repo';
@@ -71,8 +72,7 @@ const Service = {
 
     const amountBaseResponse = `END Amount: UGX${incomingAmount}
     Fee: UGX${fees}
-    Total: UGX${sumTotal}
-    School fees payment completed`;
+    Proceed to confirm payment`;
 
     if (!choice) return sendObjectResponse(baseResponse);
     if (choice !== '1') return sendObjectResponse(badChoice);

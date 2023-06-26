@@ -268,7 +268,7 @@ export const Sanitizer = {
     const sanitized = {
       id,
       ...rest,
-      amount: amount - (transactionFees || charges || 0),
+      amount: amount - (charges || transactionFees || 0),
       metadata,
       recieptReference: document_reference,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),

@@ -32,15 +32,17 @@ const settings: any = {
     },
     'mobile-money-subscription-school-fees': {
       purpose: 'Fees:offset-Charge',
-      flat: Utils.isStaging() ? 10 : 1755,
+      flat: Utils.isStaging() ? 10 : 1000,
     },
     'steward-charge-school-fees': {
       purpose: 'Fees:steward-Charge',
-      flat: 200,
+      // flat: 200,
+      flat: 0,
     },
     'mobile-money-collection-fees': {
       purpose: 'Fees:collection-charge',
-      percent: 1.5,
+      // percent: 1.5,
+      flat: 0,
     },
   },
   DEFAULT_STUDENT_EMAIL: '@studentsteward.com',
