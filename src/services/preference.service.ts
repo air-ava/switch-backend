@@ -2,7 +2,9 @@
 import { getPreference, updatePreference, createPreference } from '../database/repositories/preferences.repo';
 import { getSchool } from '../database/repositories/schools.repo';
 import { NotFoundError, ValidationError, sendObjectResponse, ExistsError } from '../utils/errors';
+import Utils from '../utils/utils';
 import { theResponse } from '../utils/interface';
+import { notificationMethods } from '../validators/notification.validator';
 
 // eslint-disable-next-line no-shadow
 enum NotificationMethod {
@@ -42,24 +44,43 @@ const Service = {
   },
 
   async updateConfiguration(data: any): Promise<theResponse> {
-    const { schoolId, methods, notifyInflow, notifyOutflow, emails, phoneNumbers } = data;
+    const { schoolId, owner, notifyInflow, notifyOutflow, emails, phoneNumbers } = data;
     // Get the company preference with the provided company ID
     const schoolPreference = await getPreference({ entity: 'school', entity_id: schoolId }, [], []);
     if (!schoolPreference) throw new NotFoundError('Company preference');
 
-    if (notifyInflow) (schoolPreference.configuration as any).Notification.transactions.notifyInflow = notifyInflow;
-    if (notifyOutflow) (schoolPreference.configuration as any).Notification.transactions.notifyOutflow = notifyOutflow;
-    // if (methods) {
-    //   // eslint-disable-next-line array-callback-return
-    //   methods.map((method: NotificationMethod) => {
-    //     if (![NotificationMethod.Email, NotificationMethod.PhoneNumbers].includes(method)) (schoolPreference.configuration as any).Notification.method.push(method);
-    //   });
-    // }
-    if (emails) (schoolPreference.configuration as any).Notification.emails.push(emails);
-    if (phoneNumbers) (schoolPreference.configuration as any).Notification.phoneNumbers.push(phoneNumbers);
+    const {
+      transactions: existingTransaction,
+      emails: existingEmails,
+      phoneNumbers: existingPhone,
+    } = (schoolPreference.configuration as any).Notification;
+    if (notifyInflow) {
+      const validation = notificationMethods.validate(notifyInflow);
+      if (validation.error) throw new ValidationError(String(validation.error));
+      Service.isCompanyHavingEmails({ owner, notifyOutflow, notifyInflow });
+
+      const newNotifyInflow = Utils.getUniqueNonRepeatedElements(notifyInflow, existingTransaction.notifyInflow);
+      (schoolPreference.configuration as any).Notification.transactions.notifyInflow = newNotifyInflow;
+    }
+    if (notifyOutflow) {
+      const validation = notificationMethods.validate(notifyOutflow);
+      if (validation.error) throw new ValidationError(String(validation.error));
+      Service.isCompanyHavingEmails({ owner, notifyOutflow, notifyInflow });
+
+      const newNotifyOutflow = Utils.getUniqueNonRepeatedElements(notifyOutflow, existingTransaction.notifyOutflow);
+      (schoolPreference.configuration as any).Notification.transactions.notifyOutflow = newNotifyOutflow;
+    }
+    if (emails) {
+      const newEmails = Utils.getUniqueNonRepeatedElements(emails, existingEmails);
+      (schoolPreference.configuration as any).Notification.emails = newEmails;
+    }
+    if (phoneNumbers) {
+      const newPhones = Utils.getUniqueNonRepeatedElements(phoneNumbers, existingPhone);
+      (schoolPreference.configuration as any).Notification.phoneNumbers = newPhones;
+    }
 
     // Update the company preference with the new configuration
-    await updatePreference({ id: schoolPreference.id }, { configuration: schoolPreference });
+    await updatePreference({ id: schoolPreference.id }, { configuration: schoolPreference.configuration });
 
     return sendObjectResponse('Configuration updated successfully');
   },
@@ -165,6 +186,19 @@ const Service = {
     await createPreference(newschoolPreference);
 
     return sendObjectResponse('Notification configuration created successfully');
+  },
+
+  async isCompanyHavingEmails(data: any) {
+    const {
+      owner,
+      notifyOutflow = [NotificationMethod.Email],
+      notifyInflow = [NotificationMethod.Email],
+    } = data;
+    const isCompanyHavingEmail =
+      (notifyOutflow.includes(NotificationMethod.Email) || notifyInflow.includes(NotificationMethod.Email)) &&
+      (!owner.email || owner.email.includes('@usersteward.com') || owner.email.includes('@studentsteward.com'));
+
+    if (isCompanyHavingEmail) throw new ValidationError('An email has not been added to this account');
   },
 
   async getNotificationContacts(schoolId: number): Promise<theResponse> {

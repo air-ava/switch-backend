@@ -30,7 +30,7 @@ export const deletePhoneOrEmailCONTROLLER: RequestHandler = async (req, res) => 
 export const updateConfigurationCONTROLLER: RequestHandler = async (req, res) => {
   const { school, user } = req;
   const payload = { schoolId: school.id, owner: user, ...req.body };
-  const response = await PreferenceService.updateConfiguration(payload.schoolId);
+  const response = await PreferenceService.updateConfiguration(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };

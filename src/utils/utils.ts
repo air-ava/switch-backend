@@ -220,6 +220,16 @@ const Utils = {
     return dateFns.parseISO(date);
   },
 
+  getUniqueNonRepeatedElements(firstArray: string[] = [], secondArray: string[] = []): string[] {
+    return firstArray
+      .filter((element) => !secondArray.includes(element)) // filtering out elements present in secondArray
+      .concat(secondArray.filter((element) => !firstArray.includes(element))); // Concatenate elements from secondArray not present in firstArray
+  },
+
+  getUniqueElements(firstArray: string[] = [], secondArray: string[] = []): string[] {
+    const concatenatedArray = firstArray.concat(secondArray);
+    return [...new Set(concatenatedArray)];
+  },
 };
 
 export default Utils;

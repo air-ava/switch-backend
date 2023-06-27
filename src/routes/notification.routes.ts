@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.post('/preference', catchErrors(createNotificationConfigurationCONTROLLER));
 router.get('/contacts', catchErrors(getNotificationContactsCONTROLLER));
-router.delete('/contacts', catchErrors(deletePhoneOrEmailCONTROLLER));
-router.patch('/contacts', catchErrors(updateConfigurationCONTROLLER));
+router.delete('/', catchErrors(deletePhoneOrEmailCONTROLLER));
+router.patch('/', catchErrors(updateConfigurationCONTROLLER));
 
 export default router;
