@@ -9,6 +9,9 @@ export class Individual {
   @Column()
   firstName: string;
 
+  @Column({ unique: true })
+  code: string;
+
   @Column()
   lastName: string;
 
