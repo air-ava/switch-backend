@@ -14,10 +14,10 @@ import { catchErrors } from '../utils/errors';
 
 const router = express.Router();
 
-router.get('/', listStudentCONTROLLER);
+router.get('/', catchErrors(listStudentCONTROLLER));
 router.post('/', addStudentToSchoolCONTROLLER);
 router.get('/class', catchErrors(listStundentsInSchoolClassCONTROLLER));
-router.get('/:code', getStudentCONTROLLER);
+router.get('/:code', catchErrors(getStudentCONTROLLER));
 router.post('/search', catchErrors(searchStudentCONTROLLER));
 router.post('/bulk', catchErrors(addBulkStudentsToSchoolCONTROLLER));
 router.patch('/:id', catchErrors(editStudentCONTROLLER));
