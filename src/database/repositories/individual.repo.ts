@@ -46,7 +46,6 @@ export const createIndividual = async (payload: {
 };
 
 export const saveIndividual = async (queryParams: Partial<IIndividual>, t?: QueryRunner): Promise<Individual> => {
-  // const { ...rest } = payload;
   const payload = {
     code: `ind_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
     ...queryParams,

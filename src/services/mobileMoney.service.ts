@@ -1,3 +1,4 @@
+import { Preference } from './../database/models/preferences.model';
 import { IStudentClass } from './../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // creditWalletOnMobileMoney
@@ -12,6 +13,7 @@ import { getStudent } from '../database/repositories/student.repo';
 import { getOneTransactionREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { initiateCollection } from '../integrations/bayonic/collection.integration';
 import { Service as WalletService } from './wallet.service';
+import PreferenceService from './preference.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { fetchUserBySlug, fetchUserProfile } from './user.service';
 import { creditLedgerWallet, debitLedgerWallet } from './lien.service';
@@ -20,6 +22,9 @@ import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo
 import { ENVIRONMENT, STEWARD_BASE_URL } from '../utils/secrets';
 import Settings from './settings.service';
 import Utils from '../utils/utils';
+import { sendSms } from '../integrations/africasTalking/sms.integration';
+import { sendEmail } from '../utils/mailtrap';
+import { findUser } from '../database/repositories/user.repo';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
@@ -198,7 +203,9 @@ export const Service = {
         User: user,
         description,
         amount,
+        currency,
         metadata: transactionMetadata,
+        created_at,
       } = await getOneTransactionREPO({ reference, txn_type: 'credit', channel: 'mobile-money' }, [], ['User', 'Wallet', 'Reciepts']);
       await debitLedgerWallet({
         amount,
@@ -258,6 +265,34 @@ export const Service = {
         // t,
       );
       // await t.commitTransaction();
+      const { data } = await PreferenceService.getNotificationContacts(wallet.entity_id);
+      const { emails, phoneNumbers, transactions: transactionNotification } = data;
+      const { notifyInflow, notifyOutflow } = transactionNotification;
+      if (notifyInflow.includes('phoneNumbers'))
+        sendSms({
+          phoneNumber: data.phoneNumbers,
+          message: `amount: ${currency}${amount}\n
+            method: mobile-money\n
+            type: credit\n
+            description: ${description}\n
+            reference: ${reference}\n
+            date: ${created_at}\n`,
+        });
+      if (notifyInflow.includes('email')) {
+        sendEmail({
+          recipientEmail: emails,
+          purpose: 'welcome_user',
+          templateInfo: {
+            firstName: ` ${user.first_name}`,
+            reference,
+            description,
+            date: created_at,
+            amount: `${currency}${amount}`,
+            type: 'credit',
+            method: 'mobile-money',
+          },
+        });
+      }
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();

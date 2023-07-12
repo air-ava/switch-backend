@@ -181,6 +181,50 @@ const Utils = {
     return Utils.isProd() ? `https://steward-prod-rmq4b.ondigitalocean.app` : `https://king-prawn-app-ovupz.ondigitalocean.app`;
   },
 
+  getMoMoURL() {
+    return Utils.isProd() ? `https://sandbox.momodeveloper.mtn.com` : `https://sandbox.momodeveloper.mtn.com`;
+  },
+
+  getMoMoCollectionKey() {
+    return Utils.isProd() ? `febc3f760f6643a8ab7dc6db7c9656cb` : `b613cffce55b4422bc03fde213efa160`;
+  },
+
+  getMoMoCollectionWidgetKey() {
+    return Utils.isProd() ? `3df959f0ea46451583d67c087f03d6d0` : `f8a2c767ff044a09b854b5ba312a2873`;
+  },
+
+  getMoMoDisbursementKey() {
+    return Utils.isProd() ? `71eb435db4ee4738a22446fe6eafdbbc` : `1590ffcb20dd4b0db830562f1d99d90d`;
+  },
+
+  getMoMoAuth() {
+    return Utils.isProd()
+      ? {
+          userReferenceId: `30293133-188e-41f8-a65c-433c321c1ae2`,
+          apiKey: 'b3e3e99adbc54225bcc523af01ee1021',
+          targetEnironment: `production`,
+        }
+      : {
+          userReferenceId: `30293133-188e-41f8-a65c-433c321c1ae2`,
+          apiKey: 'b3e3e99adbc54225bcc523af01ee1021',
+          targetEnironment: `sandbox`,
+        };
+  },
+
+  getMoMoProductKeys() {
+    return Utils.isProd()
+      ? {
+          collection: `febc3f760f6643a8ab7dc6db7c9656cb`,
+          collectionWidget: '3df959f0ea46451583d67c087f03d6d0',
+          disbursement: `71eb435db4ee4738a22446fe6eafdbbc`,
+        }
+      : {
+          collection: `b613cffce55b4422bc03fde213efa160`,
+          collectionWidget: 'f8a2c767ff044a09b854b5ba312a2873',
+          disbursement: `1590ffcb20dd4b0db830562f1d99d90d`,
+        };
+  },
+
   getCurrentDate() {
     return dateFns.format(new Date(), 'yyyy-MM-dd');
   },
