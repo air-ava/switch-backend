@@ -2,6 +2,7 @@
 import { parsePhoneNumber } from 'libphonenumber-js';
 import randomstring from 'randomstring';
 import { ENVIRONMENT } from './secrets';
+import { MoreThan, LessThan } from 'typeorm';
 const dateFns = require('date-fns');
 
 const table_prefix = {
@@ -273,6 +274,20 @@ const Utils = {
   getUniqueElements(firstArray: string[] = [], secondArray: string[] = []): string[] {
     const concatenatedArray = firstArray.concat(secondArray);
     return [...new Set(concatenatedArray)];
+  },
+
+  paginationOrderAndCursor(cursor: number, query: any): any {
+    const order: any = { created_at: 'DESC' };
+    // eslint-disable-next-line no-param-reassign
+    if (cursor) query.id = order.created_at === 'ASC' ? MoreThan(cursor) : LessThan(cursor);
+    return { order, query, cursor };
+  },
+
+  paginationMeta(data: any): any {
+    const { responseArray, perPage } = data;
+    const hasMore = responseArray.length === Number(perPage);
+    const newCursor = hasMore ? responseArray[perPage - 1].id : null;
+    return { hasMore, newCursor };
   },
 };
 

@@ -35,7 +35,7 @@ import { getProductType } from '../database/repositories/productType.repo';
 import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
 
 const Service = {
-  async addStudentToSchool(payload: any) {
+  async addStudentToSchool(payload: any): Promise<theResponse> {
     const { first_name, last_name, school, class: classId, guardians } = payload;
     let { partPayment = 'installmental' } = payload;
     partPayment = partPayment.toUpperCase();
@@ -153,9 +153,9 @@ const Service = {
   },
 
   async listStudents(criteria: any): Promise<theResponse> {
-    const { schoolId } = criteria;
+    const { schoolId, perPage, cursor } = criteria;
     const response = await listStudent(
-      { schoolId },
+      { schoolId, perPage, cursor },
       [],
       [
         'User',
@@ -430,8 +430,14 @@ const Service = {
     return sendObjectResponse('Added Class to School Successfully');
   },
 
-  async listStundentsInSchoolClass(data: { status: 'ACTIVE' | 'INACTIVE'; school: any; classCode: string }): Promise<theResponse> {
-    const { school, classCode, status = 'ACTIVE' } = data;
+  async listStundentsInSchoolClass(data: {
+    status: 'ACTIVE' | 'INACTIVE';
+    school: any;
+    classCode: string;
+    perPage: any;
+    cursor: any;
+  }): Promise<theResponse> {
+    const { school, classCode, status = 'ACTIVE', perPage, cursor } = data;
     const foundClassLevel = await getClassLevel({ code: classCode }, []);
     if (!foundClassLevel) throw new NotFoundError('Class Level');
 
@@ -442,14 +448,17 @@ const Service = {
         schoolId: school.id,
         classId: foundClassLevel.id,
         status: statusId,
+        perPage,
+        cursor,
       },
       [],
       ['student.Fees', 'student.Fees.FeesHistory'],
     );
+    const { students, meta } = studentClass;
     // todo: fee analytic for this class
     // todo: gender and student count
 
-    return sendObjectResponse('Added Class to School Successfully', { class: foundClassLevel, students: studentClass});
+    return sendObjectResponse('Added Class to School Successfully', { class: foundClassLevel, students, meta});
   },
 };
 

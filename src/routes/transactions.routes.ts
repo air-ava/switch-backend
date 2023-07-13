@@ -1,3 +1,4 @@
+import { catchErrors } from './../utils/errors';
 import express from 'express';
 import {
   listTransactionsCONTROLLER,
@@ -10,10 +11,10 @@ import {
 
 const router = express.Router();
 
-router.get('/', listTransactionsCONTROLLER);
-router.get('/statistics', statsOnTransactionsCONTROLLER);
-router.get('/analytics', getTransactionsAnalyticsCONTROLLER);
-router.get('/:id', getTransactionCONTROLLER);
-router.patch('/:id/note', addNoteToTransactionCONTROLLER);
-router.patch('/:id/documents', addDocumentToTransactionCONTROLLER);
+router.get('/', catchErrors(listTransactionsCONTROLLER));
+router.get('/statistics', catchErrors(statsOnTransactionsCONTROLLER));
+router.get('/analytics', catchErrors(getTransactionsAnalyticsCONTROLLER));
+router.get('/:id', catchErrors(getTransactionCONTROLLER));
+router.patch('/:id/note', catchErrors(addNoteToTransactionCONTROLLER));
+router.patch('/:id/documents', catchErrors(addDocumentToTransactionCONTROLLER));
 export default router;

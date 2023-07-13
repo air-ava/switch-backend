@@ -186,15 +186,17 @@ const Service = {
 
     // todo: Create a fee per student for the class and school
     const students = foundClassLevel
-      ? await listStundentsInSchoolClass(
-          {
-            schoolId: school.id,
-            status: STATUSES.ACTIVE,
-            classId: foundClassLevel,
-          },
-          [],
-        )
-      : await listStudent({ schoolId: school.id, status: STATUSES.ACTIVE }, []);
+      ? (
+          await listStundentsInSchoolClass(
+            {
+              schoolId: school.id,
+              status: STATUSES.ACTIVE,
+              classId: foundClassLevel,
+            },
+            [],
+          )
+        ).students
+      : (await listStudent({ schoolId: school.id, status: STATUSES.ACTIVE }, [])).students;
     await Promise.all(
       students.map((student: any) =>
         saveBeneficiaryProductPayment({

@@ -1,9 +1,10 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-param-reassign */
-import { QueryRunner, InsertResult, getRepository, UpdateResult } from 'typeorm';
-import { isValidDate, singleDayStartAndEnd } from '../../utils/utils';
+import { QueryRunner, InsertResult, getRepository, UpdateResult, MoreThan, LessThan } from 'typeorm';
+import Utils, { isValidDate, singleDayStartAndEnd } from '../../utils/utils';
 import { ITransactions } from '../modelInterfaces';
 import { Transactions } from '../models/transaction.model';
+
 const dateFns = require("date-fns");
 
 export const saveTransaction = (
@@ -65,7 +66,7 @@ export const updateTransactionREPO = (
   return t ? t.manager.update(Transactions, queryParams, updateFields) : getRepository(Transactions).update(queryParams, updateFields);
 };
 
-export const getTransactionsREPO = (
+export const getTransactionsREPO = async (
   queryParam:
     | Partial<ITransactions>
     | {
@@ -76,20 +77,33 @@ export const getTransactionsREPO = (
   selectOptions: Array<keyof Transactions>,
   relationOptions?: any[],
   t?: QueryRunner,
-): Promise<ITransactions[]> => {
-  return t
-    ? t.manager.find(Transactions, {
-        where: queryParam,
-        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-        ...(relationOptions && { relations: relationOptions }),
-        order: { created_at: 'DESC' },
-      })
-    : getRepository(Transactions).find({
-        where: queryParam,
-        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-        ...(relationOptions && { relations: relationOptions }),
-        order: { created_at: 'DESC' },
-      });
+): Promise<ITransactions[] | any> => {
+  const { perPage = 20, cursor, ...rest } = queryParam;
+  const { order, query } = Utils.paginationOrderAndCursor(cursor, rest);
+
+  const repository = t ? t.manager.getRepository(Transactions) : getRepository(Transactions);
+  const [transactions, total] = await Promise.all([
+    repository.find({
+      where: query,
+      ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+      ...(relationOptions && { relations: relationOptions }),
+      order,
+      take: parseInt(perPage, 10),
+    }),
+    repository.count({ where: rest }),
+  ]);
+
+  const { hasMore, newCursor } = Utils.paginationMeta({ responseArray: transactions, perPage });
+
+  return {
+    transactions,
+    meta: {
+      total,
+      perPage,
+      hasMore,
+      cursor: newCursor,
+    },
+  };
 };
 
 export const getTotalCredited = (userId: string): Promise<{ total: number } | undefined> => {

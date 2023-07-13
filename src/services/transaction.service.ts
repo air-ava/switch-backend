@@ -25,7 +25,7 @@ const getTransactionReference = async (existingTransaction: any): Promise<string
 };
 
 export const listTransactions = async (data: any): Promise<any> => {
-  const { userId, type } = data;
+  const { userId, type, perPage, cursor } = data;
   let purpose = '';
   if (type === 'school-fees') purpose = 'Payment:School-Fees';
   try {
@@ -34,11 +34,14 @@ export const listTransactions = async (data: any): Promise<any> => {
         userId,
         purpose: purpose || Not(Like(`%Fees:%`)),
         status: STATUSES.SUCCESS,
+        perPage,
+        cursor,
       },
       [],
       ['User', 'Wallet', 'Reciepts'],
     );
 
+    console.log({ existingTransactions });
     return sendObjectResponse('Transactions retrieved successfully', existingTransactions);
   } catch (e: any) {
     console.log({ e });

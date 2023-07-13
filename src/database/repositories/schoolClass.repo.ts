@@ -4,6 +4,7 @@ import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
 import { ISchoolClass } from '../modelInterfaces';
 import { SchoolClass } from '../models/schoolClass.model';
 import { StudentClass } from '../models/studentClass.model';
+import Utils from '../../utils/utils';
 
 export const getSchoolClass = async (
   queryParam: Partial<ISchoolClass> | any,
@@ -43,28 +44,48 @@ export const listSchoolClass = async (
 };
 
 export const listStundentsInSchoolClass = async (
-  queryParam: { schoolId: number; classId: number; status: number },
+  queryParam: { schoolId: number; classId: number; status: number; perPage?: any; cursor?: any },
   selectOptions: Array<keyof StudentClass>,
   relationOptions?: any[],
   t?: QueryRunner,
-): Promise<StudentClass[]> => {
+): Promise<StudentClass[] | any> => {
   const repository = t ? t.manager.getRepository(StudentClass) : getRepository(StudentClass);
-  const { schoolId, classId, status } = queryParam;
+  const { schoolId, classId, status, perPage = 20, cursor } = queryParam;
+
+  const payload = {
+    classId,
+    status,
+    student: {
+      status,
+      schoolId,
+    },
+  };
+  const { order, query } = Utils.paginationOrderAndCursor(Number(cursor), payload);
+
   if (!relationOptions) relationOptions = [];
   relationOptions.push('student');
 
-  return repository.find({
-    where: {
-      classId,
-      status,
-      student: {
-        status,
-        schoolId,
-      },
+  const [students, total] = await Promise.all([
+    repository.find({
+      where: query,
+      ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+      ...(relationOptions && { relations: relationOptions }),
+      order,
+      take: parseInt(perPage, 10),
+    }),
+    repository.count({ where: payload, ...(relationOptions && { relations: relationOptions }) }),
+  ]);
+  const { hasMore, newCursor } = Utils.paginationMeta({ responseArray: students, perPage });
+
+  return {
+    students,
+    meta: {
+      total,
+      perPage,
+      hasMore,
+      cursor: newCursor,
     },
-    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-    ...(relationOptions && { relations: relationOptions }),
-  });
+  };
 };
 
 export const saveSchoolClass = (queryParams: Partial<ISchoolClass> | Partial<ISchoolClass>[] | any, transaction?: QueryRunner): Promise<any> => {

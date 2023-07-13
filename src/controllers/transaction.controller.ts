@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { getScholarship } from '../services/scholarship.service';
+import ResponseService from '../utils/response';
 import {
   listTransactions,
   getTransaction,
@@ -12,75 +13,39 @@ import { oldSendObjectResponse } from '../utils/errors';
 import { Sanitizer } from '../utils/sanitizer';
 
 export const listTransactionsCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const response = await listTransactions({ userId: req.userId, type: req.query.purpose });
-    const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, await Sanitizer.sanitizeTransactions(data)));
-    // return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeTransaction)));
-  } catch (error) {
-    console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
-  }
+  const { perPage, cursor, purpose: type } = req.query;
+  const response = await listTransactions({ userId: req.userId, type, perPage, cursor });
+  const { data, message, error } = response;
+  const { transactions, meta } = data;
+  return ResponseService.success(res, message || error, await Sanitizer.sanitizeTransactions(transactions), meta);
 };
 
 export const getTransactionCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const response = await getTransaction({ userId: req.userId, id: req.params.id });
-    const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, await Sanitizer.sanitizeTransaction(data), true));
-  } catch (error) {
-    console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
-  }
+  const response = await getTransaction({ userId: req.userId, id: req.params.id });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, await Sanitizer.sanitizeTransaction(data));
 };
 
 export const statsOnTransactionsCONTROLLER: RequestHandler = async (req, res) => {
-  console.log({ userId: req.userId });
-  try {
-    const response = await statsOnTransactions({ userId: req.userId });
-    const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeDashboardStats(data), true));
-  } catch (error) {
-    console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
-  }
+  const response = await statsOnTransactions({ userId: req.userId });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeDashboardStats(data));
 };
 
 export const addNoteToTransactionCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const response = await addNoteToTransaction({ userId: req.userId, id: req.params.id, note: req.body.note });
-    const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
-  } catch (error) {
-    console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
-  }
+  const response = await addNoteToTransaction({ userId: req.userId, id: req.params.id, note: req.body.note });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const addDocumentToTransactionCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const response = await addDocumentToTransaction({ user: req.user, id: req.params.id, documents: req.body.documents });
-    const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
-  } catch (error) {
-    console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
-  }
+  const response = await addDocumentToTransaction({ user: req.user, id: req.params.id, documents: req.body.documents });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const getTransactionsAnalyticsCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const response = await getTransactionsAnalytics({ ...req.body, userId: req.userId });
-    const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
-  } catch (error) {
-    console.log({ error });
-    return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
-  }
+  const response = await getTransactionsAnalytics({ ...req.body, userId: req.userId });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };

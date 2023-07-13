@@ -62,9 +62,11 @@ export const getStudentCONTROLLER: RequestHandler = async (req, res) => {
 
 export const listStudentCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
-  const response = await StudentService.listStudents({ schoolId: school.id });
+  const { perPage, cursor } = req.query;
+  const response = await StudentService.listStudents({ schoolId: school.id, perPage, cursor });
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeStudent));
+  const { students, meta } = data;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudent), meta);
 };
 
 export const searchStudentCONTROLLER: RequestHandler = async (req, res) => {
@@ -105,33 +107,24 @@ export const addClassToSchoolONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const addStudentToSchoolAdminCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const response = await StudentService.addStudentToSchool(req.body);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
-  }
+  const response = await StudentService.addStudentToSchool(req.body);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const listStudentAdminCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const response = await StudentService.listStudents({ schoolId: req.query.id });
-    const responseCode = response.success === true ? 200 : 400;
-    const { data, message, error } = response;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeStudent)));
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
-  }
+  const { perPage, cursor } = req.query;
+  const response = await StudentService.listStudents({ schoolId: req.query.id, perPage, cursor });
+  const { data, message, error } = response;
+  const { students, meta } = data;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudent), meta);
 };
 
 export const listStundentsInSchoolClassCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
-  const response = await StudentService.listStundentsInSchoolClass({ school, classCode: String(req.query.classCode), status: 'ACTIVE' });
+  const { perPage, cursor, classCode } = req.query;
+  const response = await StudentService.listStundentsInSchoolClass({ school, perPage, cursor, classCode: String(classCode), status: 'ACTIVE' });
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeStudentInClass(data));
+  const { meta, ...rest } = data;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeStudentInClass(rest), meta);
 };
