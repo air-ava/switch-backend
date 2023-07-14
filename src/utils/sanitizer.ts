@@ -119,6 +119,26 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  mapAnArray(arr: any[], key: string) {
+    return arr.map((item) => {
+      const response = Sanitizer.jsonify(item);
+      return key.includes('.') ? Sanitizer.findObjectValue(response, key) : response[key];
+    });
+  },
+
+  findObjectValue(object: any, path: string) {
+    const args = path.split('.');
+    let sanitizedObject = Sanitizer.jsonify(object);
+    // eslint-disable-next-line no-plusplus
+    for (let index = 0; index < args.length; index++) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (!sanitizedObject.hasOwnProperty(args[index])) return;
+      sanitizedObject = sanitizedObject[args[index]];
+    }
+    // eslint-disable-next-line consistent-return
+    return sanitizedObject;
+  },
+
   sanitizeAllArray(payload: any, object: any, extra?: string): any[] {
     if (!Array.isArray(payload)) return [];
     return payload.map((item) => object(item, extra && extra));
@@ -298,6 +318,7 @@ export const Sanitizer = {
     if (!payload) return null;
     const { id, StudentGuardians, status, User, userId, School, schoolId, Fees, uniqueStudentId, Classes, ...rest } = Sanitizer.jsonify(payload);
     const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+    const paymentFees = Fees && Sanitizer.mapAnArray(Fees, 'FeesHistory');
     const sanitized = {
       id,
       ...rest,
@@ -308,11 +329,12 @@ export const Sanitizer = {
       class: Classes && studentCurrentClass[0].ClassLevel,
       classes: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
       fees: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeBeneficiaryFee),
+      paymentHistory: Fees && Sanitizer.sanitizeAllArray(paymentFees.flat(), Sanitizer.sanitizeFee),
       studentGuardians: StudentGuardians && Sanitizer.sanitizeAllArray(StudentGuardians, Sanitizer.sanitizeStudentGuardian),
     };
     return sanitized;
   },
-  
+
   sanitizeStudentInClass(payload: any): any {
     if (!payload) return null;
     const { id, class: classLevel, students, ...rest } = Sanitizer.jsonify(payload);
@@ -323,7 +345,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizeClassLevel(payload: any): any {
     if (!payload) return null;
     const { id,  ...rest } = Sanitizer.jsonify(payload);
