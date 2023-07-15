@@ -237,9 +237,9 @@ const Service = {
       await updateStudentClass({ id: student.id }, { classId });
     }
     const studentPayload: any = {};
-    if (criteria.firstName) studentPayload.first_name = criteria.firstName;
-    if (criteria.lastName) studentPayload.last_name = criteria.lastName;
-    if (criteria.otherName) studentPayload.other_name = criteria.otherName;
+    if (criteria.first_name) studentPayload.first_name = criteria.first_name;
+    if (criteria.last_name) studentPayload.last_name = criteria.last_name;
+    if (criteria.other_name) studentPayload.other_name = criteria.other_name;
     if (criteria.email) studentPayload.email = criteria.email;
     if (criteria.gender) studentPayload.gender = criteria.gender;
     if (reqPhone) {
