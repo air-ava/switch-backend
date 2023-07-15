@@ -316,12 +316,14 @@ export const Sanitizer = {
 
   sanitizeStudent(payload: any): any {
     if (!payload) return null;
-    const { id, StudentGuardians, status, User, userId, School, schoolId, Fees, uniqueStudentId, Classes, ...rest } = Sanitizer.jsonify(payload);
+    const { id, StudentGuardians, status, User, userId, School, schoolId, Fees, uniqueStudentId, Classes, PaymentType, ...rest } = Sanitizer.jsonify(payload);
     const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
     const paymentFees = Fees && Sanitizer.mapAnArray(Fees, 'FeesHistory');
     const sanitized = {
       id,
       ...rest,
+      partPayment: PaymentType.value === 'install-mental',
+      blockPayment: PaymentType.value === 'no-payment',
       studentId: uniqueStudentId,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       user: User && Sanitizer.sanitizeUser(User),
@@ -330,6 +332,7 @@ export const Sanitizer = {
       classes: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
       fees: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeBeneficiaryFee),
       paymentHistory: Fees && Sanitizer.sanitizeAllArray(paymentFees.flat(), Sanitizer.sanitizeFee),
+      paymentType: PaymentType && Sanitizer.sanitizePaymentType(PaymentType),
       studentGuardians: StudentGuardians && Sanitizer.sanitizeAllArray(StudentGuardians, Sanitizer.sanitizeStudentGuardian),
     };
     return sanitized;

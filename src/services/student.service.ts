@@ -132,6 +132,7 @@ const Service = {
       { uniqueStudentId: studentId },
       [],
       [
+        'PaymentType',
         'Fees',
         'Fees.FeesHistory',
         'Fees.Fee',
@@ -140,6 +141,7 @@ const Service = {
         'Fees.Fee.Period',
         'Fees.Fee.Session',
         'User',
+        'User.phoneNumber',
         'School',
         'Classes',
         'Classes.ClassLevel',
@@ -159,7 +161,9 @@ const Service = {
       [],
       [
         'User',
+        'User.phoneNumber',
         'Fees',
+        'PaymentType',
         'Fees.FeesHistory',
         'Fees.Fee',
         'Fees.Fee.ProductType',
@@ -198,7 +202,7 @@ const Service = {
   },
 
   async editStudent(criteria: any): Promise<theResponse> {
-    const { id: studentId, guardian, class: classId } = criteria;
+    const { id: studentId, guardian, class: classId, phone_number: reqPhone } = criteria;
     let { partPayment } = criteria;
     const student = await getStudent(
       { id: studentId },
@@ -217,9 +221,17 @@ const Service = {
       await updateStudentClass({ id: student.id }, { classId });
     }
     const studentPayload: any = {};
-    if (criteria.firstName) studentPayload.firstName = criteria.firstName;
-    if (criteria.lastName) studentPayload.lastName = criteria.lastName;
+    if (criteria.firstName) studentPayload.first_name = criteria.firstName;
+    if (criteria.lastName) studentPayload.last_name = criteria.lastName;
+    if (criteria.otherName) studentPayload.other_name = criteria.otherName;
     if (criteria.email) studentPayload.email = criteria.email;
+    if (criteria.gender) studentPayload.gender = criteria.gender;
+    if (reqPhone) {
+      const {
+        data: { id: phone_number },
+      } = await findOrCreatePhoneNumber(reqPhone);
+      studentPayload.phone_number = phone_number;
+    }
     await updateUser({ id: student.userId }, studentPayload);
 
     if (guardian) {

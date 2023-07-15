@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne, OneToMany } from 'typeorm';
 import { StudentGuardian } from './studentGuardian.model';
-import { IUser, ISchools, IBeneficiaryProductPayment } from '../modelInterfaces';
+import { IUser, ISchools, IBeneficiaryProductPayment, IPaymentType } from '../modelInterfaces';
 import { StudentClass } from './studentClass.model';
 import { BeneficiaryProductPayment } from './beneficiaryProductPayment.model';
 
@@ -57,4 +57,8 @@ export class Student {
 
   @OneToMany(() => BeneficiaryProductPayment, (fee) => fee.Students)
   Fees: IBeneficiaryProductPayment[];
+
+  @OneToOne('PaymentType', 'students')
+  @JoinColumn({ name: 'paymentTypeId' })
+  PaymentType: IPaymentType;
 }
