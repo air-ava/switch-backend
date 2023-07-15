@@ -36,7 +36,7 @@ import { saveBeneficiaryProductPayment } from '../database/repositories/benefici
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
-    const { first_name, last_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
+    const { first_name, last_name, gender, other_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
     let { partPayment = 'installmental' } = payload;
     partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
@@ -62,6 +62,8 @@ const Service = {
       user_type: 'student',
       first_name,
       last_name,
+      gender: gender && gender,
+      other_name: other_name && other_name,
       password: passwordHash,
     };
     if (reqPhone) {
