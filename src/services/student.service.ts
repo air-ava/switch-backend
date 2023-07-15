@@ -36,7 +36,7 @@ import { saveBeneficiaryProductPayment } from '../database/repositories/benefici
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
-    const { first_name, last_name, school, class: classId, guardians } = payload;
+    const { first_name, last_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
     let { partPayment = 'installmental' } = payload;
     partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
@@ -44,22 +44,34 @@ const Service = {
     const schoolId = typeof school === 'number' ? school : school.id;
 
     // default student email
-    let studentEmail = `${first_name}+${last_name}+student${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
-    const studentsFound = await listUser({ email: Like(`%${first_name}+${last_name}%`) }, []);
-    if (studentsFound.length) studentEmail = `${first_name}+${last_name}${studentsFound.length + 1}${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
+    let studentEmail;
+    if (email) studentEmail = email;
+    else {
+      studentEmail = `${first_name}+${last_name}+student${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
+      const studentsFound = await listUser({ email: Like(`%${first_name}+${last_name}%`) }, []);
+      if (studentsFound.length) studentEmail = `${first_name}+${last_name}${studentsFound.length + 1}${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
+    }
 
     const uniqueStudentId = randomstring.generate({ length: 9, charset: 'numeric' });
     const remember_token = randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' });
     const passwordHash = bcrypt.hashSync(`${first_name}${last_name}`, 8);
 
-    const studentUserRecord = await saveAUser({
+    const studentPayload: any = {
       email: studentEmail,
       remember_token,
       user_type: 'student',
       first_name,
       last_name,
       password: passwordHash,
-    });
+    };
+    if (reqPhone) {
+      const {
+        data: { id: phone_number },
+      } = await findOrCreatePhoneNumber(reqPhone);
+      studentPayload.phone_number = phone_number;
+    }
+
+    const studentUserRecord = await saveAUser(studentPayload);
 
     const student = await saveStudentREPO({
       schoolId,
