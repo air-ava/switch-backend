@@ -202,14 +202,18 @@ const Service = {
   },
 
   async editStudent(criteria: any): Promise<theResponse> {
-    const { id: studentId, guardian, class: classId, phone_number: reqPhone } = criteria;
+    const { id: studentId, guardians, addGuardians, class: classId, phone_number: reqPhone } = criteria;
     let { partPayment } = criteria;
+
+    if (addGuardians && addGuardians.length > 2) throw new ValidationError('You can not have more than two(2) Guardians');
     const student = await getStudent(
       { id: studentId },
       [],
       ['User', 'School', 'Classes', 'Classes.ClassLevel', 'StudentGuardians', 'StudentGuardians.Guardian'],
     );
     if (!student) throw new NotFoundError('Student');
+    if (addGuardians && addGuardians.length && student.StudentGuardians.length > 1)
+      throw new ValidationError('You have hit the max number of guardians for this student');
 
     if (partPayment) {
       partPayment = partPayment.toUpperCase();
@@ -234,27 +238,34 @@ const Service = {
     }
     await updateUser({ id: student.userId }, studentPayload);
 
-    if (guardian) {
-      const { details, code } = guardian;
-      const { relationship, gender, firstName, lastName, phone_number, email } = details;
-      const [guardianToEdit] = student.StudentGuardians.filter((value: any) => value.code === code);
-      if (!guardianToEdit) throw new NotFoundError('Guardian for this student');
+    if (guardians) await Promise.all(guardians.map((guardian: any) => Service.editGuardian({ guardian, student })));
 
-      if (relationship) await updateStudentGuardian({ id: guardianToEdit.id }, { relationship });
-
-      const individualPayload: any = {};
-      if (firstName) individualPayload.firstName = firstName;
-      if (lastName) individualPayload.lastName = lastName;
-      if (gender) individualPayload.gender = gender;
-      if (email) individualPayload.email = email;
-      if (phone_number) {
-        const { data: phone } = await findOrCreatePhoneNumber(phone_number);
-        individualPayload.phone_number = phone.id;
-      }
-      await updateIndividual({ id: guardianToEdit.Guardian.id }, individualPayload);
-    }
+    if (addGuardians && addGuardians.length) await Service.addGuardians({ id: studentId, guardians: addGuardians });
 
     return sendObjectResponse('Students edited successfully');
+  },
+
+  async editGuardian(criteria: any): Promise<theResponse> {
+    const { guardian, student } = criteria;
+    const { details, code } = guardian;
+    const { relationship, gender, firstName, lastName, phone_number, email } = details;
+    const [guardianToEdit] = student.StudentGuardians.filter((value: any) => value.code === code);
+    if (!guardianToEdit) throw new NotFoundError('Guardian for this student');
+
+    if (relationship) await updateStudentGuardian({ id: guardianToEdit.id }, { relationship });
+
+    const individualPayload: any = {};
+    if (firstName) individualPayload.firstName = firstName;
+    if (lastName) individualPayload.lastName = lastName;
+    if (gender) individualPayload.gender = gender;
+    if (email) individualPayload.email = email;
+    if (phone_number) {
+      const { data: phone } = await findOrCreatePhoneNumber(phone_number);
+      individualPayload.phone_number = phone.id;
+    }
+    await updateIndividual({ id: guardianToEdit.Guardian.id }, individualPayload);
+
+    return sendObjectResponse('Guardian edited successfully');
   },
 
   async addGuardians(criteria: any): Promise<theResponse> {
@@ -470,7 +481,7 @@ const Service = {
     // todo: fee analytic for this class
     // todo: gender and student count
 
-    return sendObjectResponse('Added Class to School Successfully', { class: foundClassLevel, students, meta});
+    return sendObjectResponse('Added Class to School Successfully', { class: foundClassLevel, students, meta });
   },
 };
 
