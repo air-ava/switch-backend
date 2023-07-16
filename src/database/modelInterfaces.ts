@@ -932,13 +932,10 @@ export interface IProductTransactions {
   tx_reference: string;
   beneficiaryProductPaymentId: number;
   amount: number;
+  outstanding_before: number;
+  outstanding_after: number;
   payer: number;
-  metadata: {
-    payment_method: string;
-    bank_details: string;
-    mobile_money_details: string;
-    card_details: string;
-  };
+  metadata: { [key: string]: number | string };
   status: number;
   code: string;
   created_at: Date;
@@ -947,11 +944,11 @@ export interface IProductTransactions {
 
 export interface IPaymentContacts {
   id: number;
-  name: string;
+  name?: string;
   school: number;
-  phone_number: number;
-  addressId: number;
-  email: string;
+  phone_number?: number;
+  address_id?: number;
+  email?: string;
   status: number;
   code: string;
   created_at: Date;

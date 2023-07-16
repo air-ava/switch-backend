@@ -7,13 +7,24 @@ import { getSchoolClass, listStundentsInSchoolClass } from '../database/reposito
 import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import { getSchoolProduct, listSchoolProduct, saveSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { ExistsError, sendObjectResponse } from '../utils/errors';
-import { theResponse } from '../utils/interface';
+import { ControllerResponse, theResponse } from '../utils/interface';
 import NotFoundError from '../utils/notFounfError';
 import ValidationError from '../utils/validationError';
 import { generate } from 'randomstring';
-import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
+import {
+  saveBeneficiaryProductPayment,
+  getBeneficiaryProductPayment,
+  incrementAmountPaid,
+  decrementAmountOutstanding,
+} from '../database/repositories/beneficiaryProductPayment.repo';
 import { SchoolProduct } from '../database/models/schoolProduct.model';
 import { listStudent } from '../database/repositories/student.repo';
+import { QueryRunner } from 'typeorm';
+import { any } from 'joi';
+import { IPaymentContacts, IUser } from '../database/modelInterfaces';
+import { saveALienTransaction } from '../database/repositories/lienTransaction.repo';
+import { saveTransaction } from '../database/repositories/transaction.repo';
+import { saveProductTransaction } from '../database/repositories/productTransaction.repo';
 
 const Service = {
   async getSchoolProduct(data: any): Promise<theResponse> {
@@ -219,5 +230,67 @@ const Service = {
     await saveBeneficiaryProductPayment({ beneficiaryType, beneficiaryId, productId, amount_paid, amount_outstanding: amount });
     return sendObjectResponse('Fee Payment Created');
   },
+
+  async recordInstallment({
+    amount,
+    reference,
+    paymentContact,
+    metadata,
+    beneficiaryId,
+    status = STATUSES.SUCCESS,
+    t,
+  }: {
+    amount: number;
+    paymentContact: IPaymentContacts;
+    beneficiaryId: number;
+    status?: number;
+    reference: string;
+    metadata: { [key: string]: number | string };
+    t?: QueryRunner;
+  }): Promise<ControllerResponse> {
+    const productPayment = await getBeneficiaryProductPayment({ id: beneficiaryId }, [], ['Fee', 'Student', 'Student.User']);
+    // const wallet = await WalletREPO.findWallet({ userId: user.id, id: walletId }, ['id', 'balance', 'ledger_balance'], t);
+    if (!productPayment) {
+      return {
+        success: false,
+        error: 'Fee does not exist for beneficiary',
+      };
+    }
+    if (!productPayment.Student || !(productPayment.Student as any).User) {
+      return {
+        success: false,
+        error: 'Beneficiary does not exist',
+      };
+    }
+    await incrementAmountPaid(productPayment.id, amount, t);
+    await decrementAmountOutstanding(productPayment.id, amount, t);
+    // Payment Contact || Beneficiary User
+    await saveProductTransaction(
+      {
+        amount,
+        status,
+        payer: paymentContact.id,
+        outstanding_before: Number(productPayment.amount_outstanding),
+        outstanding_after: Number(productPayment.amount_outstanding) - Number(amount),
+        metadata,
+        beneficiary_product_payment_id: productPayment,
+        tx_reference: reference,
+      },
+      t,
+    );
+    if (t) t.commitTransaction();
+    return {
+      success: true,
+      message: 'Successfully recorded fee payment',
+    };
+  },
+
+  // async recordFeePayment(data: any): Promise<theResponse> {
+  //   const { paidAmount, beneficiaryProduct, transactionReference, payer, metadata } = data;
+
+  //   // Update fee transaction
+  //   // Save Product Transaction
+  //   return sendObjectResponse('Fee Payment Created');
+  // },
 };
 export default Service;

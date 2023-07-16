@@ -105,21 +105,40 @@ export const getPendingPayment = async ({
   return sendObjectResponse('Payment retrieved successfully', existingPayment);
 };
 
-export const buildCollectionRequestPayload = async ({ user, walletId, studentId, phoneNumber, amount, amountWithFees }: any): Promise<any> => {
+export const buildCollectionRequestPayload = async ({
+  user,
+  walletId,
+  studentId,
+  phoneNumber,
+  amount,
+  amountWithFees,
+  feature_name,
+}: any): Promise<any> => {
   let school;
   let reciever;
+  let studentTutition;
   if (user) {
     const { data: foundSchool } = await getSchoolDetails({ user });
     school = foundSchool;
   }
   if (studentId) {
-    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
+    const student = await getStudent(
+      { uniqueStudentId: studentId },
+      [],
+      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'Fees', 'Fees.Fee', 'Fees.Fee.ProductType', 'Fees.Fee.PaymentType'],
+    );
     if (!student) throw new Error('Student not found');
     if (!user) {
       school = student.School;
       const organization = await getOneOrganisationREPO({ id: school.organisation_id }, [], ['Owner']);
       // eslint-disable-next-line no-param-reassign
       user = organization.Owner;
+    }
+    if (student.Fees) {
+      const [studentTutitionFee] = student.Fees.filter(
+        (value: any) => value.beneficiary_type === 'student' && value.Fee.feature_name === feature_name && value.Fee.status === STATUSES.ACTIVE,
+      );
+      studentTutition = studentTutitionFee;
     }
     reciever = student;
   } else {
@@ -132,7 +151,10 @@ export const buildCollectionRequestPayload = async ({ user, walletId, studentId,
     user,
     phoneNumber,
     amount,
-    ...(studentId && { student: reciever }),
+    ...(studentId && {
+      student: reciever,
+      studentTutition: reciever.Fees && studentTutition,
+    }),
     ...(walletId && { reciever }),
     purpose: studentId ? 'school-fees' : 'top-up',
     school,

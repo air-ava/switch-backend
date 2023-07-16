@@ -6,19 +6,19 @@ export class PaymentContacts {
   id: number;
 
   @Column()
-  name: string;
+  name?: string;
 
   @Column()
   school: number;
 
   @Column()
-  phone_number: number;
+  phone_number?: string;
 
   @Column()
-  addressId: number;
+  address_id?: number;
 
   @Column()
-  email: string;
+  email?: string;
 
   @Column()
   status: number;

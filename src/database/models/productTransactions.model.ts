@@ -16,10 +16,16 @@ export class ProductTransactions {
   amount: number;
 
   @Column()
+  outstanding_before: number;
+
+  @Column()
+  outstanding_after: number;
+
+  @Column()
   payer: number;
 
   @Column('json')
-  metadata: { payment_method: string; bank_details: string; mobile_money_details: string; card_details: string };
+  metadata: { [key: string]: number | string };
 
   @Column()
   status: number;

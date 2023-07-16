@@ -92,6 +92,8 @@ const Service = {
       await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
     }
 
+    // todo: Add fees for new Student
+
     return sendObjectResponse('Student created successfully');
   },
 

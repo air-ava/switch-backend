@@ -44,11 +44,12 @@ export const saveProductTransaction = (
   queryParams: Partial<IProductTransactions> | Partial<IProductTransactions>[] | any,
   transaction?: QueryRunner,
 ): Promise<any> => {
+  const repository = transaction ? transaction.manager.getRepository(ProductTransactions) : getRepository(ProductTransactions);
   const payload = {
     code: `ptx_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
     ...queryParams,
   };
-  return transaction ? transaction.manager.save(ProductTransactions, payload) : getRepository(ProductTransactions).save(payload);
+  return repository.save(payload);
 };
 
 export const updateProductTransaction = (
@@ -58,3 +59,11 @@ export const updateProductTransaction = (
 ): Promise<UpdateResult> => {
   return t ? t.manager.update(ProductTransactions, queryParams, updateFields) : getRepository(ProductTransactions).update(queryParams, updateFields);
 };
+
+// export const saveProductTransaction = (
+//   transaction_details: Omit<IProductTransactions, 'id' | 'status' | 'created_at' | 'blocked_at' | 'updated_at' | 'code'> & { t?: QueryRunner },
+// ): Promise<any> => {
+//   const { t } = transaction_details;
+//   const repository = t ? t.manager.getRepository(ProductTransactions) : getRepository(ProductTransactions);
+//   return repository.save(transaction_details);
+// };

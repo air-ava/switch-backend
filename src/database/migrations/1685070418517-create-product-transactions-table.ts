@@ -28,6 +28,18 @@ export class createProductTransactionsTable1685070418517 implements MigrationInt
             scale: 2,
           },
           {
+            name: 'outstanding_before',
+            type: 'decimal',
+            precision: 10,
+            scale: 2,
+          },
+          {
+            name: 'outstanding_after',
+            type: 'decimal',
+            precision: 10,
+            scale: 2,
+          },
+          {
             name: 'payer',
             type: 'int',
           },

@@ -5,7 +5,7 @@ import { BeneficiaryProductPayment } from '../models/beneficiaryProductPayment.m
 
 export const getBeneficiaryProductPayment = async (
   queryParam: Partial<IBeneficiaryProductPayment> | any,
-  selectOptions: Array<keyof BeneficiaryProductPayment>,
+  selectOptions: Array<keyof BeneficiaryProductPayment> = [],
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<BeneficiaryProductPayment | undefined> => {
@@ -50,4 +50,24 @@ export const updateBeneficiaryProductPayment = (
 ): Promise<UpdateResult> => {
   const repository = t ? t.manager.getRepository(BeneficiaryProductPayment) : getRepository(BeneficiaryProductPayment);
   return repository.update(queryParams, updateFields);
+};
+
+export const incrementAmountPaid = (id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> => {
+  const repository = t ? t.manager.getRepository(BeneficiaryProductPayment) : getRepository(BeneficiaryProductPayment);
+  return repository.increment({ id }, 'amount_paid', amount);
+};
+
+export const decrementAmountPaid = (id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> => {
+  const repository = t ? t.manager.getRepository(BeneficiaryProductPayment) : getRepository(BeneficiaryProductPayment);
+  return repository.decrement({ id }, 'amount_paid', amount);
+};
+
+export const incrementAmountOutstanding = (id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> => {
+  const repository = t ? t.manager.getRepository(BeneficiaryProductPayment) : getRepository(BeneficiaryProductPayment);
+  return repository.increment({ id }, 'amount_outstanding', amount);
+};
+
+export const decrementAmountOutstanding = (id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> => {
+  const repository = t ? t.manager.getRepository(BeneficiaryProductPayment) : getRepository(BeneficiaryProductPayment);
+  return repository.decrement({ id }, 'amount_outstanding', amount);
 };
