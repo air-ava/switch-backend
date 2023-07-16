@@ -84,7 +84,8 @@ export const answerUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, 
 
 export const getSchoolCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const payload = { user: req.user };
+    const { educationalSession } = req;
+    const payload = { user: req.user, session: educationalSession };
     const response = await getSchoolDetails(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);

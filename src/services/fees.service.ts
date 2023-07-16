@@ -21,10 +21,11 @@ import { SchoolProduct } from '../database/models/schoolProduct.model';
 import { listStudent } from '../database/repositories/student.repo';
 import { QueryRunner } from 'typeorm';
 import { any } from 'joi';
-import { IPaymentContacts, IUser } from '../database/modelInterfaces';
+import { IPaymentContacts, IStudentClass, IUser } from '../database/modelInterfaces';
 import { saveALienTransaction } from '../database/repositories/lienTransaction.repo';
 import { saveTransaction } from '../database/repositories/transaction.repo';
 import { saveProductTransaction } from '../database/repositories/productTransaction.repo';
+import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 
 const Service = {
   async getSchoolProduct(data: any): Promise<theResponse> {
@@ -248,7 +249,11 @@ const Service = {
     metadata: { [key: string]: number | string };
     t?: QueryRunner;
   }): Promise<ControllerResponse> {
-    const productPayment = await getBeneficiaryProductPayment({ id: beneficiaryId }, [], ['Fee', 'Student', 'Student.User']);
+    const productPayment = await getBeneficiaryProductPayment(
+      { id: beneficiaryId },
+      [],
+      ['Fee', 'Student', 'Student.User', 'Student.School'],
+    );
     // const wallet = await WalletREPO.findWallet({ userId: user.id, id: walletId }, ['id', 'balance', 'ledger_balance'], t);
     if (!productPayment) {
       return {
@@ -262,6 +267,10 @@ const Service = {
         error: 'Beneficiary does not exist',
       };
     }
+    const { School } = productPayment.Student as any;
+    const session = await getSchoolSession({ country: 'UGANDA' || School.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
+    // const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+
     await incrementAmountPaid(productPayment.id, amount, t);
     await decrementAmountOutstanding(productPayment.id, amount, t);
     // Payment Contact || Beneficiary User
@@ -275,6 +284,7 @@ const Service = {
         metadata,
         beneficiary_product_payment_id: productPayment,
         tx_reference: reference,
+        session: session && session.session,
       },
       t,
     );

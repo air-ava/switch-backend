@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IBeneficiaryProductPayment } from '../modelInterfaces';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { IBeneficiaryProductPayment, IPaymentContacts, ITransactions } from '../modelInterfaces';
+import { Transactions } from './transaction.model';
 
 @Entity('product_transactions')
 export class ProductTransactions {
@@ -8,6 +9,9 @@ export class ProductTransactions {
 
   @Column()
   tx_reference: string;
+  
+  @Column()
+  session: string;
 
   @Column()
   beneficiary_product_payment_id: number;
@@ -42,4 +46,15 @@ export class ProductTransactions {
   @ManyToOne('BeneficiaryProductPayment', 'product_transactions')
   @JoinColumn({ name: 'beneficiary_product_payment_id' })
   Fee: IBeneficiaryProductPayment;
+
+  @OneToOne('BeneficiaryProductPayment', 'product_transactions')
+  @JoinColumn({ name: 'beneficiary_product_payment_id' })
+  beneficiaryFee: IBeneficiaryProductPayment;
+  
+  @OneToOne('PaymentContacts', 'product_transactions')
+  @JoinColumn({ name: 'payer' })
+  Payer: IPaymentContacts;
+
+  @OneToMany(() => Transactions, (transaction) => transaction.ProductTransaction)
+  Transactions: ITransactions[];
 }

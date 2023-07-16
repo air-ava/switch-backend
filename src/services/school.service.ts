@@ -222,14 +222,14 @@ export const answerQuestionnaireService = async ({ answers, user }: { answers: a
 };
 
 export const getSchoolDetails = async (data: any) => {
-  const { user } = data;
+  const { user, session } = data;
 
   try {
     const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
     if (!gottenSchool.success) return gottenSchool;
     const { school } = gottenSchool.data;
 
-    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool(school));
+    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool({ ...school, session }));
   } catch (e: any) {
     return BadRequestException(e.message);
   }

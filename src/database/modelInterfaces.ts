@@ -930,6 +930,7 @@ export interface ISchoolProduct {
 export interface IProductTransactions {
   id: number;
   tx_reference: string;
+  session: string;
   beneficiaryProductPaymentId: number;
   amount: number;
   outstanding_before: number;

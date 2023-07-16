@@ -271,7 +271,7 @@ export const Sanitizer = {
   },
 
   async sanitizeTransactions(payload: any): Promise<any> {
-    if (!Array.isArray(payload)) return null;
+    if (!Array.isArray(payload)) return [];
     const response = await Promise.all(payload.map(Sanitizer.sanitizeTransaction));
     return response;
   },
@@ -331,7 +331,7 @@ export const Sanitizer = {
       class: Classes && studentCurrentClass[0].ClassLevel,
       classHistory: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
       fees: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeBeneficiaryFee),
-      paymentHistory: Fees && Sanitizer.sanitizeAllArray(paymentFees.flat(), Sanitizer.sanitizeFee),
+      paymentHistory: Fees && Sanitizer.sanitizeAllArray(paymentFees.flat(), Sanitizer.sanitizePaymentHistory),
       paymentType: PaymentType && Sanitizer.sanitizePaymentType(PaymentType),
       studentGuardians: StudentGuardians && Sanitizer.sanitizeAllArray(StudentGuardians, Sanitizer.sanitizeStudentGuardian),
     };
@@ -407,6 +407,7 @@ export const Sanitizer = {
       status,
       payment_type_id,
       product_type_id,
+      Transactions,
       ...rest
     } = Sanitizer.jsonify(payload);
     const sanitized = {
@@ -418,6 +419,31 @@ export const Sanitizer = {
       session: Session && Sanitizer.sanitizeSession(Session),
       schoolClass: SchoolClass && Sanitizer.sanitizeSchoolClass(SchoolClass),
       school: School && Sanitizer.sanitizeSchool(School),
+    };
+    return sanitized;
+  },
+
+  sanitizePaymentHistory(payload: any): any {
+    if (!payload) return null;
+    const { id, payer, status, Payer, beneficiary_product_payment_id, Transactions, ...rest } = Sanitizer.jsonify(payload);
+    const [paymentTransaction] = Transactions ? Transactions.filter((value: any) => !value.purpose.includes('Fees:')) : [];
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      transaction: Transactions && Sanitizer.sanitizeLightTransaction(paymentTransaction),
+      channel: Transactions && paymentTransaction.channel,
+      payer: Payer && Sanitizer.sanitizePaymentContact(Payer),
+      // transactions: Transactions && Sanitizer.sanitizeLightTransaction(Transactions),
+    };
+    return sanitized;
+  },
+
+  sanitizePaymentContact(payload: any): any {
+    if (!payload) return null;
+    const { id, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
     return sanitized;
   },

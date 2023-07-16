@@ -18,6 +18,10 @@ export class createProductTransactionsTable1685070418517 implements MigrationInt
             type: 'varchar',
           },
           {
+            name: 'session',
+            type: 'varchar',
+          },
+          {
             name: 'beneficiary_product_payment_id',
             type: 'int',
           },
