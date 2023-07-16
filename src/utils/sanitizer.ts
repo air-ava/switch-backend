@@ -425,13 +425,14 @@ export const Sanitizer = {
 
   sanitizePaymentHistory(payload: any): any {
     if (!payload) return null;
-    const { id, payer, status, Payer, beneficiary_product_payment_id, Transactions, ...rest } = Sanitizer.jsonify(payload);
+    const { id, payer, status, Payer, beneficiaryFee, beneficiary_product_payment_id, Transactions, ...rest } = Sanitizer.jsonify(payload);
     const [paymentTransaction] = Transactions ? Transactions.filter((value: any) => !value.purpose.includes('Fees:')) : [];
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       transaction: Transactions && Sanitizer.sanitizeLightTransaction(paymentTransaction),
       channel: Transactions && paymentTransaction.channel,
+      currency: beneficiaryFee && beneficiaryFee.product_currency,
       payer: Payer && Sanitizer.sanitizePaymentContact(Payer),
       // transactions: Transactions && Sanitizer.sanitizeLightTransaction(Transactions),
     };
@@ -440,7 +441,7 @@ export const Sanitizer = {
 
   sanitizePaymentContact(payload: any): any {
     if (!payload) return null;
-    const { id, status, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, school, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),

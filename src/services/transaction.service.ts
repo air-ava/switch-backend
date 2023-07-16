@@ -41,7 +41,6 @@ export const listTransactions = async (data: any): Promise<any> => {
       ['User', 'Wallet', 'Reciepts'],
     );
 
-    console.log({ existingTransactions });
     return sendObjectResponse('Transactions retrieved successfully', existingTransactions);
   } catch (e: any) {
     console.log({ e });
