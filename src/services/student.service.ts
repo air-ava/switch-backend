@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { StudentGuardian } from './../database/models/studentGuardian.model';
-import randomstring from 'randomstring';
 import { v4 } from 'uuid';
+import randomstring from 'randomstring';
+import { StudentGuardian } from './../database/models/studentGuardian.model';
 import * as bcrypt from 'bcrypt';
 import { ILike, In, Like, Raw } from 'typeorm';
 import { IStudent, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { PAYMENT_TYPE } from '../database/models/paymentType.model';
 import { getClassLevel, listClassLevel } from '../database/repositories/classLevel.repo';
-import { saveMobileMoneyTransaction } from '../database/repositories/mobileMoneyTransactions.repo';
-import { saveTransaction } from '../database/repositories/transaction.repo';
 import { HttpStatus, CustomError, sendObjectResponse, ExistsError, NotFoundError, ValidationError } from '../utils/errors';
 import {
   // getSearchUsers,
@@ -22,17 +20,11 @@ import { getStudent, listStudent, saveStudentREPO, updateStudent } from '../data
 import { getStudentClass, listStudentClass, saveStudentClassREPO, updateStudentClass } from '../database/repositories/studentClass.repo';
 import Settings from './settings.service';
 import { mapAnArray } from '../utils/utils';
-import { IUser } from '../database/modelInterfaces';
 import { saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
 import { listSchoolClass, listStundentsInSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
-import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
-import { getSchoolProduct, saveSchoolProduct } from '../database/repositories/schoolProduct.repo';
-import { getEducationPeriod } from '../database/repositories/education_period.repo';
-import { getProductType } from '../database/repositories/productType.repo';
-import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
