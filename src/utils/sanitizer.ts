@@ -316,7 +316,8 @@ export const Sanitizer = {
 
   sanitizeStudent(payload: any): any {
     if (!payload) return null;
-    const { id, StudentGuardians, status, User, userId, School, schoolId, Fees, uniqueStudentId, Classes, PaymentType, ...rest } = Sanitizer.jsonify(payload);
+    const { id, StudentGuardians, status, User, userId, School, schoolId, Fees, uniqueStudentId, Classes, PaymentType, ...rest } =
+      Sanitizer.jsonify(payload);
     const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
     const paymentFees = Fees && Sanitizer.mapAnArray(Fees, 'FeesHistory');
     const sanitized = {
@@ -351,22 +352,22 @@ export const Sanitizer = {
 
   sanitizeClassLevel(payload: any): any {
     if (!payload) return null;
-    const { id,  ...rest } = Sanitizer.jsonify(payload);
+    const { id, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
     };
     return sanitized;
   },
-  
+
   sanitizeEducationLevel(payload: any): any {
     if (!payload) return null;
-    const { id,  ...rest } = Sanitizer.jsonify(payload);
+    const { id, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
     };
     return sanitized;
   },
-  
+
   sanitizeSchoolClass(payload: any): any {
     if (!payload) return null;
     const { id, class_id, status, school_id, ClassLevel, Fees, School, ...rest } = Sanitizer.jsonify(payload);
@@ -458,7 +459,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizePaymentType(payload: any): any {
     if (!payload) return null;
     const { id, slug, status, ...rest } = Sanitizer.jsonify(payload);
@@ -468,7 +469,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizePeriod(payload: any): any {
     if (!payload) return null;
     const { id, feature_name, Schedule, school_id, schedule_id, session_id, Session, status, ...rest } = Sanitizer.jsonify(payload);
@@ -480,7 +481,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizeSchedule(payload: any): any {
     if (!payload) return null;
     const { id, cron_id, cron_expression, status, ...rest } = Sanitizer.jsonify(payload);
@@ -490,7 +491,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizeSession(payload: any): any {
     if (!payload) return null;
     const { id, schedule_id, Schedule, status, ...rest } = Sanitizer.jsonify(payload);
@@ -513,7 +514,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizeIndividual(payload: IScholarshipApplication): any {
     if (!payload) return null;
     const { id, status, school_id, phoneNumber, phone_number, ...rest } = Sanitizer.jsonify(payload);
