@@ -83,6 +83,9 @@ export const listStundentsInSchoolClass = async (
           sum.totalFee += +fee.Fee.amount;
           sum.totalAmountPaid += +fee.amount_paid;
           sum.totalAmountOutstanding += +fee.amount_outstanding;
+          if (!sum.lastPaymentDate || fee.created_at > sum.lastPaymentDate) {
+            sum.lastPaymentDate = fee.created_at;
+          }
           return sum;
         },
         {
