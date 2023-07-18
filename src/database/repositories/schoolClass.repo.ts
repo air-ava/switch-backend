@@ -45,7 +45,7 @@ export const listSchoolClass = async (
 
 export const listStundentsInSchoolClass = async (
   queryParam: { schoolId: number; classId: number; status: number; perPage?: any; cursor?: any },
-  selectOptions: Array<keyof StudentClass>,
+  selectOptions: Array<any>,
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<StudentClass[] | any> => {
@@ -64,6 +64,7 @@ export const listStundentsInSchoolClass = async (
 
   if (!relationOptions) relationOptions = [];
   relationOptions.push('student');
+  // selectOptions.push('SUM(student.Fees.amount_paid) as totalAmountPaid');
 
   const [students, total] = await Promise.all([
     repository.find({
@@ -75,6 +76,28 @@ export const listStundentsInSchoolClass = async (
     }),
     repository.count({ where: payload, ...(relationOptions && { relations: relationOptions }) }),
   ]);
+
+  // Calculate the sum of 'amount_paid' for each student and add it to the 'students' array
+  students.forEach((student: any) => {
+    const amountPaid =
+      student.student.Fees &&
+      student.student.Fees.reduce(
+        (sum: any, fee: any) => {
+          sum.totalAmountPaid += +fee.amount_paid;
+          sum.totalAmountOutstanding += +fee.amount_outstanding;
+          return sum;
+        },
+        {
+          totalAmountPaid: 0,
+          totalAmountOutstanding: 0,
+        },
+      );
+    const { beneficiary_type, product_currency, ...rest } = student.student.Fees[0] || {
+      beneficiary_type: 'student',
+      product_currency: 'UGX',
+    };
+    student.student.fee = { ...amountPaid, beneficiary_type, product_currency };
+  });
   const { hasMore, newCursor } = Utils.paginationMeta({ responseArray: students, perPage });
 
   return {
@@ -146,7 +169,7 @@ export const getSchoolClassDetails = async (queryParams: any, transaction?: Quer
     default:
       throw new Error('Invalid grouping interval. Supported values: year, month, week, day.');
   }
-  
+
   const groupingQuery = queryBuilder
     .leftJoinAndSelect('studentClass.Student', 'StudentGrouped')
     .leftJoinAndSelect('StudentGrouped.Fees', 'FeesRecord')

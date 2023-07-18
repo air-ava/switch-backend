@@ -533,6 +533,7 @@ export const Sanitizer = {
     const sanitized = {
       id,
       ...rest,
+      // paymentStatus: 
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       student: (Student || student) && Sanitizer.sanitizeStudent(Student || student),
       classLevel: ClassLevel && Sanitizer.sanitizeSchool(ClassLevel),
