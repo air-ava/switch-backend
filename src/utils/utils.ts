@@ -284,11 +284,14 @@ const Utils = {
   },
 
   paginationMeta(data: any): any {
-    const { responseArray, perPage } = data;
+    const { responseArray, perPage, cursor } = data;
     const hasMore = responseArray.length === Number(perPage);
     const newCursor = hasMore ? responseArray[perPage - 1].id : null;
-    return { hasMore, newCursor };
+    const previousCursor = cursor && responseArray.length ? responseArray[0].id : null;
+    return { hasMore, newCursor, previousCursor };
   },
 };
 
 export default Utils;
+
+

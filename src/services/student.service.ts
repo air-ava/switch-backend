@@ -24,7 +24,7 @@ import { saveIndividual, updateIndividual } from '../database/repositories/indiv
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
-import { getSchoolClassDetails, listSchoolClass, listStundentsInSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import { getClassAnalytics, getSchoolClassDetails, listSchoolClass, listStundentsInSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
@@ -489,16 +489,39 @@ const Service = {
         cursor,
       },
       [],
-      ['student.Fees', 'student.User', 'student.Fees.FeesHistory'],
+      ['student.Fees', 'student.Fees.Fee', 'student.User', 'student.Fees.FeesHistory'],
     );
     const { students, meta } = studentClass;
-    // todo: fee analytic for this class
+    // // todo: fee analytic for this class
 
-    // todo: gender and student count
-    const ClassDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
-    // console.log({ ClassDetails });
+    // // todo: gender and student count
+    // const classDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
+    // const [classDetail] = classDetails.filter((value: any) => value.currency === 'UGX');
+    // // console.log({ ClassDetails });
 
-    return sendObjectResponse('Added Class to School Successfully', { class: {...foundClassLevel, ...ClassDetails }, students, meta });
+    // return sendObjectResponse('Added Class to School Successfully', { class: {...foundClassLevel, ...classDetail }, students, meta });
+    return sendObjectResponse('Retrieved Students in Class Successfully', { students, meta });
+  },
+
+  async classDetail(data: { status: 'ACTIVE' | 'INACTIVE'; school: any; classCode: string; perPage: any; cursor: any }): Promise<theResponse> {
+    const { school, classCode } = data;
+    const foundClassLevel = await getClassLevel({ code: classCode }, []);
+    if (!foundClassLevel) throw new NotFoundError('Class Level');
+
+    const classDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
+    const [classDetail] = classDetails.filter((value: any) => value.currency === 'UGX');
+
+    return sendObjectResponse('Added Class to School Successfully', { ...foundClassLevel, ...classDetail });
+  },
+
+  async classAnalytics(data: { status: 'ACTIVE' | 'INACTIVE'; school: any; classCode: string; groupBy: string }): Promise<theResponse> {
+    const { school, classCode, groupBy } = data;
+    const foundClassLevel = await getClassLevel({ code: classCode }, []);
+    if (!foundClassLevel) throw new NotFoundError('Class Level');
+
+    const classAnalytics = await getClassAnalytics({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: groupBy || 'daily' });
+
+    return sendObjectResponse('Added Class to School Successfully', classAnalytics);
   },
 };
 

@@ -120,11 +120,43 @@ export const listStudentAdminCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudent), meta);
 };
 
+// export const listStundentsInSchoolClassCONTROLLER: RequestHandler = async (req, res) => {
+//   const { school } = req;
+//   const { perPage, cursor, classCode } = req.query;
+//   const response = await StudentService.listStundentsInSchoolClass({ school, perPage, cursor, classCode: String(classCode), status: 'ACTIVE' });
+//   const { data, message, error } = response;
+//   const { meta, ...rest } = data;
+//   return ResponseService.success(res, message || error, Sanitizer.sanitizeStudentInClass(rest), meta);
+// };
+
 export const listStundentsInSchoolClassCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
   const { perPage, cursor, classCode } = req.query;
   const response = await StudentService.listStundentsInSchoolClass({ school, perPage, cursor, classCode: String(classCode), status: 'ACTIVE' });
   const { data, message, error } = response;
-  const { meta, ...rest } = data;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeStudentInClass(rest), meta);
+  const { meta, students } = data;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudentClass), meta);
+};
+
+export const classDetailsCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const { code: classCode } = req.params;
+  const { perPage, cursor } = req.query;
+  const response = await StudentService.classDetail({ school, perPage, cursor, classCode: String(classCode), status: 'ACTIVE' });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeClassLevel(data));
+};
+
+export const classAnalysisCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const { code: classCode } = req.params;
+  const { groupBy } = req.query;
+  const response = await StudentService.classAnalytics({
+    school,
+    groupBy: groupBy ? String(groupBy) : 'daily',
+    classCode: String(classCode),
+    status: 'ACTIVE',
+  });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };

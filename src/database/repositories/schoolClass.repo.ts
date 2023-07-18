@@ -4,7 +4,9 @@ import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
 import { ISchoolClass } from '../modelInterfaces';
 import { SchoolClass } from '../models/schoolClass.model';
 import { StudentClass } from '../models/studentClass.model';
-import Utils from '../../utils/utils';
+import Utils, { isValidDate } from '../../utils/utils';
+
+const dateFns = require("date-fns");
 
 export const getSchoolClass = async (
   queryParam: Partial<ISchoolClass> | any,
@@ -30,17 +32,12 @@ export const listSchoolClass = async (
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<SchoolClass[]> => {
-  return t
-    ? t.manager.find(SchoolClass, {
-        where: queryParam,
-        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-        ...(relationOptions && { relations: relationOptions }),
-      })
-    : getRepository(SchoolClass).find({
-        where: queryParam,
-        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-        ...(relationOptions && { relations: relationOptions }),
-      });
+  const repository = t ? t.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
+  return repository.find({
+    where: queryParam,
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+    ...(relationOptions && { relations: relationOptions }),
+  });
 };
 
 export const listStundentsInSchoolClass = async (
@@ -83,6 +80,7 @@ export const listStundentsInSchoolClass = async (
       student.student.Fees &&
       student.student.Fees.reduce(
         (sum: any, fee: any) => {
+          sum.totalFee += +fee.Fee.amount;
           sum.totalAmountPaid += +fee.amount_paid;
           sum.totalAmountOutstanding += +fee.amount_outstanding;
           return sum;
@@ -90,15 +88,26 @@ export const listStundentsInSchoolClass = async (
         {
           totalAmountPaid: 0,
           totalAmountOutstanding: 0,
+          totalFee: 0,
         },
       );
     const { beneficiary_type, product_currency, ...rest } = student.student.Fees[0] || {
       beneficiary_type: 'student',
       product_currency: 'UGX',
     };
-    student.student.fee = { ...amountPaid, beneficiary_type, product_currency };
+    const { totalAmountPaid, totalAmountOutstanding, totalFee } = amountPaid;
+    let paidStatus;
+    if (totalAmountPaid < totalAmountOutstanding) paidStatus = 'Part payment';
+    if (totalAmountPaid === totalAmountOutstanding) paidStatus = 'Paid';
+    if (totalAmountPaid === 0) paidStatus = 'Outstanding';
+    student.student.fee = {
+      paidStatus,
+      ...amountPaid,
+      beneficiary_type,
+      product_currency,
+    };
   });
-  const { hasMore, newCursor } = Utils.paginationMeta({ responseArray: students, perPage });
+  const { hasMore, newCursor, previousCursor } = Utils.paginationMeta({ responseArray: students, perPage });
 
   return {
     students,
@@ -107,6 +116,7 @@ export const listStundentsInSchoolClass = async (
       perPage,
       hasMore,
       cursor: newCursor,
+      previousCursor,
     },
   };
 };
@@ -114,19 +124,19 @@ export const listStundentsInSchoolClass = async (
 export const getSchoolClassDetails = async (queryParams: any, transaction?: QueryRunner): Promise<any> => {
   const { classId, schoolId, groupingInterval } = queryParams;
   const queryBuilder = getRepository(StudentClass).createQueryBuilder('studentClass');
-  const mainQuery = queryBuilder
+  return queryBuilder
     .leftJoinAndSelect('studentClass.Student', 'Student')
     .leftJoinAndSelect('Student.User', 'User')
     .leftJoinAndSelect('Student.Fees', 'Fees')
     .leftJoinAndSelect('Fees.Fee', 'Fee')
     .leftJoinAndSelect('Fees.FeesHistory', 'PaymentHistory')
-    .select('SUM(Student.id)', 'totalStudent')
+    .select('COUNT(*)', 'totalStudent')
     .addSelect('SUM(CASE WHEN User.gender = :male THEN 1 ELSE 0 END)', 'totalMale')
     .addSelect('SUM(CASE WHEN User.gender = :female THEN 1 ELSE 0 END)', 'totalFemale')
     .addSelect('SUM(Fees.amount_outstanding)', 'totalOutstanding')
     .addSelect('SUM(Fees.amount_paid)', 'totalPaid')
-    .addSelect('SUM(PaymentHistory.amount)', 'sumPaid')
     .addSelect('SUM(Fee.amount)', 'totalFees')
+    .addSelect('Fee.currency', 'currency')
     .where('studentClass.status = :status AND Student.status = :status AND Student.schoolId = :schoolId AND studentClass.classId = :classId', {
       status: 1,
       schoolId,
@@ -134,52 +144,68 @@ export const getSchoolClassDetails = async (queryParams: any, transaction?: Quer
       female: 'female',
       male: 'male',
     })
-    .getRawOne();
+    .groupBy('Fee.currency')
+    .getRawMany();
+};
 
+export const getClassAnalytics = async (queryParams: any, transaction?: QueryRunner): Promise<any> => {
+  console.log({ queryParams });
+  const { classId, schoolId, groupingInterval = 'weekly' } = queryParams;
+  let { from, to } = queryParams;
+  const queryBuilder = getRepository(StudentClass).createQueryBuilder('studentClass');
   // Validate and apply dynamic grouping
-  const groupingColumns: string[] = [];
-  const selectingColumns: string[] = [];
+  let groupingColumns: string;
+  let selectingColumns: string;
+
+  const today = new Date();
+  from = dateFns.subDays(today, 100).toISOString();
+  to = today.toISOString();
 
   const groupQuery = {
     year: 'YEAR(FeesHistory.created_at)',
-    month: 'MONTH(FeesHistory.created_at)',
-    week: 'WEEK(FeesHistory.created_at)',
+    month: "DATE_FORMAT(FeesHistory.created_at, '%Y-%m')",
+    week: 'YEARWEEK(FeesHistory.created_at)',
     day: 'DATE(FeesHistory.created_at)',
   };
 
   switch (groupingInterval) {
-    case 'year':
-      groupingColumns.push(groupQuery.year);
-      selectingColumns.push(`${groupQuery.year}  as year`);
+    case 'yearly':
+      groupingColumns = groupQuery.year;
+      selectingColumns = `${groupQuery.year}`;
       break;
-    case 'month':
-      groupingColumns.push(groupQuery.year, groupQuery.month);
-      selectingColumns.push(`${groupQuery.year}  as year`, `${groupQuery.month} as month`);
-      // groupingColumns.push("DATE_FORMAT(transaction.created_at, '%Y-%m)");
+    case 'monthly':
+      groupingColumns = groupQuery.month;
+      selectingColumns = `${groupQuery.month}`;
+      // groupingColumns = "DATE_FORMAT(transaction.created_at, '%Y-%m)";
       break;
-    case 'week':
-      groupingColumns.push(groupQuery.year, `${groupQuery.week}`);
-      selectingColumns.push(`${groupQuery.year}  as year`, `${groupQuery.week} as week`);
-      // groupingColumns.push('YEARWEEK(FeesHistory.created_at)');
+    case 'weekly':
+      groupingColumns = `${groupQuery.week}`;
+      selectingColumns = `${groupQuery.week}`;
+      // groupingColumns = 'YEARWEEK(FeesHistory.created_at)';
       break;
-    case 'day':
-      groupingColumns.push(groupQuery.day);
-      selectingColumns.push(`${groupQuery.day}  as day`);
+    case 'daily':
+      groupingColumns = groupQuery.day;
+      selectingColumns = `${groupQuery.day}`;
       break;
     default:
-      throw new Error('Invalid grouping interval. Supported values: year, month, week, day.');
+      throw new Error('Invalid grouping interval. Supported values: yearly, monthly, weekly, daily');
   }
 
-  const groupingQuery = queryBuilder
+  // .select([
+  //   'SUM(FeesHistory.amount) as sumPaid',
+  //   'COUNT(FeesHistory.id) as totalPaid',
+  //   'MIN(FeesHistory.outstanding_after) as sumOutstanding',
+  //   ...selectingColumns,
+  // ])
+
+  const query = queryBuilder
     .leftJoinAndSelect('studentClass.Student', 'StudentGrouped')
     .leftJoinAndSelect('StudentGrouped.Fees', 'FeesRecord')
     .leftJoinAndSelect('FeesRecord.FeesHistory', 'FeesHistory')
-    .select([
-      'SUM(FeesHistory.amount) as sumPaid',
-      'COUNT(FeesHistory.id) as totalPaid',
-      'MIN(FeesHistory.outstanding_after) as sumOutstanding',
-      ...selectingColumns,
-    ])
+    .select(selectingColumns, 'date')
+    .addSelect('SUM(FeesHistory.amount)', 'sumPaid')
+    .addSelect('COUNT(FeesHistory.id)', 'transactionCount')
+    .addSelect('MIN(FeesHistory.outstanding_after)', 'sumOutstanding')
     .where(
       'studentClass.status = :status AND StudentGrouped.status = :status AND StudentGrouped.schoolId = :schoolId AND studentClass.classId = :classId',
       {
@@ -187,13 +213,20 @@ export const getSchoolClassDetails = async (queryParams: any, transaction?: Quer
         schoolId,
         classId,
       },
-    )
-    .groupBy(groupingColumns.join(','))
-    .getRawMany();
+    );
 
-  const [mainData, groupedData] = await Promise.all([mainQuery, groupingQuery]);
+  if (from || to) {
+    if (from && isValidDate(from)) query.andWhere(`FeesHistory.created_at >= '${from}'`);
+    if (to && isValidDate(to)) query.andWhere(`FeesHistory.created_at <= '${to}'`);
+  }
 
-  return { ...mainData, groupedData };
+  const analytics = await query.groupBy(groupingColumns).getRawMany();
+
+  console.log({ analytics });
+  return analytics;
+  // const [mainData, groupedData] = await Promise.all([mainQuery, groupingQuery]);
+
+  // return { ...mainData, groupedData };
 };
 
 export const saveSchoolClass = (queryParams: Partial<ISchoolClass> | Partial<ISchoolClass>[] | any, transaction?: QueryRunner): Promise<any> => {
