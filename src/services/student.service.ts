@@ -24,7 +24,7 @@ import { saveIndividual, updateIndividual } from '../database/repositories/indiv
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
-import { listSchoolClass, listStundentsInSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import { getSchoolClassDetails, listSchoolClass, listStundentsInSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
@@ -489,13 +489,16 @@ const Service = {
         cursor,
       },
       [],
-      ['student.Fees', 'student.Fees.FeesHistory'],
+      ['student.Fees', 'student.User', 'student.Fees.FeesHistory'],
     );
     const { students, meta } = studentClass;
     // todo: fee analytic for this class
-    // todo: gender and student count
 
-    return sendObjectResponse('Added Class to School Successfully', { class: foundClassLevel, students, meta });
+    // todo: gender and student count
+    const ClassDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
+    // console.log({ ClassDetails });
+
+    return sendObjectResponse('Added Class to School Successfully', { class: {...foundClassLevel, ...ClassDetails }, students, meta });
   },
 };
 

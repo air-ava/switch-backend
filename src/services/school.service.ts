@@ -24,6 +24,7 @@ import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import { getClassLevel } from '../database/repositories/classLevel.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
 import { getSchoolClass, listSchoolClass } from '../database/repositories/schoolClass.repo';
+import { Not } from 'typeorm';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   //   const validation = createBusinessValidator.validate(data);
@@ -362,7 +363,11 @@ const Service = {
     const { school, ...rest } = data;
     // todo: repo for sum of students and a sum of expected tuition fee
     const response = await listSchoolClass(
-      { school_id: school.id, ...rest },
+      {
+        school_id: school.id,
+        status: Not(STATUSES.DELETED),
+        ...rest,
+      },
       [],
       ['ClassLevel', 'School', 'Fees', 'Fees.ProductType', 'Fees.PaymentType', 'Fees.Period', 'Fees.Session'],
     );
