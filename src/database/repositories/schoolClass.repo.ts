@@ -31,13 +31,24 @@ export const listSchoolClass = async (
   selectOptions: Array<keyof SchoolClass>,
   relationOptions?: any[],
   t?: QueryRunner,
-): Promise<SchoolClass[]> => {
+): Promise<SchoolClass[] | any> => {
   const repository = t ? t.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
-  return repository.find({
+  const classes = await repository.find({
     where: queryParam,
     ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
     ...(relationOptions && { relations: relationOptions }),
   });
+
+  classes.forEach((classRoom: any) => {
+    // eslint-disable-next-line no-return-assign
+    const amountPaid = classRoom.Fees && classRoom.Fees.reduce((sum: any, fee: any) => (sum += +fee.amount), 0);
+    const { currency } = classRoom.Fees[0] || { currency: 'UGX' };
+    classRoom.totalFee = amountPaid;
+    classRoom.currency = currency;
+    classRoom.studentCount = classRoom.School.Students.length;
+  });
+
+  return classes;
 };
 
 export const listStundentsInSchoolClass = async (

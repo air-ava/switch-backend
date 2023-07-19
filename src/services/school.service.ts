@@ -369,7 +369,7 @@ const Service = {
         ...rest,
       },
       [],
-      ['ClassLevel', 'School', 'Fees', 'Fees.ProductType', 'Fees.PaymentType', 'Fees.Period', 'Fees.Session'],
+      ['ClassLevel', 'School', 'School.Students', 'Fees', 'Fees.ProductType', 'Fees.PaymentType', 'Fees.Period', 'Fees.Session'],
     );
     return sendObjectResponse('All Classes retrieved successfully', response);
   },
