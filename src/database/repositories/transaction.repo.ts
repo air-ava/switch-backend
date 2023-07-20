@@ -78,8 +78,12 @@ export const getTransactionsREPO = async (
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<ITransactions[] | any> => {
-  const { perPage = 20, cursor, ...rest } = queryParam;
-  const { order, query } = Utils.paginationOrderAndCursor(cursor, rest);
+  const { page = 1, perPage = 20, from, to, ...rest } = queryParam;
+
+  //! cursor pagination
+  // const { order, query } = Utils.paginationOrderAndCursor(cursor, rest);
+  const { offset, query } = Utils.paginationRangeAndOffset({ page, from, to, perPage, query: rest });
+  const order: any = { created_at: 'DESC' };
 
   const repository = t ? t.manager.getRepository(Transactions) : getRepository(Transactions);
   const [transactions, total] = await Promise.all([
@@ -89,19 +93,25 @@ export const getTransactionsREPO = async (
       ...(relationOptions && { relations: relationOptions }),
       order,
       take: parseInt(perPage, 10),
+      skip: offset,
     }),
     repository.count({ where: rest }),
   ]);
 
-  const { hasMore, newCursor } = Utils.paginationMeta({ responseArray: transactions, perPage });
+  //! cursor pagination
+  // const { hasMore, newCursor } = Utils.paginationMetaCursor({ responseArray: students, perPage });
+  const { nextPage, totalPages, hasNextPage, hasPreviousPage } = Utils.paginationMetaOffset({ total, perPage, page });
 
   return {
     transactions,
     meta: {
       total,
       perPage,
-      hasMore,
-      cursor: newCursor,
+      currentPage: page,
+      totalPages,
+      hasNextPage,
+      hasPreviousPage,
+      nextPage,
     },
   };
 };

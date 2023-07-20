@@ -27,8 +27,12 @@ export const listStudent = async (
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<{ students: Student[]; meta: any }> => {
-  const { perPage = 20, cursor, ...rest } = queryParam;
-  const { order, query } = Utils.paginationOrderAndCursor(cursor, rest);
+  const { page = 1, perPage = 20, from, to, ...rest } = queryParam;
+
+  //! cursor pagination
+  // const { order, query } = Utils.paginationOrderAndCursor(cursor, rest);
+  const { offset, query } = Utils.paginationRangeAndOffset({ page, from, to, perPage, query: rest });
+  const order: any = { created_at: 'DESC' };
 
   const repository = t ? t.manager.getRepository(Student) : getRepository(Student);
   const [students, total] = await Promise.all([
@@ -38,18 +42,25 @@ export const listStudent = async (
       ...(relationOptions && { relations: relationOptions }),
       order,
       take: parseInt(perPage, 10),
+      skip: offset,
     }),
     repository.count({ where: rest }),
   ]);
-  const { hasMore, newCursor } = Utils.paginationMeta({ responseArray: students, perPage });
+
+  //! cursor pagination
+  // const { hasMore, newCursor } = Utils.paginationMetaCursor({ responseArray: students, perPage });
+  const { nextPage, totalPages, hasNextPage, hasPreviousPage } = Utils.paginationMetaOffset({ total, perPage, page });
 
   return {
     students,
     meta: {
       total,
       perPage,
-      hasMore,
-      cursor: newCursor,
+      currentPage: page,
+      totalPages,
+      hasNextPage,
+      hasPreviousPage,
+      nextPage,
     },
   };
 };

@@ -52,13 +52,13 @@ export const listSchoolClass = async (
 };
 
 export const listStundentsInSchoolClass = async (
-  queryParam: { schoolId: number; classId: number; status: number; perPage?: any; cursor?: any },
+  queryParam: any,
   selectOptions: Array<any>,
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<StudentClass[] | any> => {
   const repository = t ? t.manager.getRepository(StudentClass) : getRepository(StudentClass);
-  const { schoolId, classId, status, perPage = 20, cursor } = queryParam;
+  const { schoolId, classId, status, page = 1, perPage = 20, from, to } = queryParam;
 
   const payload = {
     classId,
@@ -68,7 +68,11 @@ export const listStundentsInSchoolClass = async (
       schoolId,
     },
   };
-  const { order, query } = Utils.paginationOrderAndCursor(Number(cursor), payload);
+
+  //! cursor pagination
+  // const { order, query } = Utils.paginationOrderAndCursor(Number(cursor), payload);
+  const { offset, query } = Utils.paginationRangeAndOffset({ page, from, to, perPage, query: payload });
+  const order: any = { created_at: 'DESC' };
 
   if (!relationOptions) relationOptions = [];
   relationOptions.push('student');
@@ -81,8 +85,9 @@ export const listStundentsInSchoolClass = async (
       ...(relationOptions && { relations: relationOptions }),
       order,
       take: parseInt(perPage, 10),
+      skip: offset,
     }),
-    repository.count({ where: payload, ...(relationOptions && { relations: relationOptions }) }),
+    repository.count({ where: query, ...(relationOptions && { relations: relationOptions }) }),
   ]);
 
   // Calculate the sum of 'amount_paid' for each student and add it to the 'students' array
@@ -121,16 +126,21 @@ export const listStundentsInSchoolClass = async (
       product_currency,
     };
   });
-  const { hasMore, newCursor, previousCursor } = Utils.paginationMeta({ responseArray: students, perPage });
+
+  //! cursor pagination
+  // const { hasMore, newCursor, previousCursor } = Utils.paginationMetaCursor({ responseArray: students, perPage, cursor });
+  const { nextPage, totalPages, hasNextPage, hasPreviousPage } = Utils.paginationMetaOffset({ total, perPage, page });
 
   return {
     students,
     meta: {
       total,
       perPage,
-      hasMore,
-      cursor: newCursor,
-      previousCursor,
+      currentPage: page,
+      totalPages,
+      hasNextPage,
+      hasPreviousPage,
+      nextPage,
     },
   };
 };

@@ -2,7 +2,7 @@
 import { parsePhoneNumber } from 'libphonenumber-js';
 import randomstring from 'randomstring';
 import { ENVIRONMENT } from './secrets';
-import { MoreThan, LessThan } from 'typeorm';
+import { MoreThan, LessThan, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 const dateFns = require('date-fns');
 
 const table_prefix = {
@@ -283,12 +283,35 @@ const Utils = {
     return { order, query, cursor };
   },
 
-  paginationMeta(data: any): any {
+  paginationMetaCursor(data: any): any {
     const { responseArray, perPage, cursor } = data;
     const hasMore = responseArray.length === Number(perPage);
     const newCursor = hasMore ? responseArray[perPage - 1].id : null;
     const previousCursor = cursor && responseArray.length ? responseArray[0].id : null;
     return { hasMore, newCursor, previousCursor };
+  },
+
+  paginationRangeAndOffset(data: { page: number; perPage: number; from: any; to: any; query: any }): any {
+    const { page, from, to, perPage, query } = data;
+    const offset = (page - 1) * perPage;
+    // const order: any = { created_at: 'DESC' };
+    if (from && to) {
+      query.created_at = Between(from, to);
+    } else if (from) {
+      query.created_at = MoreThanOrEqual(from);
+    } else if (to) {
+      query.created_at = LessThanOrEqual(to);
+    }
+    return { offset, query };
+  },
+
+  paginationMetaOffset(data: any): any {
+    const { total, perPage, page } = data;
+    const totalPages = Math.ceil(total / perPage);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+    return { nextPage, totalPages, hasNextPage, hasPreviousPage };
   },
 };
 

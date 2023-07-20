@@ -1,8 +1,9 @@
 import { RequestHandler } from 'express';
 import StudentService from '../services/student.service';
 import ResponseService from '../utils/response';
-import { oldSendObjectResponse } from '../utils/errors';
+import { NotFoundError, ValidationError, oldSendObjectResponse } from '../utils/errors';
 import { Sanitizer } from '../utils/sanitizer';
+import { getStudentsValidator } from '../validators/student.validator';
 
 const errorMessages = {
   listClasses: 'Could not list classes',
@@ -62,8 +63,13 @@ export const getStudentCONTROLLER: RequestHandler = async (req, res) => {
 
 export const listStudentCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
-  const { perPage, cursor } = req.query;
-  const response = await StudentService.listStudents({ schoolId: school.id, perPage, cursor });
+  const { perPage, page, from, to } = req.query;
+  const payload = { schoolId: school.id, perPage, page, from, to };
+
+  const validation = getStudentsValidator.validate(payload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await StudentService.listStudents(payload);
   const { data, message, error } = response;
   const { students, meta } = data;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudent), meta);
@@ -120,19 +126,18 @@ export const listStudentAdminCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudent), meta);
 };
 
-// export const listStundentsInSchoolClassCONTROLLER: RequestHandler = async (req, res) => {
-//   const { school } = req;
-//   const { perPage, cursor, classCode } = req.query;
-//   const response = await StudentService.listStundentsInSchoolClass({ school, perPage, cursor, classCode: String(classCode), status: 'ACTIVE' });
-//   const { data, message, error } = response;
-//   const { meta, ...rest } = data;
-//   return ResponseService.success(res, message || error, Sanitizer.sanitizeStudentInClass(rest), meta);
-// };
-
 export const listStundentsInSchoolClassCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
-  const { perPage, cursor, classCode } = req.query;
-  const response = await StudentService.listStundentsInSchoolClass({ school, perPage, cursor, classCode: String(classCode), status: 'ACTIVE' });
+  const { perPage, page, from, to, classCode } = req.query;
+  const response = await StudentService.listStundentsInSchoolClass({
+    page,
+    from,
+    to,
+    school,
+    perPage,
+    classCode: String(classCode),
+    status: 'ACTIVE',
+  });
   const { data, message, error } = response;
   const { meta, students } = data;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudentClass), meta);

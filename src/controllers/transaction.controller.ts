@@ -9,12 +9,18 @@ import {
   addDocumentToTransaction,
   getTransactionsAnalytics,
 } from '../services/transaction.service';
-import { oldSendObjectResponse } from '../utils/errors';
+import { ValidationError, oldSendObjectResponse } from '../utils/errors';
 import { Sanitizer } from '../utils/sanitizer';
+import { getTransactionsValidator } from '../validators/transactions.validator';
 
 export const listTransactionsCONTROLLER: RequestHandler = async (req, res) => {
-  const { perPage, cursor, purpose: type } = req.query;
-  const response = await listTransactions({ userId: req.userId, type, perPage, cursor });
+  const { perPage, page, from, to, purpose: type } = req.query;
+  const payload = { userId: req.userId, type, perPage, page, from, to };
+
+  const validation = getTransactionsValidator.validate(payload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await listTransactions(payload);
   const { data, message, error } = response;
   const { transactions, meta } = data;
   return ResponseService.success(res, message || error, await Sanitizer.sanitizeTransactions(transactions), meta);

@@ -25,6 +25,7 @@ import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } f
 import { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
 import { getClassAnalytics, getSchoolClassDetails, listSchoolClass, listStundentsInSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import { getStudentsValidator } from '../validators/student.validator';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
@@ -166,9 +167,10 @@ const Service = {
   },
 
   async listStudents(criteria: any): Promise<theResponse> {
-    const { schoolId, perPage, cursor } = criteria;
+    const { schoolId, perPage, page, from, to } = criteria;
+
     const response = await listStudent(
-      { schoolId, perPage, cursor },
+      { schoolId, perPage, page, from, to },
       [],
       [
         'User',
@@ -472,9 +474,11 @@ const Service = {
     school: any;
     classCode: string;
     perPage: any;
-    cursor: any;
+    page: any;
+    from: any;
+    to: any;
   }): Promise<theResponse> {
-    const { school, classCode, status = 'ACTIVE', perPage, cursor } = data;
+    const { school, classCode, status = 'ACTIVE', perPage, page, from, to } = data;
     const foundClassLevel = await getClassLevel({ code: classCode }, []);
     if (!foundClassLevel) throw new NotFoundError('Class Level');
 
@@ -486,20 +490,14 @@ const Service = {
         classId: foundClassLevel.id,
         status: statusId,
         perPage,
-        cursor,
+        page,
+        from,
+        to,
       },
       [],
       ['student.Fees', 'student.Fees.Fee', 'student.User', 'student.Fees.FeesHistory'],
     );
     const { students, meta } = studentClass;
-    // // todo: fee analytic for this class
-
-    // // todo: gender and student count
-    // const classDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
-    // const [classDetail] = classDetails.filter((value: any) => value.currency === 'UGX');
-    // // console.log({ ClassDetails });
-
-    // return sendObjectResponse('Added Class to School Successfully', { class: {...foundClassLevel, ...classDetail }, students, meta });
     return sendObjectResponse('Retrieved Students in Class Successfully', { students, meta });
   },
 
