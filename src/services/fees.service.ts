@@ -26,8 +26,9 @@ import { saveALienTransaction } from '../database/repositories/lienTransaction.r
 import { saveTransaction } from '../database/repositories/transaction.repo';
 import { saveProductTransaction } from '../database/repositories/productTransaction.repo';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
+import { Sanitizer } from '../utils/sanitizer';
 
-const Service = {
+const Service: any = {
   async getSchoolProduct(data: any): Promise<theResponse> {
     const { code } = data;
     const response = await getSchoolProduct({ code }, [], ['Period', 'Session', 'School', 'SchoolClass', 'ProductType', 'PaymentType']);
@@ -109,7 +110,8 @@ const Service = {
       periodManagement = expiresAtPeriodEnd ? { school_period: foundPeriod.id } : { period: eduPeriod.id };
     }
 
-    const sessionUse = forSession ? foundPeriod.Session.id || session.id : null;
+    // const sessionUse = forSession ? foundPeriod.Session.id || session.id : null;
+    const sessionUse = forPeriod ? foundPeriod.Session.id : session.id;
 
     let schoolClass: any;
     if (classCode || schoolClassCode) {
@@ -157,6 +159,26 @@ const Service = {
     });
 
     return sendObjectResponse('Fee created successfully', createdFee.data);
+  },
+
+  async runService(service: string, item: any, supportData: any) {
+    return Service[service]({
+      ...(typeof item === 'object' ? { ...Sanitizer.jsonify(item) } : { item }),
+      ...supportData,
+    });
+  },
+
+  async callService(service: string, payload: any, supportData: any): Promise<any> {
+    if (payload.length) {
+      return Promise.all(payload.map((item: any) => Service.runService(service, item, supportData)));
+    }
+    return Service.runService(service, payload, supportData);
+  },
+
+  async createFees(data: any): Promise<theResponse> {
+    const { incomigFees, school, session } = data;
+    await Service.callService('createAFee', incomigFees, { school, session });
+    return sendObjectResponse('Fees created successfully');
   },
 
   async findOrCreateASchoolProduct(data: any): Promise<theResponse> {
