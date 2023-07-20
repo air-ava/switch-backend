@@ -33,7 +33,7 @@ export const listTransactions = async (data: any): Promise<any> => {
       {
         userId,
         purpose: purpose || Not(Like(`%Fees:%`)),
-        status: STATUSES.SUCCESS,
+        status: Not(STATUSES.FAILED),
         perPage,
         page,
         from,
