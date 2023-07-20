@@ -20,7 +20,7 @@ import { getStudent, listStudent, saveStudentREPO, updateStudent } from '../data
 import { getStudentClass, listStudentClass, saveStudentClassREPO, updateStudentClass } from '../database/repositories/studentClass.repo';
 import Settings from './settings.service';
 import { mapAnArray } from '../utils/utils';
-import { saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
+import { findOrCreateIndividual, saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
@@ -29,7 +29,7 @@ import { getStudentsValidator } from '../validators/student.validator';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
-    const { first_name, last_name, gender, other_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
+    const { status, first_name, last_name, gender, other_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
     let { partPayment = 'installmental' } = payload;
     partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
@@ -55,6 +55,7 @@ const Service = {
       user_type: 'student',
       first_name,
       last_name,
+      status: STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'],
       gender: gender && gender,
       other_name: other_name && other_name,
       password: passwordHash,
@@ -112,7 +113,7 @@ const Service = {
     const { relationship, firstName, lastName, email, gender, phone_number } = guardian;
     if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
     const { data: phone } = await findOrCreatePhoneNumber(phone_number);
-    const individual = await saveIndividual({
+    const individual = await findOrCreateIndividual({
       firstName,
       lastName,
       school_id: school.id,
