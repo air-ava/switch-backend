@@ -8,36 +8,43 @@ import Utils from '../utils/utils';
 const settings: any = {
   TRANSACTION_FEES: {
     'credit-fees': {
-      purpose: 'Fees:Credit',
+      purpose: 'Fees:Business:Credit-transaction-charge',
+      // purpose: 'Fees:Credit',
       flat: 0,
     },
     'debit-fees': {
-      purpose: 'Fees:Debit',
+      purpose: 'Fees:Business:Debit-transaction-charge',
+      // purpose: 'Fees:Debit',
       percent: 0.5,
       ceiling: 5000,
     },
     'school-fees': {
-      purpose: 'Fees:School-Payment',
+      purpose: 'Fees:Business:School-Payment',
+      // purpose: 'Fees:School-Payment',
       percent: 0.5,
       ceiling: 8000,
       floor: 1000,
       flat: 0,
     },
     'mobile-money-fee': {
-      purpose: 'Fees:Mobile-Money',
+      purpose: 'Fees:Business:Mobile-Money',
+      // purpose: 'Fees:Mobile-Money',
       flat: 20,
     },
     'mobile-money-subscription-school-fees': {
-      purpose: 'Fees:offset-Charge',
+      purpose: 'Fees:EndUser:offset-Charge',
+      // purpose: 'Fees:offset-Charge',
       flat: Utils.isStaging() ? 1000 : 100000,
     },
     'steward-charge-school-fees': {
-      purpose: 'Fees:steward-Charge',
+      purpose: 'Fees:EndUser:steward-Charge',
+      // purpose: 'Fees:steward-Charge',
       // flat: 200,
       flat: 0,
     },
     'mobile-money-collection-fees': {
-      purpose: 'Fees:collection-charge',
+      purpose: 'Fees:EndUser:collection-charge',
+      // purpose: 'Fees:collection-charge',
       // percent: 1.5,
       flat: 0,
     },
@@ -47,6 +54,28 @@ const settings: any = {
   USSD: {
     serviceCode: Utils.isStaging() ? '*384*3124#' : '*284*76#',
     // serviceCode: '*284*76#',
+  },
+  TRANSACTION_PURPOSE: {
+    'bank-transfer': {
+      purpose: 'Withdraw:Bank-Transfer',
+      type: 'debit',
+    },
+    'school-fees': {
+      purpose: 'Payment:School-Fees',
+      type: 'credit',
+    },
+    settlement: {
+      purpose: 'Withdraw:Settlement',
+      type: 'debit',
+    },
+    'cash-out': {
+      purpose: 'Withdraw:Wallet-Cash-Out',
+      type: 'debit',
+    },
+    'top-up': {
+      purpose: 'Funding:Wallet-Top-Up',
+      type: 'credit',
+    },
   },
 };
 

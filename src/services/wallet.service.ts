@@ -239,7 +239,7 @@ export const Service: any = {
     amount,
     user,
     wallet_id,
-    purpose = 'Funding:Wallet',
+    purpose = 'Funding:Wallet-Top-Up',
     reference = v4(),
     description,
     metadata,
