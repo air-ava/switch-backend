@@ -32,7 +32,7 @@ const settings: any = {
     },
     'mobile-money-subscription-school-fees': {
       purpose: 'Fees:offset-Charge',
-      flat: Utils.isStaging() ? 10 : 1000,
+      flat: Utils.isStaging() ? 1000 : 100000,
     },
     'steward-charge-school-fees': {
       purpose: 'Fees:steward-Charge',

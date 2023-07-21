@@ -543,10 +543,10 @@ export const Sanitizer = {
 
   sanitizeDashboardStats(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { totalIn, totalOut, ...rest } = Sanitizer.jsonify(payload);
+    const { totalIn, totalOut, totalCharges, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
-      totalIn: totalIn || '0',
+      totalIn: totalIn - totalCharges || '0',
       totalOut: totalOut || '0',
     };
     return sanitized;

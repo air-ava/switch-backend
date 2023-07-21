@@ -82,10 +82,10 @@ const Service = {
       'mobile-money-collection-fees',
     ]);
 
-    const sumTotal = Number(incomingAmount) + Number(fees);
+    const sumTotal = Number(incomingAmount) + Number(fees / 100);
 
     const amountBaseResponse = `END Amount: UGX${incomingAmount}
-    Fee: UGX${fees}
+    Fee: UGX${fees / 100}
     Proceed to confirm payment`;
 
     if (!choice) return sendObjectResponse(baseResponse);

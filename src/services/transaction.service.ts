@@ -4,6 +4,7 @@ import { log } from 'winston';
 import randomstring from 'randomstring';
 import {
   getOneTransactionREPO,
+  getTotalChargesDebited,
   getTotalCredited,
   getTotalDebited,
   getTotalSuccessfulCredit,
@@ -53,9 +54,13 @@ export const listTransactions = async (data: any): Promise<any> => {
 export const statsOnTransactions = async (data: any): Promise<any> => {
   const { userId } = data;
   try {
-    const [totalIn, totalOut] = await Promise.all([getTotalSuccessfulCredit(userId), getTotalDebited(userId)]);
+    const [totalIn, totalOut, totalCharges] = await Promise.all([
+      getTotalSuccessfulCredit(userId),
+      getTotalDebited(userId),
+      getTotalChargesDebited(userId),
+    ]);
 
-    return sendObjectResponse('Transactions analytics retrieved successfully', { ...totalIn, ...totalOut });
+    return sendObjectResponse('Transactions analytics retrieved successfully', { ...totalIn, ...totalOut, ...totalCharges });
   } catch (e: any) {
     console.log({ e });
     return BadRequestException(e.message || 'Transactions retrieval failed, kindly try again');
