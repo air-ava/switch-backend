@@ -139,6 +139,18 @@ export const getTotalDebited = (userId: string): Promise<{ total: number } | und
     .getRawOne();
 };
 
+export const getTotalChargesDebited = (userId: string): Promise<{ total: number } | undefined> => {
+  return getRepository(Transactions)
+    .createQueryBuilder('transaction')
+    .select('SUM(transaction.amount)', 'totalCharges')
+    .where('transaction.txn_type = :txn_type AND transaction.userId = :userId AND transaction.purpose LIKE :purpose', {
+      txn_type: 'debit',
+      userId,
+      purpose: `%Fees:%`,
+    })
+    .getRawOne();
+};
+
 export const getTotalSuccessfulCreditForSettlement = (
   userId: string,
   created_at: string,
