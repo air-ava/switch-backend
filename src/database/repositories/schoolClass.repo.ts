@@ -86,6 +86,7 @@ export const listStundentsInSchoolClass = async (
       order,
       take: parseInt(perPage, 10),
       skip: offset,
+      // group: ['currency'],
     }),
     repository.count({ where: query, ...(relationOptions && { relations: relationOptions }) }),
   ]);
@@ -134,13 +135,13 @@ export const listStundentsInSchoolClass = async (
   return {
     students,
     meta: {
-      // total,
-      // perPage,
-      // currentPage: page,
-      // totalPages,
-      // hasNextPage,
-      // hasPreviousPage,
-      // nextPage,
+      total,
+      perPage,
+      currentPage: page,
+      totalPages,
+      hasNextPage,
+      hasPreviousPage,
+      nextPage,
     },
   };
 };
@@ -215,13 +216,6 @@ export const getClassAnalytics = async (queryParams: any, transaction?: QueryRun
       throw new Error('Invalid grouping interval. Supported values: yearly, monthly, weekly, daily');
   }
 
-  // .select([
-  //   'SUM(FeesHistory.amount) as sumPaid',
-  //   'COUNT(FeesHistory.id) as totalPaid',
-  //   'MIN(FeesHistory.outstanding_after) as sumOutstanding',
-  //   ...selectingColumns,
-  // ])
-
   const query = queryBuilder
     .leftJoinAndSelect('studentClass.Student', 'StudentGrouped')
     .leftJoinAndSelect('StudentGrouped.Fees', 'FeesRecord')
@@ -244,13 +238,8 @@ export const getClassAnalytics = async (queryParams: any, transaction?: QueryRun
     if (to && isValidDate(to)) query.andWhere(`FeesHistory.created_at <= '${to}'`);
   }
 
-  const analytics = await query.groupBy(groupingColumns).getRawMany();
-
-  console.log({ analytics });
+  const analytics = await query.groupBy(groupingColumns).addGroupBy('FeesRecord.product_currency').getRawMany();
   return analytics;
-  // const [mainData, groupedData] = await Promise.all([mainQuery, groupingQuery]);
-
-  // return { ...mainData, groupedData };
 };
 
 export const saveSchoolClass = (queryParams: Partial<ISchoolClass> | Partial<ISchoolClass>[] | any, transaction?: QueryRunner): Promise<any> => {
