@@ -91,41 +91,41 @@ export const listStundentsInSchoolClass = async (
   ]);
 
   // Calculate the sum of 'amount_paid' for each student and add it to the 'students' array
-  // students.forEach((student: any) => {
-  //   const amountPaid =
-  //     student.student.Fees &&
-  //     student.student.Fees.reduce(
-  //       (sum: any, fee: any) => {
-  //         sum.totalFee += +fee.Fee.amount;
-  //         sum.totalAmountPaid += +fee.amount_paid;
-  //         sum.totalAmountOutstanding += +fee.amount_outstanding;
-  //         if (!sum.lastPaymentDate || fee.created_at > sum.lastPaymentDate) {
-  //           sum.lastPaymentDate = fee.created_at;
-  //         }
-  //         return sum;
-  //       },
-  //       {
-  //         totalAmountPaid: 0,
-  //         totalAmountOutstanding: 0,
-  //         totalFee: 0,
-  //       },
-  //     );
-  //   const { beneficiary_type, product_currency, ...rest } = student.student.Fees[0] || {
-  //     beneficiary_type: 'student',
-  //     product_currency: 'UGX',
-  //   };
-  //   const { totalAmountPaid, totalAmountOutstanding, totalFee } = amountPaid;
-  //   let paidStatus;
-  //   if (totalAmountPaid < totalAmountOutstanding) paidStatus = 'Part payment';
-  //   if (totalAmountPaid === totalAmountOutstanding) paidStatus = 'Paid';
-  //   if (totalAmountPaid === 0) paidStatus = 'Outstanding';
-  //   student.student.fee = {
-  //     paidStatus,
-  //     ...amountPaid,
-  //     beneficiary_type,
-  //     product_currency,
-  //   };
-  // });
+  students.forEach((student: any) => {
+    const amountPaid =
+      student.student.Fees &&
+      student.student.Fees.reduce(
+        (sum: any, fee: any) => {
+          sum.totalFee += +fee.Fee.amount;
+          sum.totalAmountPaid += +fee.amount_paid;
+          sum.totalAmountOutstanding += +fee.amount_outstanding;
+          if (!sum.lastPaymentDate || fee.created_at > sum.lastPaymentDate) {
+            sum.lastPaymentDate = fee.created_at;
+          }
+          return sum;
+        },
+        {
+          totalAmountPaid: 0,
+          totalAmountOutstanding: 0,
+          totalFee: 0,
+        },
+      );
+    const { beneficiary_type, product_currency, ...rest } = student.student.Fees[0] || {
+      beneficiary_type: 'student',
+      product_currency: 'UGX',
+    };
+    const { totalAmountPaid, totalAmountOutstanding, totalFee } = amountPaid;
+    let paidStatus;
+    if (totalAmountPaid < totalAmountOutstanding) paidStatus = 'Part payment';
+    if (totalAmountPaid === totalAmountOutstanding) paidStatus = 'Paid';
+    if (totalAmountPaid === 0) paidStatus = 'Outstanding';
+    student.student.fee = {
+      paidStatus,
+      ...amountPaid,
+      beneficiary_type,
+      product_currency,
+    };
+  });
 
   //! cursor pagination
   // const { hasMore, newCursor, previousCursor } = Utils.paginationMetaCursor({ responseArray: students, perPage, cursor });
