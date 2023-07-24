@@ -27,8 +27,8 @@ export const listClassCONTROLLER: RequestHandler = async (req, res) => {
 
 export const addStudentToSchoolCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const { school, organisation } = req;
-    const payload = { ...req.body, school, organisation };
+    const { school, organisation, educationalSession } = req;
+    const payload = { ...req.body, school, organisation, session: educationalSession };
 
     const response = await StudentService.addStudentToSchool(payload);
     const responseCode = response.success === true ? 200 : 400;

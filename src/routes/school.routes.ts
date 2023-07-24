@@ -10,8 +10,11 @@ import {
   updateSchoolCONTROLLER,
   getDocumentRequirementCONTROLLER,
   addOnboardingDocumentsCONTROLLER,
+  addClassToSchoolWithFeesCONTROLLER,
   addClassToSchoolCONTROLLER,
   listClassInSchoolCONTROLLER,
+  listClassLevelByEducationLevelCONTROLLER,
+  listEducationLevelCONTROLLER,
 } from '../controllers/school.controller';
 import { catchErrors } from '../utils/errors';
 
@@ -26,8 +29,11 @@ router.get('/documents', getDocumentRequirementCONTROLLER);
 router.post('/documents', addOnboardingDocumentsCONTROLLER);
 router.get('/questionnaire', accountUseCaseQuestionnaireCONTROLLER);
 router.post('/questionnaire', answerUseCaseQuestionnaireCONTROLLER);
-router.post('/class', catchErrors(addClassToSchoolCONTROLLER));
+router.post('/class', catchErrors(addClassToSchoolWithFeesCONTROLLER));
+router.post('/class/:code', catchErrors(addClassToSchoolCONTROLLER));
 router.get('/class', catchErrors(listClassInSchoolCONTROLLER));
+router.get('/levels/:code', catchErrors(listClassLevelByEducationLevelCONTROLLER));
+router.get('/levels', catchErrors(listEducationLevelCONTROLLER));
 router.get('/periods', catchErrors(listSchoolPeriodsCONTROLLER));
 
 export default router;

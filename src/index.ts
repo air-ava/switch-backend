@@ -56,6 +56,7 @@ async function startServer(): Promise<void> {
     res.status(err.status || 500).send({
       success: false,
       error: 'Internal server error.',
+      data: err,
     });
   });
 

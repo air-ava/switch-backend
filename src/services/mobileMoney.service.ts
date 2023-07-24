@@ -48,7 +48,7 @@ export const Service = {
     }
     if (purpose === 'top-up') {
       metadata.username = reciever.uniquePaymentId;
-      purpose = 'Funding:Wallet';
+      purpose = 'Funding:Wallet-Top-Up';
     }
     const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
     if (!getWallet) throw walletError;
@@ -166,7 +166,7 @@ export const Service = {
     metadata.fundersNetwork = contact.network_name;
 
     let student: any;
-    let purpose = 'Funding:Wallet';
+    let purpose = 'Funding:Wallet-Top-Up';
     let returnData: any;
     if (transaction_type === 'school-fees') {
       purpose = 'Payment:School-Fees';
@@ -177,7 +177,7 @@ export const Service = {
     }
 
     if (transaction_type === 'top-up') {
-      purpose = 'Funding:Wallet';
+      purpose = 'Funding:Wallet-Top-Up';
       returnData = { uniquePaymentId: username };
     }
 

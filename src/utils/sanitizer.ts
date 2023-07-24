@@ -239,6 +239,16 @@ export const Sanitizer = {
     };
     return sanitized;
   },
+  
+  sanitizeNoId(payload: ISponsorships): any {
+    if (!payload) return null;
+    const { id, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
 
   sanitizeApplication(payload: IScholarshipApplication): any {
     if (!payload) return null;

@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { v4 } from 'uuid';
 import randomstring from 'randomstring';
 import { StudentGuardian } from './../database/models/studentGuardian.model';
 import * as bcrypt from 'bcrypt';
-import { ILike, In, Like, Raw } from 'typeorm';
-import { IStudent, IStudentClass } from '../database/modelInterfaces';
+import { FindOperator, ILike, In, IsNull, Like, Not, Raw } from 'typeorm';
+import { ISchoolProduct, IStudent, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { PAYMENT_TYPE } from '../database/models/paymentType.model';
 import { getClassLevel, listClassLevel } from '../database/repositories/classLevel.repo';
@@ -24,12 +23,34 @@ import { findOrCreateIndividual, saveIndividual, updateIndividual } from '../dat
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
-import { getClassAnalytics, getSchoolClassDetails, listSchoolClass, listStundentsInSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import {
+  getClassAnalytics,
+  getSchoolClass,
+  getSchoolClassDetails,
+  listSchoolClass,
+  listStundentsInSchoolClass,
+  saveSchoolClass,
+} from '../database/repositories/schoolClass.repo';
 import { getStudentsValidator } from '../validators/student.validator';
+import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
+import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
-    const { status, first_name, last_name, gender, other_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
+    const { session, status, first_name, last_name, gender, other_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
+
+    const foundSchoolClass = await getSchoolClass({ school_id: school.id, class_id: classId, status: STATUSES.ACTIVE }, []);
+    if (!foundSchoolClass) throw new NotFoundError(`Class for this this school`);
+
+    const classFees = await listSchoolProduct(
+      {
+        school_class_id: In([foundSchoolClass.id]),
+        status: Not(STATUSES.DELETED),
+        school_id: school.id,
+      },
+      [],
+    );
+
     let { partPayment = 'installmental' } = payload;
     partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
@@ -55,7 +76,6 @@ const Service = {
       user_type: 'student',
       first_name,
       last_name,
-      status: STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'],
       gender: gender && gender,
       other_name: other_name && other_name,
       password: passwordHash,
@@ -73,6 +93,7 @@ const Service = {
       schoolId,
       uniqueStudentId,
       userId: studentUserRecord.id,
+      status: STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'],
       paymentTypeId: PAYMENT_TYPE[partPayment as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'],
     });
 
@@ -87,6 +108,29 @@ const Service = {
     }
 
     // todo: Add fees for new Student
+    // const classFees = await listSchoolProduct(
+    //   {
+    //     school_class_id: In([null, foundSchoolClass.id]),
+    //     // school_class_id: new FindOperator('IS NULL', null).Or(foundSchoolClass.id),
+    //     // status: Not(STATUSES.DELETED),
+    //     // session: In([null, session.session]),
+    //     school_id: schoolId,
+    //   },
+    //   [],
+    // );
+    if (classFees.length)
+      await Promise.all(
+        classFees.map((classFee: ISchoolProduct) =>
+          saveBeneficiaryProductPayment({
+            beneficiary_type: 'student',
+            beneficiary_id: student.id,
+            product_id: classFee.id,
+            amount_paid: 0,
+            amount_outstanding: classFee.amount,
+            product_currency: classFee.currency,
+          }),
+        ),
+      );
 
     return sendObjectResponse('Student created successfully');
   },
@@ -420,7 +464,7 @@ const Service = {
     return sendObjectResponse('Students added successfully');
   },
 
-  async addClassToSchool(data: any): Promise<theResponse> {
+  async addClassToSchoolWitFees(data: any): Promise<theResponse> {
     const {
       forPeriod = false,
       forSession = false,

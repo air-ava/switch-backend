@@ -58,3 +58,16 @@ export const updateSchoolProduct = (
 ): Promise<UpdateResult> => {
   return t ? t.manager.update(SchoolProduct, queryParams, updateFields) : getRepository(SchoolProduct).update(queryParams, updateFields);
 };
+
+export const listFees = async (
+  queryParam: Partial<ISchoolProduct> | any,
+): Promise<SchoolProduct[]> => {
+  const { foundSchoolClass, sessions, status, schoolId } = queryParam;
+  const repository = getRepository(SchoolProduct).createQueryBuilder('product');
+  return repository
+    .where('product.school_class_id IN (:...ids)', { ids: [null, ...foundSchoolClass] })
+    // .andWhere('product.session IN (:...sessions)', { sessions: [null, ...sessions] })
+    .andWhere('product.status != :status', { status })
+    .andWhere('product.school_id = :schoolId', { schoolId })
+    .getMany();
+};

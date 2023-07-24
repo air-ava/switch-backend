@@ -9,6 +9,7 @@ router.get('/currencies', getCurrenciesCONTROLLER);
 router.post('/upload', uploadCONTROLLER);
 router.get('/class', listClassCONTROLLER);
 router.get('/education/level', educationLevelCONTROLLER);
+router.get('/education', educationLevelCONTROLLER);
 router.get('/job-titles', jobTitlesCONTROLLER);
 
 export default router;
