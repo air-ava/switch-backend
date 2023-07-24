@@ -42,15 +42,6 @@ const Service = {
     const foundSchoolClass = await getSchoolClass({ school_id: school.id, class_id: classId, status: STATUSES.ACTIVE }, []);
     if (!foundSchoolClass) throw new NotFoundError(`Class for this this school`);
 
-    const classFees = await listSchoolProduct(
-      {
-        school_class_id: In([foundSchoolClass.id]),
-        status: Not(STATUSES.DELETED),
-        school_id: school.id,
-      },
-      [],
-    );
-
     let { partPayment = 'installmental' } = payload;
     partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
@@ -108,16 +99,21 @@ const Service = {
     }
 
     // todo: Add fees for new Student
-    // const classFees = await listSchoolProduct(
-    //   {
-    //     school_class_id: In([null, foundSchoolClass.id]),
-    //     // school_class_id: new FindOperator('IS NULL', null).Or(foundSchoolClass.id),
-    //     // status: Not(STATUSES.DELETED),
-    //     // session: In([null, session.session]),
-    //     school_id: schoolId,
-    //   },
-    //   [],
-    // );
+    const classFees = await listSchoolProduct(
+      [
+        {
+          school_class_id: IsNull(),
+          status: Not(STATUSES.DELETED),
+          school_id: school.id,
+        },
+        {
+          school_class_id: In([foundSchoolClass.id]),
+          status: Not(STATUSES.DELETED),
+          school_id: school.id,
+        },
+      ],
+      [],
+    );
     if (classFees.length)
       await Promise.all(
         classFees.map((classFee: ISchoolProduct) =>

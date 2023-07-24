@@ -37,9 +37,21 @@ export const addFeeTypeCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const addFeeCONTROLLER: RequestHandler = async (req, res) => {
-  const { school, user, educationalSession } = req;
-  const payload = { ...req.query, ...req.body, school, session: educationalSession };
-  const response = await FeesService.createAFee(payload);
+  const { school, educationalSession } = req;
+  const { incomigFees } = req.body;
+  const payload = { school, session: educationalSession };
+  const response = Array.isArray(incomigFees)
+    ? await FeesService.createAFee({ ...req.body, ...payload })
+    : await FeesService.createFees({ incomigFees, ...payload });
+  // const response = await FeesService.createAFee(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };
+
+// export const addFeeCONTROLLER: RequestHandler = async (req, res) => {
+//   const { school, user, educationalSession } = req;
+//   const payload = { ...req.query, ...req.body, school, session: educationalSession };
+//   const response = await FeesService.createAFee(payload);
+//   const { data, message, error } = response;
+//   return ResponseService.success(res, message || error, data);
+// };

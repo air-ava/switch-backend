@@ -75,15 +75,23 @@ const Service: any = {
       forSession = false,
       expiresAtPeriodEnd = false,
       addClass = false,
-      schoolClassCode,
     } = data;
+    let { schoolClassCode } = data;
     const paymentTypes = Settings.get('PAYMENT_TYPES');
 
     let foundClassLevel: any;
     if (classCode) {
-      foundClassLevel = await getClassLevel({ code: classCode }, []);
-      if (!foundClassLevel) throw new NotFoundError('Class Level');
-      foundClassLevel = foundClassLevel.id;
+      if (classCode.includes('shc_') && !schoolClassCode) {
+        schoolClassCode = classCode;
+        const schoolClass = await getSchoolClass({ code: schoolClassCode }, [], ['ClassLevel']);
+        if (!schoolClass) throw new NotFoundError('Class For School');
+        foundClassLevel = schoolClass.ClassLevel.id;
+      }
+      if (!foundClassLevel) {
+        foundClassLevel = await getClassLevel({ code: classCode }, []);
+        if (!foundClassLevel) throw new NotFoundError('Class Level');
+        foundClassLevel = foundClassLevel.id;
+      }
     }
 
     const feeTypeCriteria = feeType.includes('prt_') ? { code: feeType } : { slug: feeType.toLowerCase() };
@@ -205,13 +213,11 @@ const Service: any = {
       product_type_id: foundProductType.id,
       session: sessionUse || null,
       school_id: school.id,
-      school_class_id: schoolClass.id || null,
+      school_class_id: schoolClass && schoolClass.id ? schoolClass.id : schoolClass || null,
       status,
       feature_name,
       ...periodManagement,
     };
-
-    console.log({ findCriteria });
 
     const schoolProductCriteria = productCode ? { code: productCode } : findCriteria;
     let schoolProduct = await getSchoolProduct(schoolProductCriteria, []);
