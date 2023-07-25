@@ -219,10 +219,11 @@ const Service = {
     const paymentTransactions = await listProductTransaction(
       { beneficiary_product_payment_id: In(studentPaymentTransactionIds) },
       [],
-      ['Payer', 'beneficiaryFee', 'Transactions'],
+      ['Payer', 'beneficiaryFee', 'Transactions', 'StudentClass', 'StudentClass.ClassLevel'],
     );
     const groupedTransactions = createObjectFromArrayWithoutValue(
       Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizePaymentHistory),
+      'StudentClass.ClassLevel.class',
       'session',
     );
     // const paymentTransactions = await listProductTransactionForBeneficiary({ studentPaymentTransactionIds });

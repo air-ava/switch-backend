@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IBeneficiaryProductPayment, IPaymentContacts, ITransactions } from '../modelInterfaces';
+import { IBeneficiaryProductPayment, IPaymentContacts, IStudentClass, ITransactions } from '../modelInterfaces';
 import { Transactions } from './transaction.model';
 
 @Entity('product_transactions')
@@ -33,6 +33,9 @@ export class ProductTransactions {
 
   @Column()
   status: number;
+  
+  @Column()
+  student_class: number;
 
   @Column({ unique: true })
   code: string;
@@ -57,4 +60,8 @@ export class ProductTransactions {
 
   @OneToMany(() => Transactions, (transaction) => transaction.ProductTransaction)
   Transactions: ITransactions[];
+
+  @OneToOne('StudentClass', 'product_transactions')
+  @JoinColumn({ name: 'student_class', referencedColumnName: 'id' })
+  StudentClass: IStudentClass;
 }

@@ -283,7 +283,11 @@ const Service: any = {
     metadata: { [key: string]: number | string };
     t?: QueryRunner;
   }): Promise<ControllerResponse> {
-    const productPayment = await getBeneficiaryProductPayment({ id: beneficiaryId }, [], ['Fee', 'Student', 'Student.User', 'Student.School']);
+    const productPayment = await getBeneficiaryProductPayment(
+      { id: beneficiaryId },
+      [],
+      ['Fee', 'Student', 'Student.User', 'Student.School', 'Student.Classes'],
+    );
     // const wallet = await WalletREPO.findWallet({ userId: user.id, id: walletId }, ['id', 'balance', 'ledger_balance'], t);
     if (!productPayment) {
       return {
@@ -297,9 +301,9 @@ const Service: any = {
         error: 'Beneficiary does not exist',
       };
     }
-    const { School } = productPayment.Student as any;
+    const { School, Classes } = productPayment.Student as any;
     const session = await getSchoolSession({ country: 'UGANDA' || School.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
-    // const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+    const [studentCurrentClass] = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
 
     await incrementAmountPaid(productPayment.id, amount, t);
     await decrementAmountOutstanding(productPayment.id, amount, t);
@@ -315,6 +319,7 @@ const Service: any = {
         beneficiary_product_payment_id: productPayment,
         tx_reference: reference,
         session: session && session.session,
+        student_class: studentCurrentClass && studentCurrentClass.id,
       },
       t,
     );

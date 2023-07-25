@@ -54,18 +54,6 @@ export const Service = {
     if (!getWallet) throw walletError;
 
     const initiator = student.User || reciever;
-    console.log({
-      phonenumber: phoneNumber,
-      first_name: initiator.first_name,
-      last_name: initiator.last_name,
-      // amount: amount / 100,
-      amount: amountWithFees / 100,
-      currency: Utils.isStaging() ? 'BXC' : wallet.currency,
-      metadata,
-      reason: `${purpose}`,
-      send_instructions: true,
-      success_message: `${purpose} for ${initiator.first_name} ${initiator.last_name} at ${school.name} Successfully Paid`,
-    });
     const { success, data, error } = await initiateCollection({
       phonenumber: phoneNumber,
       first_name: initiator.first_name,
