@@ -12,6 +12,7 @@ import {
   classAnalysisCONTROLLER,
   classDetailsCONTROLLER,
   getStudentPaymentHistoryCONTROLLER,
+  getStudentFeesCONTROLLER,
 } from '../controllers/student.controller';
 import { catchErrors } from '../utils/errors';
 
@@ -23,6 +24,7 @@ router.get('/class', catchErrors(listStundentsInSchoolClassCONTROLLER));
 router.get('/class/:code/detail', catchErrors(classDetailsCONTROLLER));
 router.get('/class/:code/analysis', catchErrors(classAnalysisCONTROLLER));
 router.get('/:code/history', catchErrors(getStudentPaymentHistoryCONTROLLER));
+router.get('/:code/fees', catchErrors(getStudentFeesCONTROLLER));
 router.get('/:code', catchErrors(getStudentCONTROLLER));
 router.post('/search', catchErrors(searchStudentCONTROLLER));
 router.post('/bulk', catchErrors(addBulkStudentsToSchoolCONTROLLER));

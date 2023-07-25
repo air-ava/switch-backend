@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne, OneToMany } from 'typeorm';
 import { StudentGuardian } from './studentGuardian.model';
-import { IUser, ISchools, IBeneficiaryProductPayment, IPaymentType } from '../modelInterfaces';
+import { IUser, ISchools, IBeneficiaryProductPayment, IPaymentType, IStudentClass } from '../modelInterfaces';
 import { StudentClass } from './studentClass.model';
 import { BeneficiaryProductPayment } from './beneficiaryProductPayment.model';
 
@@ -40,6 +40,10 @@ export class Student {
   @OneToOne('Schools', 'students')
   @JoinColumn({ name: 'schoolId', referencedColumnName: 'id' })
   School: ISchools;
+  
+  @OneToOne('Schools', 'students')
+  @JoinColumn({ name: 'schoolId', referencedColumnName: 'id' })
+  Class: IStudentClass;
 
   // @ManyToOne('StudentClass', 'students')
   // @JoinColumn({ name: 'studentId', referencedColumnName: 'id' })

@@ -67,6 +67,12 @@ export const getStudentPaymentHistoryCONTROLLER: RequestHandler = async (req, re
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };
+export const getStudentFeesCONTROLLER: RequestHandler = async (req, res) => {
+  const { code: studentId } = req.params;
+  const response = await StudentService.getStudentFees({ studentId });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, data);
+};
 
 export const listStudentCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;

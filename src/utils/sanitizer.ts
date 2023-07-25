@@ -340,6 +340,7 @@ export const Sanitizer = {
       user: User && Sanitizer.sanitizeUser(User),
       school: School && Sanitizer.sanitizeSchool(School),
       class: Classes && studentCurrentClass[0].ClassLevel,
+      session: Classes && studentCurrentClass[0].Session,
       classHistory: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
       fees: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeBeneficiaryFee),
       paymentHistory: Fees && Sanitizer.sanitizeAllArray(paymentFees.flat(), Sanitizer.sanitizePaymentHistory),
@@ -393,12 +394,13 @@ export const Sanitizer = {
 
   sanitizeBeneficiaryFee(payload: any): any {
     if (!payload) return null;
-    const { id, Fee, FeesHistory, status, product_id, ...rest } = Sanitizer.jsonify(payload);
+    const { id, Fee, FeesHistory, status, Student, product_id, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       feeHistory: FeesHistory && Sanitizer.sanitizeAllArray(FeesHistory, Sanitizer.sanitizeFee),
       fee: Fee && Sanitizer.sanitizeFee(Fee),
+      student: Student && Sanitizer.sanitizeStudent(Student),
     };
     return sanitized;
   },

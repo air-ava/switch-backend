@@ -32,7 +32,7 @@ import {
   saveSchoolClass,
 } from '../database/repositories/schoolClass.repo';
 import { getStudentsValidator } from '../validators/student.validator';
-import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
+import { listBeneficiaryProductPayments, saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
 import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { listProductTransaction, listProductTransactionForBeneficiary } from '../database/repositories/productTransaction.repo';
 import { Sanitizer } from '../utils/sanitizer';
@@ -226,8 +226,25 @@ const Service = {
       'StudentClass.ClassLevel.class',
       'session',
     );
-    // const paymentTransactions = await listProductTransactionForBeneficiary({ studentPaymentTransactionIds });
     return sendObjectResponse('Student payment history retrieved successfully', groupedTransactions);
+  },
+  
+  async getStudentFees(criteria: any): Promise<theResponse> {
+    const { studentId } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
+    if (!student) throw Error('Student not found');
+
+    const paymentTransactions = await listBeneficiaryProductPayments(
+      { beneficiary_id: student.id, beneficiary_type: 'student' },
+      [],
+      ['Fee', 'Student', 'Student.Classes', 'Student.Classes.Session', 'Student.Classes.ClassLevel'],
+    );
+    const groupedTransactions = createObjectFromArrayWithoutValue(
+      Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizeBeneficiaryFee),
+      'student.class.class',
+      'student.session.session',
+    );
+    return sendObjectResponse('Student Fees retrieved successfully', groupedTransactions);
   },
 
   async listStudents(criteria: any): Promise<theResponse> {

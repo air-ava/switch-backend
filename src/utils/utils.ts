@@ -111,8 +111,14 @@ export const createObjectFromArray = (payload: any, key: string, value: any, pat
 
 export const createObjectFromArrayWithoutValue = (arr: any, key1: string, key2: string) => {
   return arr.reduce((result: any, item: any) => {
-    // const keyValue1 = item[key1];
     const response = jsonify(item);
+    // console.log({
+    //   'response.Student': response.Student,
+    //   'response.Student.Classes': response.Student.Classes,
+    //   'response.Student.Classes.ClassLevel': response.Student.Classes.ClassLevel,
+    //   'response.Student.Classes.Session': response.Student.Classes.Session,
+    // });
+    // classLevel
     const keyValue1 = key1.includes('.') ? findObjectValue(item, key1) : response[key1];
     const keyValue2 = key2.includes('.') ? findObjectValue(item, key2) : response[key2];
     const combinedKey = `${keyValue1} | ${keyValue2}`;
@@ -123,8 +129,7 @@ export const createObjectFromArrayWithoutValue = (arr: any, key1: string, key2: 
     result[combinedKey].push(item);
     return result;
   }, {});
-}
-
+};
 
 export const maxElementFromAnArray = (arr: any[], key: string) => {
   return arr.reduce((prev, nex) => {
@@ -333,5 +338,3 @@ const Utils = {
 };
 
 export default Utils;
-
-
