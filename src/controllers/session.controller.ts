@@ -37,3 +37,10 @@ export const listEducationalLevels: RequestHandler = async (req, res) => {
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeEducationLevel));
 };
+
+export const listSessionsCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { ...req.query };
+  const response = await SessionService.listSessions(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};

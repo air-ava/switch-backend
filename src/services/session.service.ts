@@ -3,13 +3,14 @@ import { updateSchedule } from '../database/repositories/schedule.repo';
 import { NotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
 import Settings from './settings.service';
 import ScheduleService from './schedule.service';
-import { saveSchoolSession } from '../database/repositories/schoolSession.repo';
+import { listSchoolSession, saveSchoolSession } from '../database/repositories/schoolSession.repo';
 import { STATUSES } from '../database/models/status.model';
 import { listSchoolPeriod, saveSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import Utils from '../utils/utils';
 import { theResponse } from '../utils/interface';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 import { getEducationPeriod, listEducationPeriod } from '../database/repositories/education_period.repo';
+import { Not } from 'typeorm';
 
 
 const Service = {
@@ -110,6 +111,11 @@ const Service = {
   async listEducationalLevels(data: any): Promise<theResponse> {
     const existingEducationalLevels = await listEducationLevel({}, []);
     return sendObjectResponse('Educational levels retrieved successfully', existingEducationalLevels);
+  },
+
+  async listSessions(data: any): Promise<theResponse> {
+    const existingEducationalLevels = await listSchoolSession({ status: Not(STATUSES.DELETED) }, []);
+    return sendObjectResponse('Sessions retrieved successfully', existingEducationalLevels);
   },
 };
 

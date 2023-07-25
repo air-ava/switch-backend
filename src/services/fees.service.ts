@@ -124,8 +124,10 @@ const Service: any = {
       periodManagement = expiresAtPeriodEnd ? { school_period: foundPeriod.id } : { period: eduPeriod.id };
     }
 
-    // const sessionUse = forSession ? foundPeriod.Session.id || session.id : null;
-    const sessionUse = forPeriod ? foundPeriod.Session.id : session.id;
+    let sessionUse;
+    if (forSession) sessionUse = foundPeriod.Session.id || session.id;
+    if (forPeriod) sessionUse = foundPeriod.Session.id || session.id;
+    else sessionUse = null;
 
     let schoolClass: any;
     if (classCode || schoolClassCode) {
