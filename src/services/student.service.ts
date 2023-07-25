@@ -317,7 +317,7 @@ const Service = {
       await updateStudent({ id: student.id }, { paymentTypeId: PAYMENT_TYPE[partPayment as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'] });
     }
     if (classId) {
-      const existingClass = await getStudentClass({ id: classId }, []);
+      const existingClass = await getStudentClass({ code: classId }, []);
       if (!existingClass) throw new NotFoundError('class');
       await updateStudentClass({ id: student.id }, { classId });
     }
