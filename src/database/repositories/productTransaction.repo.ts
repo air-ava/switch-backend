@@ -40,6 +40,20 @@ export const listProductTransaction = async (
       });
 };
 
+export const listProductTransactionForBeneficiary = async (queryParam: Partial<IProductTransactions> | any): Promise<ProductTransactions[]> => {
+  const { studentPaymentTransactionIds } = queryParam;
+  const queryBuilder = getRepository(ProductTransactions).createQueryBuilder('paymentHistory');
+  const query = queryBuilder
+    .leftJoinAndSelect('paymentHistory.Payer', 'Payer')
+    .leftJoinAndSelect('paymentHistory.beneficiaryFee', 'beneficiaryFee')
+    .leftJoinAndSelect('paymentHistory.Transactions', 'Transactions')
+    .where('paymentHistory.beneficiary_product_payment_id IN (:...ids)', {
+      ids: studentPaymentTransactionIds,
+    });
+  const analytics = await query.groupBy('paymentHistory.session').addGroupBy('paymentHistory.id').addGroupBy('Transactions.id').getRawMany();
+  return analytics;
+};
+
 export const saveProductTransaction = (
   queryParams: Partial<IProductTransactions> | Partial<IProductTransactions>[] | any,
   transaction?: QueryRunner,

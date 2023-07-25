@@ -1,8 +1,9 @@
 import { v4 } from 'uuid';
 import randomstring from 'randomstring';
-import { StudentGuardian } from './../database/models/studentGuardian.model';
+// import { StudentGuardian } from './../database/models/studentGuardian.model';
 import * as bcrypt from 'bcrypt';
 import { FindOperator, ILike, In, IsNull, Like, Not, Raw } from 'typeorm';
+import Utils, { createObjectFromArrayWithoutValue, mapAnArray } from '../utils/utils';
 import { ISchoolProduct, IStudent, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { PAYMENT_TYPE } from '../database/models/paymentType.model';
@@ -18,7 +19,6 @@ import { theResponse } from '../utils/interface';
 import { getStudent, listStudent, saveStudentREPO, updateStudent } from '../database/repositories/student.repo';
 import { getStudentClass, listStudentClass, saveStudentClassREPO, updateStudentClass } from '../database/repositories/studentClass.repo';
 import Settings from './settings.service';
-import { mapAnArray } from '../utils/utils';
 import { findOrCreateIndividual, saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
@@ -34,6 +34,8 @@ import {
 import { getStudentsValidator } from '../validators/student.validator';
 import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
 import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
+import { listProductTransaction, listProductTransactionForBeneficiary } from '../database/repositories/productTransaction.repo';
+import { Sanitizer } from '../utils/sanitizer';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
@@ -205,6 +207,26 @@ const Service = {
     );
     if (!student) throw Error('Student not found');
     return sendObjectResponse('Student retrieved successfully', student);
+  },
+  
+  async getStudentHistory(criteria: any): Promise<theResponse> {
+    const { studentId } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
+    if (!student) throw Error('Student not found');
+
+    const studentPaymentTransactionIds = mapAnArray(student.Fees, 'id');
+
+    const paymentTransactions = await listProductTransaction(
+      { beneficiary_product_payment_id: In(studentPaymentTransactionIds) },
+      [],
+      ['Payer', 'beneficiaryFee', 'Transactions'],
+    );
+    const groupedTransactions = createObjectFromArrayWithoutValue(
+      Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizePaymentHistory),
+      'session',
+    );
+    // const paymentTransactions = await listProductTransactionForBeneficiary({ studentPaymentTransactionIds });
+    return sendObjectResponse('Student payment history retrieved successfully', groupedTransactions);
   },
 
   async listStudents(criteria: any): Promise<theResponse> {

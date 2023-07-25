@@ -61,6 +61,13 @@ export const getStudentCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, Sanitizer.sanitizeStudent(data));
 };
 
+export const getStudentPaymentHistoryCONTROLLER: RequestHandler = async (req, res) => {
+  const { code: studentId } = req.params;
+  const response = await StudentService.getStudentHistory({ studentId });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
 export const listStudentCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
   const { perPage, page, from, to } = req.query;

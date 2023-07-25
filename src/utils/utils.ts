@@ -109,6 +109,19 @@ export const createObjectFromArray = (payload: any, key: string, value: any, pat
   return response;
 };
 
+export const createObjectFromArrayWithoutValue = (arr: any, key: string) => {
+  return arr.reduce((result: any, item: any) => {
+    const keyValue = item[key];
+    if (!result[keyValue]) {
+      // eslint-disable-next-line no-param-reassign
+      result[keyValue] = [];
+    }
+    result[keyValue].push(item);
+    return result;
+  }, {});
+}
+
+
 export const maxElementFromAnArray = (arr: any[], key: string) => {
   return arr.reduce((prev, nex) => {
     const previous = jsonify(prev);
