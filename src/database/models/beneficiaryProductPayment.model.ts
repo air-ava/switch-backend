@@ -48,4 +48,8 @@ export class BeneficiaryProductPayment {
   @ManyToOne('Student', 'beneficiary_product_payment')
   @JoinColumn({ name: 'beneficiary_id' })
   Students: IStudent;
+
+  @ManyToOne('SchoolProduct', 'beneficiary_product_payment')
+  @JoinColumn({ name: 'product_id' })
+  fee: IStudent;
 }

@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import { IEducationPeriod, IPaymentType, IProductType, ISchoolClass, ISchools, ISchoolSession } from '../modelInterfaces';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { IBeneficiaryProductPayment, IEducationPeriod, IPaymentType, IProductType, ISchoolClass, ISchools, ISchoolSession } from '../modelInterfaces';
+import { BeneficiaryProductPayment } from './beneficiaryProductPayment.model';
 
 @Entity('school_product')
 export class SchoolProduct {
@@ -81,4 +82,7 @@ export class SchoolProduct {
   @ManyToOne('SchoolClass', 'school_product')
   @JoinColumn({ name: 'school_class_id' })
   SchoolClasses: ISchoolClass;
+
+  @OneToMany(() => BeneficiaryProductPayment, (payment) => payment.fee)
+  FeesPaymentRecords: IBeneficiaryProductPayment[];
 }

@@ -434,6 +434,18 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizeByClass(payload: any): any {
+    if (!payload) return null;
+    const { id, Fees, status, class_id, school_id, ClassLevel, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      class: ClassLevel && Sanitizer.sanitizeClassLevel(ClassLevel),
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      fee: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeFee),
+    };
+    return sanitized;
+  },
+
   sanitizePaymentHistory(payload: any): any {
     if (!payload) return null;
     const { id, payer, status, Payer, beneficiaryFee, beneficiary_product_payment_id, Transactions, ...rest } = Sanitizer.jsonify(payload);

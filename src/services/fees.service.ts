@@ -1,16 +1,24 @@
+import { generate } from 'randomstring';
+import { QueryRunner } from 'typeorm';
+import { any } from 'joi';
+import {
+  // schoolFeesDetails,
+  getSchoolClass,
+  listFeesByClass,
+  listSchoolClass,
+  listStundentsInSchoolClass,
+} from '../database/repositories/schoolClass.repo';
 import Settings from './settings.service';
 import { STATUSES } from '../database/models/status.model';
 import { getClassLevel } from '../database/repositories/classLevel.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
 import { listProductTypes, getProductType, saveProductType } from '../database/repositories/productType.repo';
-import { getSchoolClass, listStundentsInSchoolClass } from '../database/repositories/schoolClass.repo';
 import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
-import { getSchoolProduct, listSchoolProduct, saveSchoolProduct } from '../database/repositories/schoolProduct.repo';
+import { getSchoolProduct, listSchoolProduct, saveSchoolProduct, schoolFeesDetails } from '../database/repositories/schoolProduct.repo';
 import { ExistsError, sendObjectResponse } from '../utils/errors';
 import { ControllerResponse, theResponse } from '../utils/interface';
 import NotFoundError from '../utils/notFounfError';
 import ValidationError from '../utils/validationError';
-import { generate } from 'randomstring';
 import {
   saveBeneficiaryProductPayment,
   getBeneficiaryProductPayment,
@@ -19,8 +27,6 @@ import {
 } from '../database/repositories/beneficiaryProductPayment.repo';
 import { SchoolProduct } from '../database/models/schoolProduct.model';
 import { listStudent } from '../database/repositories/student.repo';
-import { QueryRunner } from 'typeorm';
-import { any } from 'joi';
 import { IPaymentContacts, IStudentClass, IUser } from '../database/modelInterfaces';
 import { saveALienTransaction } from '../database/repositories/lienTransaction.repo';
 import { saveTransaction } from '../database/repositories/transaction.repo';
@@ -277,11 +283,7 @@ const Service: any = {
     metadata: { [key: string]: number | string };
     t?: QueryRunner;
   }): Promise<ControllerResponse> {
-    const productPayment = await getBeneficiaryProductPayment(
-      { id: beneficiaryId },
-      [],
-      ['Fee', 'Student', 'Student.User', 'Student.School'],
-    );
+    const productPayment = await getBeneficiaryProductPayment({ id: beneficiaryId }, [], ['Fee', 'Student', 'Student.User', 'Student.School']);
     // const wallet = await WalletREPO.findWallet({ userId: user.id, id: walletId }, ['id', 'balance', 'ledger_balance'], t);
     if (!productPayment) {
       return {
@@ -323,12 +325,22 @@ const Service: any = {
     };
   },
 
-  // async recordFeePayment(data: any): Promise<theResponse> {
-  //   const { paidAmount, beneficiaryProduct, transactionReference, payer, metadata } = data;
+  async listClassFee(data: any): Promise<theResponse> {
+    const { currency = 'UGX', school } = data;
 
-  //   // Update fee transaction
-  //   // Save Product Transaction
-  //   return sendObjectResponse('Fee Payment Created');
-  // },
+    const response = await listFeesByClass(
+      { status: STATUSES.ACTIVE, currency, school_id: school.id },
+      [],
+      ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session'],
+    );
+    return sendObjectResponse('Fees retrieved', response);
+  },
+
+  async feesDetails(data: any): Promise<theResponse> {
+    const { currency = 'UGX', school } = data;
+
+    const response = await schoolFeesDetails({ schoolId: school.id });
+    return sendObjectResponse('Fee details retrieved', response);
+  },
 };
 export default Service;

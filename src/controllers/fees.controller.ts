@@ -47,3 +47,19 @@ export const addFeeCONTROLLER: RequestHandler = async (req, res) => {
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };
+
+export const listClassFeeCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const payload = { ...req.query, school };
+  const response = await FeesService.listClassFee(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeByClass));
+};
+
+export const feeDetailsCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const payload = { ...req.query, school };
+  const response = await FeesService.feesDetails(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};

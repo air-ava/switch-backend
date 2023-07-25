@@ -5,8 +5,10 @@ import { ISchoolClass } from '../modelInterfaces';
 import { SchoolClass } from '../models/schoolClass.model';
 import { StudentClass } from '../models/studentClass.model';
 import Utils, { isValidDate } from '../../utils/utils';
+import exp from 'constants';
+import { STATUSES } from '../models/status.model';
 
-const dateFns = require("date-fns");
+const dateFns = require('date-fns');
 
 export const getSchoolClass = async (
   queryParam: Partial<ISchoolClass> | any,
@@ -174,7 +176,6 @@ export const getSchoolClassDetails = async (queryParams: any, transaction?: Quer
 };
 
 export const getClassAnalytics = async (queryParams: any, transaction?: QueryRunner): Promise<any> => {
-  console.log({ queryParams });
   const { classId, schoolId, groupingInterval = 'weekly' } = queryParams;
   let { from, to } = queryParams;
   const queryBuilder = getRepository(StudentClass).createQueryBuilder('studentClass');
@@ -248,6 +249,41 @@ export const saveSchoolClass = (queryParams: Partial<ISchoolClass> | Partial<ISc
     ...queryParams,
   };
   return transaction ? transaction.manager.save(SchoolClass, payload) : getRepository(SchoolClass).save(payload);
+};
+
+export const listFeesByClass = async (
+  queryParams: any,
+  selectOptions: Array<keyof SchoolClass> = [],
+  relationOptions?: any[],
+  transaction?: QueryRunner,
+): Promise<any> => {
+  const { currency, ...rest } = queryParams;
+  const repository = transaction ? transaction.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
+  const classes = await repository.find({
+    where: rest,
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+    ...(relationOptions && { relations: relationOptions }),
+  });
+  classes.forEach((classRoom: any) => {
+    classRoom.Fees = classRoom.Fees.filter((fee: any) => fee.status === STATUSES.ACTIVE && fee.currency === currency);
+    classRoom.currency = currency;
+    const calculatedFees =
+      classRoom.Fees &&
+      classRoom.Fees.reduce(
+        (sum: any, fee: any) => {
+          if (fee.feature_name === 'tuition-fees') sum.tuitionFee += +fee.amount;
+          else sum.otherFees += +fee.amount;
+          return sum;
+        },
+        {
+          tuitionFee: 0,
+          otherFees: 0,
+        },
+      );
+    classRoom.tuitionFee = calculatedFees.tuitionFee;
+    classRoom.otherFees = calculatedFees.otherFees;
+  });
+  return classes;
 };
 
 export const updateSchoolClass = (

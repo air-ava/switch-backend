@@ -71,3 +71,22 @@ export const listFees = async (
     .andWhere('product.school_id = :schoolId', { schoolId })
     .getMany();
 };
+
+export const schoolFeesDetails = async (queryParams: any): Promise<any> => {
+  const { schoolId } = queryParams;
+  const queryBuilder = getRepository(SchoolProduct).createQueryBuilder('SchoolFee');
+  const query = queryBuilder
+    .leftJoinAndSelect('SchoolFee.FeesPaymentRecords', 'FeeRecords')
+    .select('COUNT(SchoolFee.id)', 'feeCount')
+    .addSelect('SUM(SchoolFee.amount)', 'totalFees')
+    .addSelect('SchoolFee.currency', 'currency')
+    .addSelect('SUM(FeeRecords.amount_paid)', 'sumPaid')
+    .addSelect('SUM(FeeRecords.amount_outstanding)', 'sumOutstanding')
+    .where('SchoolFee.status = :status AND SchoolFee.school_id = :schoolId AND FeeRecords.beneficiary_type = :beneficiaryType', {
+      status: 1,
+      schoolId,
+      beneficiaryType: 'student',
+    });
+  const analytics = await query.groupBy('SchoolFee.currency').getRawMany();
+  return analytics;
+};
