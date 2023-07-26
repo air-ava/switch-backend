@@ -128,7 +128,7 @@ export const buildCollectionRequestPayload = async ({
       [],
       ['User', 'School', 'Classes', 'Classes.ClassLevel', 'Fees', 'Fees.Fee', 'Fees.Fee.ProductType', 'Fees.Fee.PaymentType'],
     );
-    if (!student) throw new NotFoundError('Student');
+    if (!student || student.status === STATUSES.DELETED) throw new NotFoundError('Student');
     if (!user) {
       school = student.School;
       const organization = await getOneOrganisationREPO({ id: school.organisation_id }, [], ['Owner']);

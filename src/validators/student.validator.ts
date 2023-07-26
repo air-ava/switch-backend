@@ -37,3 +37,10 @@ export const getStudentsValidator = joi
     }),
   })
   .custom(customDateValidator, 'Date validation');
+
+  export const editStudentsValidator = joi
+  .object()
+  .keys({
+    status: joi.string().valid('active', 'inactive').optional(),
+  })
+  .custom(customDateValidator, 'Date validation');

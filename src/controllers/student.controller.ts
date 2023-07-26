@@ -3,7 +3,7 @@ import StudentService from '../services/student.service';
 import ResponseService from '../utils/response';
 import { NotFoundError, ValidationError, oldSendObjectResponse } from '../utils/errors';
 import { Sanitizer } from '../utils/sanitizer';
-import { getStudentsValidator } from '../validators/student.validator';
+import { getStudentsValidator, editStudentsValidator } from '../validators/student.validator';
 
 const errorMessages = {
   listClasses: 'Could not list classes',
@@ -49,6 +49,11 @@ export const addGuardiansToStudentCONTROLLER: RequestHandler = async (req, res) 
 
 export const editStudentCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { ...req.body, ...req.params };
+  // editStudentsValidator
+  const { status } = req.body;
+  const validation = editStudentsValidator.validate({ status });
+  if (validation.error) throw new ValidationError(validation.error.message);
+
   const response = await StudentService.editStudent(payload);
   const { message, data, error } = response;
   return ResponseService.success(res, message || error, data);
@@ -77,6 +82,13 @@ export const getStudentFeesCONTROLLER: RequestHandler = async (req, res) => {
 export const deactivateStudentFeeCONTROLLER: RequestHandler = async (req, res) => {
   const { code: studentId, feeCode } = req.params;
   const response = await StudentService.deactivateStudentFee({ studentId, feeCode });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const deactivateStudentCONTROLLER: RequestHandler = async (req, res) => {
+  const { code: studentId } = req.params;
+  const response = await StudentService.deactivateStudent({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };

@@ -270,6 +270,15 @@ const Service = {
     return sendObjectResponse('Student Fee deactivated successfully');
   },
 
+  async deactivateStudent(criteria: any): Promise<theResponse> {
+    const { studentId } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
+    if (!student || student.status === STATUSES.DELETED) throw new NotFoundError('Student');
+
+    await updateStudent({ id: student.id }, { status: STATUSES.DELETED });
+    return sendObjectResponse('Student deleted successfully');
+  },
+
   async listStudents(criteria: any): Promise<theResponse> {
     const { schoolId, perPage, page, from, to } = criteria;
 
@@ -322,7 +331,7 @@ const Service = {
   },
 
   async editStudent(criteria: any): Promise<theResponse> {
-    const { id: studentId, guardians, addGuardians, class: classId, phone_number: reqPhone } = criteria;
+    const { status, id: studentId, guardians, addGuardians, class: classId, phone_number: reqPhone } = criteria;
     let { partPayment } = criteria;
 
     if (addGuardians && addGuardians.length > 2) throw new ValidationError('You can not have more than two(2) Guardians');
@@ -335,10 +344,15 @@ const Service = {
     if (addGuardians && addGuardians.length && student.StudentGuardians.length > 1)
       throw new ValidationError('You have hit the max number of guardians for this student');
 
+    let updateStudentPayload: any;
     if (partPayment) {
       partPayment = partPayment.toUpperCase();
-      await updateStudent({ id: student.id }, { paymentTypeId: PAYMENT_TYPE[partPayment as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'] });
+      updateStudentPayload.paymentTypeId = PAYMENT_TYPE[partPayment as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'];
     }
+    if (status) {
+      updateStudentPayload.status = STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'];
+    }
+    if (status || partPayment) await updateStudent({ id: student.id }, updateStudentPayload);
     if (classId) {
       const existingClass = await getStudentClass({ code: classId }, []);
       if (!existingClass) throw new NotFoundError('class');

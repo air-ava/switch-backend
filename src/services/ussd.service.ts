@@ -19,7 +19,7 @@ const Service = {
       [],
       ['User', 'School', 'Classes', 'Classes.ClassLevel', 'Fees', 'Fees.Fee', 'Fees.Fee.ProductType', 'Fees.Fee.PaymentType'],
     );
-    if (!student) return BadRequestException('END Student not found');
+    if (!student || student.status === STATUSES.DELETED) return BadRequestException('END Student not found');
     const { User, School, Classes, Fees } = student;
     const [studentCurrentClass] = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
     const [studentTutitionFee] =
