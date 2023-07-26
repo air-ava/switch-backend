@@ -74,6 +74,13 @@ export const getStudentFeesCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, data);
 };
 
+export const deactivateStudentFeeCONTROLLER: RequestHandler = async (req, res) => {
+  const { code: studentId, feeCode } = req.params;
+  const response = await StudentService.deactivateStudentFee({ studentId, feeCode });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
 export const listStudentCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
   const { perPage, page, from, to } = req.query;

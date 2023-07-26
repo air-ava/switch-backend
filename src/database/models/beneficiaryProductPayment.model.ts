@@ -19,6 +19,9 @@ export class BeneficiaryProductPayment {
   @Column()
   product_id: number;
 
+  @Column()
+  status: number;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount_paid: number;
 

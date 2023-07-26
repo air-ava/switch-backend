@@ -726,6 +726,7 @@ export interface IStudentClass {
   studentId: number;
   classId: number;
   status: number;
+  session: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -938,6 +939,7 @@ export interface IProductTransactions {
   payer: number;
   metadata: { [key: string]: number | string };
   status: number;
+  student_class: number;
   code: string;
   created_at: Date;
   updated_at: Date;
@@ -962,6 +964,7 @@ export interface IBeneficiaryProductPayment {
   product_currency: string;
   beneficiary_id: number;
   product_id: number;
+  status: number;
   amount_paid: number;
   amount_outstanding: number;
   code: string;

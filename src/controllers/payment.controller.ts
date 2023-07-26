@@ -62,7 +62,7 @@ export const getPaymentCONTROLLER: RequestHandler = async (req, res) => {
 export const initiatePaymentCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const { walletId, studentId, phoneNumber, amount } = req.body;
-    const query = await buildCollectionRequestPayload({ user: req.user, walletId, studentId, phoneNumber, amount });
+    const query = await buildCollectionRequestPayload({ user: req.user, walletId, studentId, phoneNumber, amount, ussd: false });
     const response = await BayonicService.initiateCollectionRequest(query);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);

@@ -106,6 +106,7 @@ const Service = {
           amount: incomingAmount * 100,
           amountWithFees: sumTotal * 100,
         });
+        if (query.error) return BadRequestException(`END ${query.error}`);
         const response = await BayonicService.initiateCollectionRequest(query);
         return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Completing School Fees Payment');
       }

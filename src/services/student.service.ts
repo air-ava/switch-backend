@@ -32,7 +32,12 @@ import {
   saveSchoolClass,
 } from '../database/repositories/schoolClass.repo';
 import { getStudentsValidator } from '../validators/student.validator';
-import { listBeneficiaryProductPayments, saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
+import {
+  getBeneficiaryProductPayment,
+  listBeneficiaryProductPayments,
+  saveBeneficiaryProductPayment,
+  updateBeneficiaryProductPayment,
+} from '../database/repositories/beneficiaryProductPayment.repo';
 import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { listProductTransaction, listProductTransactionForBeneficiary } from '../database/repositories/productTransaction.repo';
 import { Sanitizer } from '../utils/sanitizer';
@@ -205,14 +210,14 @@ const Service = {
         'StudentGuardians.Guardian.phoneNumber',
       ],
     );
-    if (!student) throw Error('Student not found');
+    if (!student) throw new NotFoundError('Student');
     return sendObjectResponse('Student retrieved successfully', student);
   },
-  
+
   async getStudentHistory(criteria: any): Promise<theResponse> {
     const { studentId } = criteria;
     const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
-    if (!student) throw Error('Student not found');
+    if (!student) throw new NotFoundError('Student');
 
     const studentPaymentTransactionIds = mapAnArray(student.Fees, 'id');
 
@@ -228,11 +233,11 @@ const Service = {
     );
     return sendObjectResponse('Student payment history retrieved successfully', groupedTransactions);
   },
-  
+
   async getStudentFees(criteria: any): Promise<theResponse> {
     const { studentId } = criteria;
     const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
-    if (!student) throw Error('Student not found');
+    if (!student) throw new NotFoundError('Student');
 
     const paymentTransactions = await listBeneficiaryProductPayments(
       { beneficiary_id: student.id, beneficiary_type: 'student' },
@@ -245,6 +250,24 @@ const Service = {
       'student.session.session',
     );
     return sendObjectResponse('Student Fees retrieved successfully', groupedTransactions);
+  },
+
+  async deactivateStudentFee(criteria: any): Promise<theResponse> {
+    const { studentId, feeCode } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
+    if (!student) throw new NotFoundError('Student');
+
+    const studentPaymentFee = await getBeneficiaryProductPayment(
+      { code: feeCode },
+      [],
+      ['Fee', 'Student', 'Student.Classes', 'Student.Classes.Session', 'Student.Classes.ClassLevel'],
+    );
+    if (!studentPaymentFee) throw new NotFoundError('Fee');
+    if (!(studentPaymentFee.beneficiary_id === student.id && studentPaymentFee.beneficiary_type === 'student'))
+      throw new ValidationError('Fee does not belong to Student');
+
+    await updateBeneficiaryProductPayment({ code: feeCode }, { status: STATUSES.DELETED });
+    return sendObjectResponse('Student Fee deactivated successfully');
   },
 
   async listStudents(criteria: any): Promise<theResponse> {

@@ -9,7 +9,7 @@ import { findPendingPayment, findMultiplePendingPayments, savePendingPaymentsREP
 import { findScholarship } from '../database/repositories/scholarship.repo';
 import { getStudent } from '../database/repositories/student.repo';
 import { findUser } from '../database/repositories/user.repo';
-import { sendObjectResponse } from '../utils/errors';
+import { NotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
 import { sendEmail } from '../utils/mailtrap';
 import { getSchoolDetails } from './school.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
@@ -113,6 +113,7 @@ export const buildCollectionRequestPayload = async ({
   amount,
   amountWithFees,
   feature_name,
+  ussd = true,
 }: any): Promise<any> => {
   let school;
   let reciever;
@@ -127,7 +128,7 @@ export const buildCollectionRequestPayload = async ({
       [],
       ['User', 'School', 'Classes', 'Classes.ClassLevel', 'Fees', 'Fees.Fee', 'Fees.Fee.ProductType', 'Fees.Fee.PaymentType'],
     );
-    if (!student) throw new Error('Student not found');
+    if (!student) throw new NotFoundError('Student');
     if (!user) {
       school = student.School;
       const organization = await getOneOrganisationREPO({ id: school.organisation_id }, [], ['Owner']);
@@ -138,12 +139,22 @@ export const buildCollectionRequestPayload = async ({
       const [studentTutitionFee] = student.Fees.filter(
         (value: any) => value.beneficiary_type === 'student' && value.Fee.feature_name === feature_name && value.Fee.status === STATUSES.ACTIVE,
       );
+      if (!studentTutitionFee) {
+        const message = 'Fee not active';
+        if (ussd) return { error: message };
+        throw new ValidationError(message);
+      }
+      if (studentTutitionFee.status === STATUSES.DELETED) {
+        const message = 'Fee not active for this student';
+        if (ussd) return { error: message };
+        throw new ValidationError(message);
+      };
       studentTutition = studentTutitionFee;
     }
     reciever = student;
   } else {
     const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
-    if (!wallet) throw new Error('Wallet not found');
+    if (!wallet) throw new NotFoundError('Wallet');
     reciever = wallet.User;
   }
 
