@@ -38,9 +38,14 @@ export const getStudentsValidator = joi
   })
   .custom(customDateValidator, 'Date validation');
 
-  export const editStudentsValidator = joi
-  .object()
-  .keys({
-    status: joi.string().valid('active', 'inactive').optional(),
-  })
-  .custom(customDateValidator, 'Date validation');
+export const editStudentsValidator = joi.object().keys({
+  status: joi.string().valid('active', 'inactive').optional(),
+});
+
+export const editStudentFeeValidator = joi.object().keys({
+  status: joi.string().valid('active', 'inactive').required(),
+  feeCode: joi.string().pattern(new RegExp('bpy_.{17}$')).required().messages({
+    'string.pattern.base': 'Invalid student fee code',
+  }),
+  code: joi.string().length(9).required(),
+});

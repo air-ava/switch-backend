@@ -255,19 +255,33 @@ const Service = {
   async deactivateStudentFee(criteria: any): Promise<theResponse> {
     const { studentId, feeCode } = criteria;
     const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
-    if (!student) throw new NotFoundError('Student');
+    if (!student || student.status === STATUSES.DELETED) throw new NotFoundError('Student');
 
     const studentPaymentFee = await getBeneficiaryProductPayment(
       { code: feeCode },
       [],
       ['Fee', 'Student', 'Student.Classes', 'Student.Classes.Session', 'Student.Classes.ClassLevel'],
     );
-    if (!studentPaymentFee) throw new NotFoundError('Fee');
+    if (!studentPaymentFee || studentPaymentFee.status === STATUSES.DELETED) throw new NotFoundError('Fee');
     if (!(studentPaymentFee.beneficiary_id === student.id && studentPaymentFee.beneficiary_type === 'student'))
       throw new ValidationError('Fee does not belong to Student');
 
     await updateBeneficiaryProductPayment({ code: feeCode }, { status: STATUSES.DELETED });
     return sendObjectResponse('Student Fee deactivated successfully');
+  },
+
+  async editStudentFee(criteria: any): Promise<theResponse> {
+    const { studentId, feeCode, status } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
+    if (!student || student.status === STATUSES.DELETED) throw new NotFoundError('Student');
+
+    const studentPaymentFee = await getBeneficiaryProductPayment({ code: feeCode }, []);
+    if (!studentPaymentFee || studentPaymentFee.status === STATUSES.DELETED) throw new NotFoundError('Fee');
+    if (!(studentPaymentFee.beneficiary_id === student.id && studentPaymentFee.beneficiary_type === 'student'))
+      throw new ValidationError('Fee does not belong to Student');
+
+    await updateBeneficiaryProductPayment({ code: feeCode }, { status: STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'] });
+    return sendObjectResponse('Student Fee updated successfully');
   },
 
   async deactivateStudent(criteria: any): Promise<theResponse> {
