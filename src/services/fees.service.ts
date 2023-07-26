@@ -14,7 +14,7 @@ import { getClassLevel } from '../database/repositories/classLevel.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
 import { listProductTypes, getProductType, saveProductType } from '../database/repositories/productType.repo';
 import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
-import { getSchoolProduct, listSchoolProduct, saveSchoolProduct, schoolFeesDetails } from '../database/repositories/schoolProduct.repo';
+import { getSchoolProduct, listSchoolProduct, saveSchoolProduct, schoolFeesDetails, updateSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { ExistsError, sendObjectResponse } from '../utils/errors';
 import { ControllerResponse, theResponse } from '../utils/interface';
 import NotFoundError from '../utils/notFounfError';
@@ -40,6 +40,16 @@ const Service: any = {
     const response = await getSchoolProduct({ code }, [], ['Period', 'Session', 'School', 'SchoolClass', 'ProductType', 'PaymentType']);
     if (!response) throw new NotFoundError('Fee');
     return sendObjectResponse('Fee retrieved successfully', response);
+  },
+  
+  async deleteFee(data: any): Promise<theResponse> {
+    const { code, school } = data;
+    const fee = await getSchoolProduct({ code }, []);
+    if (!fee || fee.status === STATUSES.DELETED) throw new NotFoundError('Fee');
+    if (fee.school_id !== school.id) throw new ValidationError('You do not have access to this fee');
+
+    await updateSchoolProduct({ id: fee.id }, { status: STATUSES.DELETED })
+    return sendObjectResponse('Fee deleted successfully');
   },
 
   async listFeesInSchool(data: any): Promise<theResponse> {

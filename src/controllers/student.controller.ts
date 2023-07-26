@@ -49,7 +49,7 @@ export const addGuardiansToStudentCONTROLLER: RequestHandler = async (req, res) 
 
 export const editStudentCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { ...req.body, ...req.params };
-  
+
   const { status } = req.body;
   const validation = editStudentsValidator.validate({ status });
   if (validation.error) throw new ValidationError(validation.error.message);
