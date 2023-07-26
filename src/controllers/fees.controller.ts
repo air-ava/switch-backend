@@ -45,7 +45,7 @@ export const addFeeTypeCONTROLLER: RequestHandler = async (req, res) => {
 export const addFeeCONTROLLER: RequestHandler = async (req, res) => {
   const { school, educationalSession } = req;
   const { incomigFees } = req.body;
-  const payload = { school, session: educationalSession };
+  const payload = { school, authSession: educationalSession };
   const response = Array.isArray(incomigFees)
     ? await FeesService.createFees({ incomigFees, ...payload })
     : await FeesService.createAFee({ ...req.body, ...payload });

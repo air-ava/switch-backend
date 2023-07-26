@@ -135,9 +135,8 @@ const Service: any = {
     }
 
     let sessionUse;
-    if (forSession) sessionUse = foundPeriod.Session.id || session.id;
-    if (forPeriod) sessionUse = foundPeriod.Session.id || session.id;
-    else sessionUse = null;
+    if (forSession || forPeriod) sessionUse = session.id;
+    if (forPeriod && foundPeriod) sessionUse = foundPeriod.Session.id;
 
     let schoolClass: any;
     if (classCode || schoolClassCode) {
@@ -161,7 +160,14 @@ const Service: any = {
   },
 
   async createAFee(data: any): Promise<theResponse> {
-    const { description, amount, currency, image, school, name, class: classCode } = data;
+    const { description, amount, currency, image, school, name, class: classCode, authSession, session } = data;
+    if (session) {
+      const foundSession = await getSchoolSession({ code: session }, []);
+      if (!foundSession || foundSession.status === STATUSES.DELETED) throw new NotFoundError('session');
+      // eslint-disable-next-line no-param-reassign
+      data.session = foundSession;
+      // eslint-disable-next-line no-param-reassign
+    } else data.session = authSession;
     const {
       data: { foundClassLevel, feature_name, paymentTypes, foundProductType, periodManagement, sessionUse, schoolClass },
     } = await Service.generateFeeData(data);
@@ -202,8 +208,8 @@ const Service: any = {
   },
 
   async createFees(data: any): Promise<theResponse> {
-    const { incomigFees, school, session } = data;
-    await Service.callService('createAFee', incomigFees, { school, session });
+    const { incomigFees, school, authSession, session } = data;
+    await Service.callService('createAFee', incomigFees, { school, session, authSession });
     return sendObjectResponse('Fees created successfully');
   },
 
@@ -252,6 +258,7 @@ const Service: any = {
               classId: foundClassLevel,
             },
             [],
+            ['student.Fees', 'student.Fees.Fee', 'student.User', 'student.Fees.FeesHistory'],
           )
         ).students
       : (await listStudent({ schoolId: school.id, status: STATUSES.ACTIVE }, [])).students;
