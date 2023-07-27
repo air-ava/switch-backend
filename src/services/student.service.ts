@@ -571,7 +571,6 @@ const Service = {
     const {
       data: { foundClassLevel, feature_name, paymentTypes, foundProductType, periodManagement, sessionUse, schoolClass: foundSchoolClass },
     } = await FeesService.generateFeeData({ ...data, addClass: true });
-    console.log({ foundSchoolClass });
     if (foundSchoolClass) throw new ExistsError(`Class`);
 
     // check if class and product exist
@@ -587,7 +586,7 @@ const Service = {
       foundProductType,
       description,
       amount,
-      ...periodManagement,
+      periodManagement,
       sessionUse,
       school,
       schoolClass,

@@ -178,7 +178,7 @@ const Service: any = {
       foundProductType,
       description,
       amount,
-      ...periodManagement,
+      periodManagement,
       sessionUse,
       school,
       schoolClass,
