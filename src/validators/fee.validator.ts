@@ -9,6 +9,6 @@ const schoolClassCode = joi.string().pattern(new RegExp('shc_.{17}$')).required(
 });
 
 export const getFeeValidator = joi.object().keys({ code: feeCode });
-
 export const getFeesValidator = joi.object().keys({ feeCodes: joi.array().items(feeCode) });
 export const getClassFeesValidator = joi.object().keys({ code: schoolClassCode });
+export const editFeeValidator = joi.object().keys({ code: schoolClassCode });

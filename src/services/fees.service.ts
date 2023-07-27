@@ -258,6 +258,7 @@ const Service: any = {
       periodManagement,
       sessionUse,
       school,
+      name,
       schoolClass,
       currency,
       image,
@@ -276,6 +277,7 @@ const Service: any = {
       school_class_id: schoolClass && schoolClass.id ? schoolClass.id : schoolClass || null,
       status,
       feature_name,
+      name,
       ...periodManagement,
     };
 
