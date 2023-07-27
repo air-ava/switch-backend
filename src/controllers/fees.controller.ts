@@ -3,7 +3,7 @@ import SchoolService from '../services/school.service';
 import FeesService from '../services/fees.service';
 import ResponseService from '../utils/response';
 import { Sanitizer } from '../utils/sanitizer';
-import { getFeeValidator, getFeesValidator } from '../validators/fee.validator';
+import { getClassFeesValidator, getFeeValidator, getFeesValidator } from '../validators/fee.validator';
 import ValidationError from '../utils/validationError';
 
 export const getSchoolProductCONTROLLER: RequestHandler = async (req, res) => {
@@ -62,6 +62,18 @@ export const listClassFeeCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeByClass));
 };
 
+export const getFeesInClassCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const payload = { ...req.params, school };
+
+  const validation = getClassFeesValidator.validate({ ...req.params });
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await FeesService.getFeesInClass(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeFee));
+};
+
 export const feeDetailsCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
   const payload = { ...req.query, school };
@@ -84,7 +96,6 @@ export const deleteFeeCONTROLLER: RequestHandler = async (req, res) => {
 
 export const deleteFeesCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
-  // const { code } = req.params;
 
   const validation = getFeesValidator.validate(req.body);
   if (validation.error) throw new ValidationError(validation.error.message);

@@ -3,6 +3,7 @@ import { generate } from 'randomstring';
 import { QueryRunner } from 'typeorm';
 import { any } from 'joi';
 import {
+  getFeesByClass,
   // schoolFeesDetails,
   getSchoolClass,
   listFeesByClass,
@@ -41,6 +42,7 @@ import { saveProductTransaction } from '../database/repositories/productTransact
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import Utils from '../utils/utils';
+import { listStudentClass } from '../database/repositories/studentClass.repo';
 
 const Service: any = {
   async getSchoolProduct(data: any): Promise<theResponse> {
@@ -391,7 +393,18 @@ const Service: any = {
       [],
       ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session'],
     );
-    return sendObjectResponse('Fees retrieved', response);
+    return sendObjectResponse('Fees retrieved successfully', response);
+  },
+
+  async getFeesInClass(data: any): Promise<theResponse> {
+    const { currency = 'UGX', code, ...rest } = data;
+
+    const response = await getFeesByClass(
+      { status: STATUSES.ACTIVE, currency, code },
+      [],
+      ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session'],
+    );
+    return sendObjectResponse('Class Fees retrieved successfully', response);
   },
 
   async feesDetails(data: any): Promise<theResponse> {

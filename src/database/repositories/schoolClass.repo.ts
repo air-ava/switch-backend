@@ -286,6 +286,23 @@ export const listFeesByClass = async (
   return classes;
 };
 
+export const getFeesByClass = async (
+  queryParams: any,
+  selectOptions: Array<keyof SchoolClass> = [],
+  relationOptions?: any[],
+  transaction?: QueryRunner,
+): Promise<any> => {
+  const { currency, ...rest } = queryParams;
+  const repository = transaction ? transaction.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
+  const classRoom = await repository.findOne({
+    where: rest,
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+    ...(relationOptions && { relations: relationOptions }),
+  });
+  (classRoom as any).Fees = (classRoom as any).Fees.filter((fee: any) => fee.status === STATUSES.ACTIVE && fee.currency === currency);
+  return (classRoom as any).Fees;
+};
+
 export const updateSchoolClass = (
   queryParams: Pick<ISchoolClass, 'id'>,
   updateFields: Partial<ISchoolClass>,
