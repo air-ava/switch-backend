@@ -96,11 +96,10 @@ export const deleteFeeCONTROLLER: RequestHandler = async (req, res) => {
 
 export const deleteFeesCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
-  console.log({ codes: req.query.feeCodes });
-  const validation = getFeesValidator.validate(req.body);
+  const validation = getFeesValidator.validate(req.query);
   if (validation.error) throw new ValidationError(validation.error.message);
 
-  const response = await FeesService.deleteFees({ ...req.body, school });
+  const response = await FeesService.deleteFees({ ...req.query, school });
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeNoId(data));
 };
