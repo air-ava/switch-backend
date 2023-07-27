@@ -300,7 +300,7 @@ export const getFeesByClass = async (
     ...(relationOptions && { relations: relationOptions }),
   });
   (classRoom as any).Fees = (classRoom as any).Fees.filter((fee: any) => fee.status === STATUSES.ACTIVE && fee.currency === currency);
-  return (classRoom as any).Fees;
+  return classRoom;
 };
 
 export const updateSchoolClass = (

@@ -71,7 +71,7 @@ export const getFeesInClassCONTROLLER: RequestHandler = async (req, res) => {
 
   const response = await FeesService.getFeesInClass(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeFee));
+  return ResponseService.success(res, message || error, data);
 };
 
 export const feeDetailsCONTROLLER: RequestHandler = async (req, res) => {
@@ -96,7 +96,7 @@ export const deleteFeeCONTROLLER: RequestHandler = async (req, res) => {
 
 export const deleteFeesCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
-
+  console.log({ codes: req.query.feeCodes });
   const validation = getFeesValidator.validate(req.body);
   if (validation.error) throw new ValidationError(validation.error.message);
 

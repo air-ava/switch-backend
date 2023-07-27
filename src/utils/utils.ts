@@ -109,19 +109,12 @@ export const createObjectFromArray = (payload: any, key: string, value: any, pat
   return response;
 };
 
-export const createObjectFromArrayWithoutValue = (arr: any, key1: string, key2: string) => {
+export const createObjectFromArrayWithoutValue = (arr: any, key1: string, key2?: string) => {
   return arr.reduce((result: any, item: any) => {
     const response = jsonify(item);
-    // console.log({
-    //   'response.Student': response.Student,
-    //   'response.Student.Classes': response.Student.Classes,
-    //   'response.Student.Classes.ClassLevel': response.Student.Classes.ClassLevel,
-    //   'response.Student.Classes.Session': response.Student.Classes.Session,
-    // });
-    // classLevel
     const keyValue1 = key1.includes('.') ? findObjectValue(item, key1) : response[key1];
-    const keyValue2 = key2.includes('.') ? findObjectValue(item, key2) : response[key2];
-    const combinedKey = `${keyValue1} | ${keyValue2}`;
+    const keyValue2 = key2 && (key2.includes('.') ? findObjectValue(item, key2) : response[key2]);
+    const combinedKey = `${keyValue1}${key2 ? ` | ${keyValue2}` : ''}`;
     if (!result[combinedKey]) {
       // eslint-disable-next-line no-param-reassign
       result[combinedKey] = [];

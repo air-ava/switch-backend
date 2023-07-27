@@ -1,4 +1,4 @@
-import { mapAnArray } from './../utils/utils';
+import { createObjectFromArrayWithoutValue, mapAnArray } from './../utils/utils';
 import { generate } from 'randomstring';
 import { QueryRunner } from 'typeorm';
 import { any } from 'joi';
@@ -406,7 +406,12 @@ const Service: any = {
       [],
       ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session'],
     );
-    return sendObjectResponse('Class Fees retrieved successfully', response);
+
+    const groupedTransactions = createObjectFromArrayWithoutValue(
+      Sanitizer.sanitizeAllArray(response.Fees, Sanitizer.sanitizeFee),
+      'session.session',
+    );
+    return sendObjectResponse('Class Fees retrieved successfully', groupedTransactions);
   },
 
   async feesDetails(data: any): Promise<theResponse> {
