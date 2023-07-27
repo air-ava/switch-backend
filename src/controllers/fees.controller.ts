@@ -3,7 +3,7 @@ import SchoolService from '../services/school.service';
 import FeesService from '../services/fees.service';
 import ResponseService from '../utils/response';
 import { Sanitizer } from '../utils/sanitizer';
-import { getFeeValidator } from '../validators/fee.validator';
+import { getFeeValidator, getFeesValidator } from '../validators/fee.validator';
 import ValidationError from '../utils/validationError';
 
 export const getSchoolProductCONTROLLER: RequestHandler = async (req, res) => {
@@ -79,5 +79,17 @@ export const deleteFeeCONTROLLER: RequestHandler = async (req, res) => {
 
   const response = await FeesService.deleteFee({ code, school });
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeNoId(data));
+};
+
+export const deleteFeesCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  // const { code } = req.params;
+
+  const validation = getFeesValidator.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await FeesService.deleteFees({ ...req.body, school });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeNoId(data));
 };

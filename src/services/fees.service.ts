@@ -1,3 +1,4 @@
+import { mapAnArray } from './../utils/utils';
 import { generate } from 'randomstring';
 import { QueryRunner } from 'typeorm';
 import { any } from 'joi';
@@ -14,8 +15,14 @@ import { getClassLevel } from '../database/repositories/classLevel.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
 import { listProductTypes, getProductType, saveProductType } from '../database/repositories/productType.repo';
 import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
-import { getSchoolProduct, listSchoolProduct, saveSchoolProduct, schoolFeesDetails, updateSchoolProduct } from '../database/repositories/schoolProduct.repo';
-import { ExistsError, sendObjectResponse } from '../utils/errors';
+import {
+  getSchoolProduct,
+  listSchoolProduct,
+  saveSchoolProduct,
+  schoolFeesDetails,
+  updateSchoolProduct,
+} from '../database/repositories/schoolProduct.repo';
+import { CustomError, ExistsError, HttpStatus, sendObjectResponse } from '../utils/errors';
 import { ControllerResponse, theResponse } from '../utils/interface';
 import NotFoundError from '../utils/notFounfError';
 import ValidationError from '../utils/validationError';
@@ -33,6 +40,7 @@ import { saveTransaction } from '../database/repositories/transaction.repo';
 import { saveProductTransaction } from '../database/repositories/productTransaction.repo';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 import { Sanitizer } from '../utils/sanitizer';
+import Utils from '../utils/utils';
 
 const Service: any = {
   async getSchoolProduct(data: any): Promise<theResponse> {
@@ -41,15 +49,41 @@ const Service: any = {
     if (!response) throw new NotFoundError('Fee');
     return sendObjectResponse('Fee retrieved successfully', response);
   },
-  
-  async deleteFee(data: any): Promise<theResponse> {
-    const { code, school } = data;
-    const fee = await getSchoolProduct({ code }, []);
+
+  async isFeeForSchool(data: any): Promise<theResponse> {
+    const { school, item } = data;
+    let { code } = data;
+    if (!code && item) code = item;
+    const fee = await getSchoolProduct({ code }, [], ['FeesPaymentRecords', 'FeesPaymentRecords.FeesHistory']);
     if (!fee || fee.status === STATUSES.DELETED) throw new NotFoundError('Fee');
     if (fee.school_id !== school.id) throw new ValidationError('You do not have access to this fee');
 
-    await updateSchoolProduct({ id: fee.id }, { status: STATUSES.DELETED })
+    return sendObjectResponse('Fee belongs to school', fee);
+  },
+
+  async deleteFee(data: any): Promise<theResponse> {
+    const { feeCheck = false } = data;
+
+    const { success, data: fee } = feeCheck ? await Service.isFeeInUse(data) : await Service.isFeeForSchool(data);
+
+    await updateSchoolProduct({ id: fee.id }, { status: STATUSES.DELETED });
     return sendObjectResponse('Fee deleted successfully');
+  },
+
+  async isFeeInUse(data: any): Promise<theResponse> {
+    const { success, data: fee } = await Service.isFeeForSchool(data);
+
+    const feeTransactions = mapAnArray(fee.FeesPaymentRecords, 'FeesHistory');
+    const cleanFeeTransactions = (feeTransactions as any).flat();
+    if (cleanFeeTransactions.length) throw new CustomError(`Fee ${fee.name ? `(${fee.name}) ` : ''}is currently in use`, HttpStatus.BAD_REQUEST, fee);
+
+    return sendObjectResponse('Fee is not in use', fee);
+  },
+
+  async deleteFees(data: any): Promise<theResponse> {
+    const { feeCodes, school } = data;
+    await Service.callService('deleteFee', feeCodes, { school, feeCheck: true });
+    return sendObjectResponse('Fees deleted successfully');
   },
 
   async listFeesInSchool(data: any): Promise<theResponse> {

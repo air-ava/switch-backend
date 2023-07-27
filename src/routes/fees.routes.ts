@@ -8,6 +8,7 @@ import {
   listClassFeeCONTROLLER,
   feeDetailsCONTROLLER,
   deleteFeeCONTROLLER,
+  deleteFeesCONTROLLER,
 } from '../controllers/fees.controller';
 import { catchErrors } from '../utils/errors';
 
@@ -18,6 +19,7 @@ router.get('/class', catchErrors(listClassFeeCONTROLLER));
 router.get('/details', catchErrors(feeDetailsCONTROLLER));
 router.get('/:code', catchErrors(getSchoolProductCONTROLLER));
 router.delete('/:code', catchErrors(deleteFeeCONTROLLER));
+router.delete('/', catchErrors(deleteFeesCONTROLLER));
 router.get('/', catchErrors(listFeesCONTROLLER));
 router.post('/types', catchErrors(addFeeTypeCONTROLLER));
 router.post('/', catchErrors(addFeeCONTROLLER));
