@@ -399,10 +399,13 @@ const Service: any = {
   },
 
   async getFeesInClass(data: any): Promise<theResponse> {
-    const { currency = 'UGX', code, ...rest } = data;
+    const { currency = 'UGX', code, school, ...rest } = data;
+
+    const foundClassLevel = await getClassLevel({ code }, []);
+    if (!foundClassLevel) throw new NotFoundError('Class Level');
 
     const response = await getFeesByClass(
-      { status: STATUSES.ACTIVE, currency, code },
+      { status: STATUSES.ACTIVE, currency, class_id: foundClassLevel.id, school_id: school.id },
       [],
       ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session'],
     );
