@@ -3,7 +3,7 @@ import SchoolService from '../services/school.service';
 import FeesService from '../services/fees.service';
 import ResponseService from '../utils/response';
 import { Sanitizer } from '../utils/sanitizer';
-import { getClassFeesValidator, getFeeValidator, getFeesValidator } from '../validators/fee.validator';
+import { editFeeValidator, getClassFeesValidator, getFeeValidator, getFeesValidator } from '../validators/fee.validator';
 import ValidationError from '../utils/validationError';
 
 export const getSchoolProductCONTROLLER: RequestHandler = async (req, res) => {
@@ -90,6 +90,19 @@ export const deleteFeeCONTROLLER: RequestHandler = async (req, res) => {
   if (validation.error) throw new ValidationError(validation.error.message);
 
   const response = await FeesService.deleteFee({ code, school });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeNoId(data));
+};
+
+export const editFeeCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const { code } = req.params;
+  const payload = { code, ...req.body };
+
+  const validation = editFeeValidator.validate(payload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await FeesService.editFee({ school, ...payload });
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeNoId(data));
 };

@@ -71,6 +71,41 @@ const Service: any = {
     await updateSchoolProduct({ id: fee.id }, { status: STATUSES.DELETED });
     return sendObjectResponse('Fee deleted successfully');
   },
+  
+  async editFee(data: any): Promise<theResponse> {
+    const { data: fee } = await Service.isFeeInUse(data);
+    const { currency, classCode, status, name, description, amount, feeType, paymentType, periodCode } = data;
+
+    const feePayload: any = {};
+    if (status) feePayload.status = STATUSES[status.toUpperCase() as 'INACTIVE' | 'ACTIVE'];
+    if (name) feePayload.name = name;
+    if (description) feePayload.description = description;
+    if (amount) feePayload.amount = amount;
+    if (currency) feePayload.currency = currency;
+    if (classCode) {
+      const schoolClass = await getSchoolClass({ code: classCode }, []);
+      if (!schoolClass) throw new NotFoundError('Class For School');
+      feePayload.school_class_id = schoolClass.id;
+    }
+    if (feeType) {
+      const foundProductType = await getProductType({ code: feeType }, []);
+      if (!foundProductType) throw new NotFoundError(`Fee type`);
+      const feature_name = foundProductType.slug === 'tuition' ? Settings.get('SCHOOL_PRODUCT').tuition : Settings.get('SCHOOL_PRODUCT').product;
+      feePayload.feature_name = feature_name;
+      feePayload.product_type_id = foundProductType.id;
+    }
+    if (paymentType) {
+      const paymentTypes = Settings.get('PAYMENT_TYPES');
+      feePayload.payment_type_id = paymentTypes[paymentType];
+    }
+    if (periodCode) {
+      const eduPeriod: any = await getEducationPeriod({ code: periodCode }, []);
+      feePayload.period = eduPeriod.id;
+    }
+
+    await updateSchoolProduct({ id: fee.id }, feePayload);
+    return sendObjectResponse('Fee edited successfully');
+  },
 
   async isFeeInUse(data: any): Promise<theResponse> {
     const { success, data: fee } = await Service.isFeeForSchool(data);

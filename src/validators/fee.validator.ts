@@ -15,13 +15,21 @@ const classCode = joi.string().pattern(new RegExp('cll_.{17}$')).messages({
 export const getFeeValidator = joi.object().keys({ code: feeCode });
 export const getFeesValidator = joi.object().keys({ feeCodes: joi.array().items(feeCode) });
 export const getClassFeesValidator = joi.object().keys({ code: classCode.required() });
-export const editFeeValidator = joi.object().keys({ 
+export const editFeeValidator = joi.object().keys({
   code: feeCode,
-  schoolCode: schoolClassCode.optional(),
-  paymentType: joi.string().pattern(new RegExp('fee_.{17}$')).required().messages({
-    'string.pattern.base': 'Invalid payment type code',
+  classCode: schoolClassCode.optional(),
+  status: joi.string().valid('active', 'inactive').optional(),
+  currency: joi.string().valid('UGX').optional(),
+  description: joi.string().optional(),
+  name: joi.string().optional(),
+  amount: joi.number().positive().optional().min(10000).messages({
+    'number.min': 'Minimum amount for a fee is 100',
   }),
-  productType: joi.string().pattern(new RegExp('fee_.{17}$')).required().messages({
+  paymentType: joi.string().valid('install-mental', 'lump-sum', 'no-payment').optional(),
+  feeType: joi.string().pattern(new RegExp('prt_.{17}$')).optional().messages({
     'string.pattern.base': 'Invalid fee type code',
+  }),
+  periodCode: joi.string().pattern(new RegExp('edp_.{17}$')).optional().messages({
+    'string.pattern.base': 'Invalid period code',
   }),
 });
