@@ -136,7 +136,13 @@ const Service: any = {
 
   async listFeeTypes(data: any): Promise<theResponse> {
     const { school, ...rest } = data;
-    const response = await listProductTypes([{ school_id: school.id }, { school_id: null }], []);
+    const response = await listProductTypes(
+      [
+        { school_id: school.id, status: STATUSES.ACTIVE },
+        { school_id: null, status: STATUSES.ACTIVE },
+      ],
+      [],
+    );
     return sendObjectResponse('All Fee types retrieved successfully', response);
   },
 
