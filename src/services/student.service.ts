@@ -98,6 +98,7 @@ const Service = {
     await saveStudentClassREPO({
       studentId: student.id,
       classId,
+      school_id: schoolId,
     });
 
     if (guardians) {
