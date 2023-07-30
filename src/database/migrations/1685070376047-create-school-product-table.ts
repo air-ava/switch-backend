@@ -29,6 +29,7 @@ export class createSchoolProductTable1685070376047 implements MigrationInterface
           {
             name: 'description',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'image',
