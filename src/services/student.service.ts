@@ -638,10 +638,15 @@ const Service = {
     const foundClassLevel = await getClassLevel({ code: classCode }, []);
     if (!foundClassLevel) throw new NotFoundError('Class Level');
 
+    const foundSchoolClass = await getSchoolClass({ class_id: foundClassLevel.id, school_id: school.id }, []);
+    if (!foundSchoolClass) throw new NotFoundError('Class for School');
+
     const classDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
     const [classDetail] = classDetails.filter((value: any) => value.currency === 'UGX');
+    console.log({ foundSchoolClass });
 
-    return sendObjectResponse('Added Class to School Successfully', { ...foundClassLevel, ...classDetail });
+    const { code, ...rest } = foundClassLevel;
+    return sendObjectResponse('Added Class to School Successfully', { code: foundSchoolClass.code, ...rest, ...classDetail });
   },
 
   async classAnalytics(data: { status: 'ACTIVE' | 'INACTIVE'; school: any; classCode: string; groupBy: string }): Promise<theResponse> {
