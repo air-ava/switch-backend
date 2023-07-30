@@ -423,10 +423,10 @@ const Service: any = {
   },
 
   async listClassFee(data: any): Promise<theResponse> {
-    const { currency = 'UGX', school } = data;
+    const { currency = 'UGX', school, perPage, page, from, to } = data;
 
     const response = await listFeesByClass(
-      { status: STATUSES.ACTIVE, currency, school_id: school.id },
+      { status: STATUSES.ACTIVE, currency, school_id: school.id, perPage, page, from, to },
       [],
       ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session'],
     );

@@ -59,7 +59,8 @@ export const listClassFeeCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { ...req.query, school };
   const response = await FeesService.listClassFee(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeByClass));
+  const { meta, classes } = data;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(classes, Sanitizer.sanitizeByClass), meta);
 };
 
 export const getFeesInClassCONTROLLER: RequestHandler = async (req, res) => {

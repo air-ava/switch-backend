@@ -257,13 +257,23 @@ export const listFeesByClass = async (
   relationOptions?: any[],
   transaction?: QueryRunner,
 ): Promise<any> => {
-  const { currency, ...rest } = queryParams;
+  const { currency, page = 1, perPage = 20, from, to, ...rest } = queryParams;
   const repository = transaction ? transaction.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
-  const classes = await repository.find({
-    where: rest,
-    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-    ...(relationOptions && { relations: relationOptions }),
-  });
+
+  const { offset, query } = Utils.paginationRangeAndOffset({ page, from, to, perPage, query: rest });
+  const order: any = { created_at: 'DESC' };
+
+  const [classes, total] = await Promise.all([
+    repository.find({
+      where: query,
+      ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+      ...(relationOptions && { relations: relationOptions }),
+      order,
+      take: parseInt(perPage, 10),
+      skip: offset,
+    }),
+    repository.count({ where: query, ...(relationOptions && { relations: relationOptions }) }),
+  ]);
   classes.forEach((classRoom: any) => {
     classRoom.Fees = classRoom.Fees.filter((fee: any) => fee.status === STATUSES.ACTIVE && fee.currency === currency);
     classRoom.currency = currency;
@@ -283,7 +293,20 @@ export const listFeesByClass = async (
     classRoom.tuitionFee = calculatedFees.tuitionFee;
     classRoom.otherFees = calculatedFees.otherFees;
   });
-  return classes;
+
+  const { nextPage, totalPages, hasNextPage, hasPreviousPage } = Utils.paginationMetaOffset({ total, perPage, page });
+  return {
+    classes,
+    meta: {
+      total,
+      perPage,
+      currentPage: page,
+      totalPages,
+      hasNextPage,
+      hasPreviousPage,
+      nextPage,
+    },
+  };
 };
 
 export const getFeesByClass = async (

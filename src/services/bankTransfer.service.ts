@@ -1,4 +1,4 @@
-i// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { v4 } from 'uuid';
 import { response } from 'express';
 import { Not, In } from 'typeorm';
