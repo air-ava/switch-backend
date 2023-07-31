@@ -1,6 +1,6 @@
 import { createObjectFromArrayWithoutValue, mapAnArray } from './../utils/utils';
 import { generate } from 'randomstring';
-import { QueryRunner } from 'typeorm';
+import { Not, QueryRunner } from 'typeorm';
 import { any } from 'joi';
 import {
   getFeesByClass,
@@ -446,7 +446,7 @@ const Service: any = {
     if (!foundClassLevel) throw new NotFoundError('Class Level');
 
     const response = await getFeesByClass(
-      { status: STATUSES.ACTIVE, currency, class_id: foundClassLevel.id, school_id: school.id },
+      { status: Not(STATUSES.DELETED), currency, class_id: foundClassLevel.id, school_id: school.id },
       [],
       ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session'],
     );
