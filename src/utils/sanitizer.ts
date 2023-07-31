@@ -336,7 +336,11 @@ export const Sanitizer = {
       partPayment: PaymentType && PaymentType.value === 'install-mental' ? PaymentType.value === 'install-mental' : false,
       blockPayment: PaymentType && PaymentType.value === 'no-payment' ? PaymentType.value === 'no-payment' : false,
       studentId: uniqueStudentId,
-      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      status:
+        status &&
+        (Sanitizer.getStatusById(STATUSES, status).toLowerCase() === 'deleted'
+          ? 'deactivated'
+          : Sanitizer.getStatusById(STATUSES, status).toLowerCase()),
       user: User && Sanitizer.sanitizeUser(User),
       school: School && Sanitizer.sanitizeSchool(School),
       class: Classes && studentCurrentClass[0].ClassLevel,
