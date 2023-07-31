@@ -39,8 +39,11 @@ export class createSchoolProductTable1685070376047 implements MigrationInterface
           {
             name: 'amount',
             type: 'decimal',
-            precision: 10,
-            scale: 2,
+            default: 0,
+            unsigned: true,
+            precision: 20,
+            scale: 4,
+            isNullable: false,
           },
           {
             name: 'currency',
