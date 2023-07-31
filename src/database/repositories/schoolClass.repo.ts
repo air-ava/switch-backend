@@ -322,7 +322,7 @@ export const getFeesByClass = async (
     ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
     ...(relationOptions && { relations: relationOptions }),
   });
-  (classRoom as any).Fees = (classRoom as any).Fees.filter((fee: any) => fee.status === STATUSES.ACTIVE && fee.currency === currency);
+  (classRoom as any).Fees = (classRoom as any).Fees.filter((fee: any) => fee.status !== STATUSES.DELETED && fee.currency === currency);
   return classRoom;
 };
 

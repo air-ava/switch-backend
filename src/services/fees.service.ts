@@ -448,8 +448,9 @@ const Service: any = {
     const response = await getFeesByClass(
       { status: Not(STATUSES.DELETED), currency, class_id: foundClassLevel.id, school_id: school.id },
       [],
-      ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session'],
+      ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session', 'Fees.Period', 'Fees.SchoolClass'],
     );
+
 
     const groupedTransactions = createObjectFromArrayWithoutValue(
       Sanitizer.sanitizeAllArray(response.Fees, Sanitizer.sanitizeFee),
