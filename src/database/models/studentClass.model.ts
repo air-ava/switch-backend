@@ -18,6 +18,9 @@ export class StudentClass {
   @Column()
   session: number;
 
+  @Column()
+  school_id: number;
+
   @CreateDateColumn()
   created_at: Date;
 

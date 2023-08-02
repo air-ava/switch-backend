@@ -83,28 +83,6 @@ const settings: any = {
       type: 'credit',
     },
   },
-  TRANSACTION_PURPOSE: {
-    'bank-transfer': {
-      purpose: 'Withdraw:Bank-Transfer',
-      type: 'debit',
-    },
-    'school-fees': {
-      purpose: 'Payment:School-Fees',
-      type: 'credit',
-    },
-    settlement: {
-      purpose: 'Withdraw:Settlement',
-      type: 'debit',
-    },
-    'cash-out': {
-      purpose: 'Withdraw:Wallet-Cash-Out',
-      type: 'debit',
-    },
-    'top-up': {
-      purpose: 'Funding:Wallet-Top-Up',
-      type: 'credit',
-    },
-  },
 };
 
 // eslint-disable-next-line consistent-return

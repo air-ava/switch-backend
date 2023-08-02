@@ -727,6 +727,7 @@ export interface IStudentClass {
   classId: number;
   status: number;
   session: number;
+  school_id: number;
   created_at: Date;
   updated_at: Date;
 }
