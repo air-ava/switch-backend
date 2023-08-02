@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import {
+import SchoolService, {
   answerQuestionnaireService,
   backOfficeVerifiesSchool,
   getQuestions,
@@ -10,7 +10,13 @@ import {
   updateSchoolDetails,
   updateSchoolInfo,
 } from '../services/school.service';
+// import SchoolService from '../services/school.service';
 import DocumentService from '../services/document.service';
+import StudentService from '../services/student.service';
+import ResponseService from '../utils/response';
+import { Sanitizer } from '../utils/sanitizer';
+import { addClass, getClassLevel } from '../validators/schools.validator';
+import ValidationError from '../utils/validationError';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
@@ -80,7 +86,8 @@ export const answerUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, 
 
 export const getSchoolCONTROLLER: RequestHandler = async (req, res) => {
   try {
-    const payload = { user: req.user };
+    const { educationalSession } = req;
+    const payload = { user: req.user, session: educationalSession };
     const response = await getSchoolDetails(payload);
     const responseCode = response.success === true ? 200 : 400;
     return res.status(responseCode).json(response);
@@ -167,4 +174,51 @@ export const verifySchoolCONTROLLER: RequestHandler = async (req, res) => {
       ? res.status(400).json({ success: false, error: error.message })
       : res.status(500).json({ success: false, error: errorMessages.verifySchool, data: error });
   }
+};
+
+export const addClassToSchoolWithFeesCONTROLLER: RequestHandler = async (req, res) => {
+  const { school, user, educationalSession } = req;
+  const payload = { ...req.query, ...req.body, school, session: educationalSession };
+  const response = await StudentService.addClassToSchoolWitFees(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const addClassToSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const { code } = req.params;
+  const payload = { code, school };
+
+  const validation = addClass.validate({ code });
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await SchoolService.addClassToSchool(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const listClassInSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const payload = { school };
+  const response = await SchoolService.listClassInSchool(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeSchoolClass));
+};
+
+export const listClassLevelByEducationLevelCONTROLLER: RequestHandler = async (req, res) => {
+  const { code } = req.params;
+  const payload = { code };
+
+  const validation = getClassLevel.validate({ code });
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await SchoolService.listClassLevelByEducationLevel(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};
+
+export const listEducationLevelCONTROLLER: RequestHandler = async (req, res) => {
+  const response = await SchoolService.educationLevel();
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
 };

@@ -121,6 +121,8 @@ export interface IIndividual {
   firstName: string;
   lastName: string;
   email: string;
+  gender: 'male' | 'female' | 'others';
+  type: string;
   avatar: number;
   job_title: number;
   status: number;
@@ -713,6 +715,8 @@ export interface IStudent {
   uniqueStudentId: string;
   userId: string;
   status: number;
+  paymentTypeId: number;
+  defaultEmail: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -722,12 +726,14 @@ export interface IStudentClass {
   studentId: number;
   classId: number;
   status: number;
+  session: number;
   created_at: Date;
   updated_at: Date;
 }
 
 export interface IClassLevel {
   id: number;
+  code: string;
   education_level: string;
   class: string;
   class_short_name: string;
@@ -829,4 +835,182 @@ export interface IBackOfficeBanks {
   status: number;
   created_at: Date;
   updated_at?: Date;
+}
+
+export interface IPaymentType {
+  id: number;
+  code: string;
+  value: string;
+  name: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface IStudentGuardian {
+  id: number;
+  code: string;
+  relationship: string;
+  studentId: number;
+  individualId: number;
+  status: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchoolClass {
+  id: number;
+  status: number;
+  class_id: number;
+  school_id: number;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchoolPeriod {
+  id: number;
+  school_id: number;
+  education_level: string;
+  period: string;
+  session_id: number;
+  schedule_id: number;
+  country: string;
+  status: number;
+  start_date: Date;
+  expiry_date: Date | null;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchoolSession {
+  id: number;
+  education_level: string;
+  session: string;
+  country: string;
+  schedule_id: number;
+  name: string;
+  status: number;
+  start_date: Date;
+  expiry_date: Date | null;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchedule {
+  id: number;
+  cron_id: string;
+  status: number;
+  cron_expression: string;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ISchoolProduct {
+  id: number;
+  name: string;
+  feature_name: string;
+  payment_type_id: number;
+  product_type_id: number;
+  description: string;
+  image: number;
+  amount: number;
+  currency: string;
+  school_class_id: number | null;
+  school_id: number;
+  status: number;
+  period: number | null;
+  session: number | null;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IProductTransactions {
+  id: number;
+  tx_reference: string;
+  session: string;
+  beneficiaryProductPaymentId: number;
+  amount: number;
+  outstanding_before: number;
+  outstanding_after: number;
+  payer: number;
+  metadata: { [key: string]: number | string };
+  status: number;
+  student_class: number;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IPaymentContacts {
+  id: number;
+  name?: string;
+  school: number;
+  phone_number?: number;
+  address_id?: number;
+  email?: string;
+  status: number;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IBeneficiaryProductPayment {
+  id: number;
+  beneficiary_type: string;
+  product_currency: string;
+  beneficiary_id: number;
+  product_id: number;
+  status: number;
+  amount_paid: number;
+  amount_outstanding: number;
+  code: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IEducationLevel {
+  id: number;
+  code: string;
+  feature_name: string;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IEducationPeriod {
+  id: number;
+  code: string;
+  level: string;
+  feature_name: string;
+  rank: number;
+  education_level: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IProductType {
+  id: number;
+  code: string;
+  name: string;
+  slug: string;
+  school_id: number | null;
+  status: number;
+  description: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IPreference {
+  id: number;
+  code: string;
+  entity: string;
+  entity_id: number;
+  configuration: JSON;
+  status: number;
+  created_at: Date;
+  updated_at: Date;
 }

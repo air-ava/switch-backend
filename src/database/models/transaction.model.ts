@@ -77,4 +77,8 @@ export class Transactions {
   @ManyToOne('BankTransfers', 'transactions')
   @JoinColumn({ name: 'reference', referencedColumnName: 'tx_reference' })
   BankTransfer: ISettlementTransactions;
+
+  @ManyToOne('ProductTransactions', 'transactions')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'tx_reference' })
+  ProductTransaction: ISettlementTransactions;
 }

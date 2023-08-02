@@ -1,3 +1,4 @@
+import { theResponse } from './../utils/interface';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import randomstring from 'randomstring';
 import { In, Not } from 'typeorm';
@@ -8,7 +9,7 @@ import { findPendingPayment, findMultiplePendingPayments, savePendingPaymentsREP
 import { findScholarship } from '../database/repositories/scholarship.repo';
 import { getStudent } from '../database/repositories/student.repo';
 import { findUser } from '../database/repositories/user.repo';
-import { sendObjectResponse } from '../utils/errors';
+import { NotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
 import { sendEmail } from '../utils/mailtrap';
 import { getSchoolDetails } from './school.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
@@ -18,6 +19,7 @@ import BankRepo from '../database/repositories/bank.repo';
 import { saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
 import Settings from './settings.service';
 import { getQueryRunner } from '../database/helpers/db';
+import { saveBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
 
 export const createPendingPayment = async (data: any): Promise<any> => {
   const { org_id, sender_id, recipient_id, scholarship_id, description, amount, ...rest } = data;
@@ -103,26 +105,56 @@ export const getPendingPayment = async ({
   return sendObjectResponse('Payment retrieved successfully', existingPayment);
 };
 
-export const buildCollectionRequestPayload = async ({ user, walletId, studentId, phoneNumber, amount, amountWithFees }: any): Promise<any> => {
+export const buildCollectionRequestPayload = async ({
+  user,
+  walletId,
+  studentId,
+  phoneNumber,
+  amount,
+  amountWithFees,
+  feature_name,
+  ussd = true,
+}: any): Promise<any> => {
   let school;
   let reciever;
+  let studentTutition;
   if (user) {
     const { data: foundSchool } = await getSchoolDetails({ user });
     school = foundSchool;
   }
   if (studentId) {
-    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
-    if (!student) throw new Error('Student not found');
+    const student = await getStudent(
+      { uniqueStudentId: studentId },
+      [],
+      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'Fees', 'Fees.Fee', 'Fees.Fee.ProductType', 'Fees.Fee.PaymentType'],
+    );
+    if (!student || student.status === STATUSES.DELETED) throw new NotFoundError('Student');
     if (!user) {
       school = student.School;
       const organization = await getOneOrganisationREPO({ id: school.organisation_id }, [], ['Owner']);
       // eslint-disable-next-line no-param-reassign
       user = organization.Owner;
     }
+    if (student.Fees) {
+      const [studentTutitionFee] = student.Fees.filter(
+        (value: any) => value.beneficiary_type === 'student' && value.Fee.feature_name === feature_name && value.Fee.status === STATUSES.ACTIVE,
+      );
+      if (!studentTutitionFee) {
+        const message = 'Fee not active';
+        if (ussd) return { error: message };
+        throw new ValidationError(message);
+      }
+      if (studentTutitionFee.status === STATUSES.DELETED) {
+        const message = 'Fee not active for this student';
+        if (ussd) return { error: message };
+        throw new ValidationError(message);
+      };
+      studentTutition = studentTutitionFee;
+    }
     reciever = student;
   } else {
     const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
-    if (!wallet) throw new Error('Wallet not found');
+    if (!wallet) throw new NotFoundError('Wallet');
     reciever = wallet.User;
   }
 
@@ -130,7 +162,10 @@ export const buildCollectionRequestPayload = async ({ user, walletId, studentId,
     user,
     phoneNumber,
     amount,
-    ...(studentId && { student: reciever }),
+    ...(studentId && {
+      student: reciever,
+      studentTutition: reciever.Fees && studentTutition,
+    }),
     ...(walletId && { reciever }),
     purpose: studentId ? 'school-fees' : 'top-up',
     school,

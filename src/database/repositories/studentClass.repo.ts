@@ -47,9 +47,33 @@ export const saveStudentClassREPO = (
 };
 
 export const updateStudentClass = (
-  queryParams: Pick<IStudentClass, 'id'>,
+  queryParams: Partial<IStudentClass>,
   updateFields: Partial<IStudentClass>,
   t?: QueryRunner,
 ): Promise<UpdateResult> => {
   return t ? t.manager.update(StudentClass, queryParams, updateFields) : getRepository(StudentClass).update(queryParams, updateFields);
+};
+
+export const listStundentsInSchoolClass = async (
+  queryParam: Partial<StudentClass> | any,
+  selectOptions: Array<keyof StudentClass>,
+  relationOptions?: any[],
+  t?: QueryRunner,
+): Promise<StudentClass[]> => {
+  const repository = t ? t.manager.getRepository(StudentClass) : getRepository(StudentClass);
+  const { schoolId, classId, status } = queryParam;
+  return repository.find({
+    where: {
+      classId,
+      status,
+      student: {
+        status,
+        School: {
+          id: schoolId,
+        },
+      },
+    },
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+    ...(relationOptions && { relations: relationOptions || ['student', 'student.School'] }),
+  });
 };

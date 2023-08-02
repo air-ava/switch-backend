@@ -119,6 +119,26 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  mapAnArray(arr: any[], key: string) {
+    return arr.map((item) => {
+      const response = Sanitizer.jsonify(item);
+      return key.includes('.') ? Sanitizer.findObjectValue(response, key) : response[key];
+    });
+  },
+
+  findObjectValue(object: any, path: string) {
+    const args = path.split('.');
+    let sanitizedObject = Sanitizer.jsonify(object);
+    // eslint-disable-next-line no-plusplus
+    for (let index = 0; index < args.length; index++) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (!sanitizedObject.hasOwnProperty(args[index])) return;
+      sanitizedObject = sanitizedObject[args[index]];
+    }
+    // eslint-disable-next-line consistent-return
+    return sanitizedObject;
+  },
+
   sanitizeAllArray(payload: any, object: any, extra?: string): any[] {
     if (!Array.isArray(payload)) return [];
     return payload.map((item) => object(item, extra && extra));
@@ -219,6 +239,16 @@ export const Sanitizer = {
     };
     return sanitized;
   },
+  
+  sanitizeNoId(payload: ISponsorships): any {
+    if (!payload) return null;
+    const { id, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
 
   sanitizeApplication(payload: IScholarshipApplication): any {
     if (!payload) return null;
@@ -251,7 +281,7 @@ export const Sanitizer = {
   },
 
   async sanitizeTransactions(payload: any): Promise<any> {
-    if (!Array.isArray(payload)) return null;
+    if (!Array.isArray(payload)) return [];
     const response = await Promise.all(payload.map(Sanitizer.sanitizeTransaction));
     return response;
   },
@@ -296,29 +326,244 @@ export const Sanitizer = {
 
   sanitizeStudent(payload: any): any {
     if (!payload) return null;
-    const { id, status, User, userId, School, schoolId, uniqueStudentId, Classes, ...rest } = Sanitizer.jsonify(payload);
+    const { id, StudentGuardians, status, User, paymentTypeId, userId, School, schoolId, Fees, uniqueStudentId, Classes, PaymentType, ...rest } =
+      Sanitizer.jsonify(payload);
     const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+    const paymentFees = Fees && Sanitizer.mapAnArray(Fees, 'FeesHistory');
     const sanitized = {
       id,
       ...rest,
+      partPayment: PaymentType && PaymentType.value === 'install-mental' ? PaymentType.value === 'install-mental' : false,
+      blockPayment: PaymentType && PaymentType.value === 'no-payment' ? PaymentType.value === 'no-payment' : false,
       studentId: uniqueStudentId,
-      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      status:
+        status &&
+        (Sanitizer.getStatusById(STATUSES, status).toLowerCase() === 'deleted'
+          ? 'deactivated'
+          : Sanitizer.getStatusById(STATUSES, status).toLowerCase()),
       user: User && Sanitizer.sanitizeUser(User),
       school: School && Sanitizer.sanitizeSchool(School),
       class: Classes && studentCurrentClass[0].ClassLevel,
-      classes: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
+      session: Classes && studentCurrentClass[0].Session,
+      classHistory: Classes && Sanitizer.sanitizeAllArray(Classes, Sanitizer.sanitizeStudentClass),
+      fees: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeBeneficiaryFee),
+      paymentHistory: Fees && Sanitizer.sanitizeAllArray(paymentFees.flat(), Sanitizer.sanitizePaymentHistory),
+      paymentType: PaymentType && Sanitizer.sanitizePaymentType(PaymentType),
+      studentGuardians: StudentGuardians && Sanitizer.sanitizeAllArray(StudentGuardians, Sanitizer.sanitizeStudentGuardian),
+    };
+    return sanitized;
+  },
+
+  sanitizeStudentInClass(payload: any): any {
+    if (!payload) return null;
+    const { id, class: classLevel, students, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      class: classLevel && Sanitizer.sanitizeClassLevel(classLevel),
+      students: students && Sanitizer.sanitizeAllArray(students, Sanitizer.sanitizeStudentClass),
+    };
+    return sanitized;
+  },
+
+  sanitizeClassLevel(payload: any): any {
+    if (!payload) return null;
+    const { id, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+    };
+    return sanitized;
+  },
+
+  sanitizeEducationLevel(payload: any): any {
+    if (!payload) return null;
+    const { id, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+    };
+    return sanitized;
+  },
+
+  sanitizeSchoolClass(payload: any): any {
+    if (!payload) return null;
+    const { id, class_id, status, school_id, ClassLevel, Fees, School, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      classLevel: ClassLevel && Sanitizer.sanitizeClassLevel(ClassLevel),
+      school: School && Sanitizer.sanitizeClassLevel(School),
+      classFees: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeFee),
+    };
+    return sanitized;
+  },
+
+  sanitizeBeneficiaryFee(payload: any): any {
+    if (!payload) return null;
+    const { id, Fee, FeesHistory, status, Student, product_id, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      feeHistory: FeesHistory && Sanitizer.sanitizeAllArray(FeesHistory, Sanitizer.sanitizeFee),
+      fee: Fee && Sanitizer.sanitizeFee(Fee),
+      student: Student && Sanitizer.sanitizeStudent(Student),
+    };
+    return sanitized;
+  },
+
+  sanitizeFee(payload: any): any {
+    if (!payload) return null;
+    const {
+      id,
+      Period,
+      Session,
+      School,
+      SchoolClass,
+      ProductType,
+      PaymentType,
+      school_id,
+      school_class_id,
+      status,
+      payment_type_id,
+      product_type_id,
+      Transactions,
+      ...rest
+    } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      feeType: ProductType && Sanitizer.sanitizeFeeType(ProductType),
+      paymentType: PaymentType && Sanitizer.sanitizePaymentType(PaymentType),
+      period: Period && Sanitizer.sanitizePeriod(Period),
+      session: Session && Sanitizer.sanitizeSession(Session),
+      schoolClass: SchoolClass && Sanitizer.sanitizeSchoolClass(SchoolClass),
+      school: School && Sanitizer.sanitizeSchool(School),
+    };
+    return sanitized;
+  },
+
+  sanitizeByClass(payload: any): any {
+    if (!payload) return null;
+    const { id, Fees, status, class_id, school_id, ClassLevel, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      class: ClassLevel && Sanitizer.sanitizeClassLevel(ClassLevel),
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      fee: Fees && Sanitizer.sanitizeAllArray(Fees, Sanitizer.sanitizeFee),
+    };
+    return sanitized;
+  },
+
+  sanitizePaymentHistory(payload: any): any {
+    if (!payload) return null;
+    const { id, payer, status, Payer, beneficiaryFee, beneficiary_product_payment_id, Transactions, ...rest } = Sanitizer.jsonify(payload);
+    const [paymentTransaction] = Transactions ? Transactions.filter((value: any) => !value.purpose.includes('Fees:')) : [];
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      transaction: Transactions && Sanitizer.sanitizeLightTransaction(paymentTransaction),
+      channel: Transactions && paymentTransaction.channel,
+      currency: beneficiaryFee && beneficiaryFee.product_currency,
+      payer: Payer && Sanitizer.sanitizePaymentContact(Payer),
+      // transactions: Transactions && Sanitizer.sanitizeLightTransaction(Transactions),
+    };
+    return sanitized;
+  },
+
+  sanitizePaymentContact(payload: any): any {
+    if (!payload) return null;
+    const { id, status, school, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+
+  sanitizeFeeType(payload: any): any {
+    if (!payload) return null;
+    const { id, slug, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+
+  sanitizePaymentType(payload: any): any {
+    if (!payload) return null;
+    const { id, slug, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+
+  sanitizePeriod(payload: any): any {
+    if (!payload) return null;
+    const { id, feature_name, Schedule, school_id, schedule_id, session_id, Session, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      schedule: Schedule && Sanitizer.sanitizeSchedule(Schedule),
+      session: Session && Sanitizer.sanitizeSession(Session),
+    };
+    return sanitized;
+  },
+
+  sanitizeSchedule(payload: any): any {
+    if (!payload) return null;
+    const { id, cron_id, cron_expression, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+    return sanitized;
+  },
+
+  sanitizeSession(payload: any): any {
+    if (!payload) return null;
+    const { id, schedule_id, Schedule, status, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      schedule: Schedule && Sanitizer.sanitizeSchedule(Schedule),
+    };
+    return sanitized;
+  },
+
+  sanitizeStudentGuardian(payload: IScholarshipApplication): any {
+    if (!payload) return null;
+    const { id, status, Guardian, individualId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      student: Student && Sanitizer.sanitizeStudent(Student),
+      guardian: Guardian && Sanitizer.sanitizeIndividual(Guardian),
+    };
+    return sanitized;
+  },
+
+  sanitizeIndividual(payload: IScholarshipApplication): any {
+    if (!payload) return null;
+    const { id, status, school_id, phoneNumber, phone_number, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      id,
+      ...rest,
+      phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
     return sanitized;
   },
 
   sanitizeStudentClass(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { id, status, ClassLevel, classId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, ClassLevel, classId, Student, student, studentId, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
       ...rest,
+      // paymentStatus: 
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
-      student: Student && Sanitizer.sanitizeStudent(Student),
+      student: (Student || student) && Sanitizer.sanitizeStudent(Student || student),
       classLevel: ClassLevel && Sanitizer.sanitizeSchool(ClassLevel),
     };
     return sanitized;

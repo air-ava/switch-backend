@@ -5,7 +5,7 @@ import { IUser } from '../database/modelInterfaces';
 import { updateIndividual } from '../database/repositories/individual.repo';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool, listSchools, updateSchool } from '../database/repositories/schools.repo';
-import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
+import { sendObjectResponse, BadRequestException, ResourceNotFoundError, NotFoundError, ValidationError, ExistsError } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import Settings from './settings.service';
 import { findOrCreateAddress, findOrCreatePhoneNumber, findSchoolWithOrganization } from './helper.service';
@@ -18,6 +18,14 @@ import { getQuestion } from '../database/repositories/question.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import { updateUser } from '../database/repositories/user.repo';
 import { createAsset } from './assets.service';
+import { getSchoolProduct, listSchoolProduct, saveSchoolProduct } from '../database/repositories/schoolProduct.repo';
+import { getProductType, listProductTypes, saveProductType } from '../database/repositories/productType.repo';
+import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
+import { getClassLevel, listClassLevel } from '../database/repositories/classLevel.repo';
+import { getEducationPeriod } from '../database/repositories/education_period.repo';
+import { getSchoolClass, listSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import { Not } from 'typeorm';
+import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   //   const validation = createBusinessValidator.validate(data);
@@ -216,14 +224,14 @@ export const answerQuestionnaireService = async ({ answers, user }: { answers: a
 };
 
 export const getSchoolDetails = async (data: any) => {
-  const { user } = data;
+  const { user, session } = data;
 
   try {
     const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
     if (!gottenSchool.success) return gottenSchool;
     const { school } = gottenSchool.data;
 
-    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool(school));
+    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool({ ...school, session }));
   } catch (e: any) {
     return BadRequestException(e.message);
   }
@@ -350,3 +358,53 @@ export const backOfficeVerifiesSchool = async (data: any): Promise<theResponse> 
     return BadRequestException(e.message);
   }
 };
+
+const Service = {
+  async listClassInSchool(data: any): Promise<theResponse> {
+    const { school, ...rest } = data;
+    // todo: repo for sum of students and a sum of expected tuition fee
+    const response = await listSchoolClass(
+      {
+        school_id: school.id,
+        status: Not(STATUSES.DELETED),
+        ...rest,
+      },
+      [],
+      ['ClassLevel', 'School', 'School.Students', 'Fees', 'Fees.ProductType', 'Fees.PaymentType', 'Fees.Period', 'Fees.Session'],
+    );
+    return sendObjectResponse('All Classes retrieved successfully', response);
+  },
+
+  async addClassToSchool(data: any): Promise<theResponse>{
+    const { school, code: classCode } = data;
+    const foundClassLevel = await getClassLevel({ code: classCode }, []);
+    if (!foundClassLevel) throw new NotFoundError('Class Level');
+
+    const foundSchoolClass = await getSchoolClass({ school_id: school.id, class_id: foundClassLevel.id, status: STATUSES.ACTIVE }, []);
+    if (foundSchoolClass) throw new ExistsError(`Class`);
+
+    const schoolClass = await saveSchoolClass({
+      school_id: school.id,
+      class_id: foundClassLevel.id,
+      status: STATUSES.ACTIVE,
+    });
+    return sendObjectResponse('Added Class to School Successfully');
+  },
+  
+  async listClassLevelByEducationLevel(data: any): Promise<theResponse> {
+    const { code: educationalCode } = data;
+    const educationLevel = await getEducationLevel({ code: educationalCode }, []);
+    if (!educationLevel) throw new NotFoundError('Educational Level');
+    
+    const foundClassLevel = await listClassLevel({ education_level: educationLevel.name === 'Secondary' ? 'Senior' : educationLevel.name }, []);
+    if (!foundClassLevel) throw new NotFoundError('Class Level');
+
+    return sendObjectResponse('Added Class to School Successfully', foundClassLevel);
+  },
+
+  async educationLevel(): Promise<theResponse> {
+    const educationLevel = await listEducationLevel({}, []);
+    return sendObjectResponse('Retrieved Educational Level Successfully', educationLevel);
+  },
+};
+export default Service;

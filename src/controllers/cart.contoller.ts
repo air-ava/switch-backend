@@ -19,12 +19,6 @@ export const createCartCONTROLLER: RequestHandler = async (req, res) => {
 export const getCartCONTROLLER: RequestHandler = async (req, res) => {
   try {
     const businessAddress = String(req.query.is_business) === 'true';
-    console.log({
-      businessAddress,
-      'req.query.is_business': req.query.is_business,
-      'req.params.business': req.params,
-    });
-
     const response = businessAddress
       ? await getBusinessCart({
           business: String(req.params.business),

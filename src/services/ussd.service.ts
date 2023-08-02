@@ -14,16 +14,30 @@ import { STEWARD_BASE_URL } from '../utils/secrets';
 const Service = {
   async getStudent(criteria: any): Promise<theResponse> {
     const { studentId, phoneNumber, incomingData, reference } = criteria;
-    const student = await getStudent({ uniqueStudentId: studentId }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
-    if (!student) return BadRequestException('END Student not found');
-    const { User, School, Classes } = student;
+    const student = await getStudent(
+      { uniqueStudentId: studentId },
+      [],
+      ['User', 'School', 'Classes', 'Classes.ClassLevel', 'Fees', 'Fees.Fee', 'Fees.Fee.ProductType', 'Fees.Fee.PaymentType'],
+    );
+    if (!student || student.status === STATUSES.DELETED) return BadRequestException('END Student not found');
+    const { User, School, Classes, Fees } = student;
     const [studentCurrentClass] = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+    const [studentTutitionFee] =
+      Fees &&
+      Fees.filter(
+        (value: any) => value.beneficiary_type === 'student' && value.Fee.feature_name === 'tuition-fees' && value.Fee.status === STATUSES.ACTIVE,
+      );
+    // const  = studentTutitionFees;
 
     const { class: ClassName, class_short_name } = studentCurrentClass.ClassLevel;
+    const { product_currency, amount_outstanding, amount_paid } = studentTutitionFee;
 
+    if (amount_outstanding < 1) return BadRequestException('END This student has no pending payments to make');
     const baseResponse = `CON ${School.name},
     ${User.first_name} ${User.last_name},
     ${ClassName} (${class_short_name}),
+    Amount paid - ${product_currency}${amount_paid / 100}
+    Amount due - ${product_currency}${amount_outstanding / 100}
     Enter the amount you want to pay
     `;
 
@@ -85,7 +99,14 @@ const Service = {
         if (networkCode === '99999' && Number(incomingAmount) > 1000) return BadRequestException('END Incoming Amount is higher than 1000');
         if (networkCode !== '99999' && Number(incomingAmount) < 500) return BadRequestException('END Incoming Amount is lower than 500');
 
-        const query = await buildCollectionRequestPayload({ studentId, phoneNumber, amount: incomingAmount * 100, amountWithFees: sumTotal * 100 });
+        const query = await buildCollectionRequestPayload({
+          studentId,
+          feature_name: 'tuition-fees',
+          phoneNumber,
+          amount: incomingAmount * 100,
+          amountWithFees: sumTotal * 100,
+        });
+        if (query.error) return BadRequestException(`END ${query.error}`);
         const response = await BayonicService.initiateCollectionRequest(query);
         return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Completing School Fees Payment');
       }
@@ -139,3 +160,4 @@ const Service = {
 };
 
 export default Service;
+// *168714389*502

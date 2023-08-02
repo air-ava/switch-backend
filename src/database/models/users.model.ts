@@ -68,6 +68,9 @@ export class Users {
   @Column('text')
   password: string;
 
+  @Column('text')
+  gender: 'male' | 'female' | 'others';
+
   @Column('int')
   address_id: number;
 

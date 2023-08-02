@@ -2,6 +2,7 @@
 import { parsePhoneNumber } from 'libphonenumber-js';
 import randomstring from 'randomstring';
 import { ENVIRONMENT } from './secrets';
+import { MoreThan, LessThan, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 const dateFns = require('date-fns');
 
 const table_prefix = {
@@ -108,6 +109,21 @@ export const createObjectFromArray = (payload: any, key: string, value: any, pat
   return response;
 };
 
+export const createObjectFromArrayWithoutValue = (arr: any, key1: string, key2?: string) => {
+  return arr.reduce((result: any, item: any) => {
+    const response = jsonify(item);
+    const keyValue1 = key1.includes('.') ? findObjectValue(item, key1) : response[key1];
+    const keyValue2 = key2 && (key2.includes('.') ? findObjectValue(item, key2) : response[key2]);
+    const combinedKey = `${keyValue1}${key2 ? ` | ${keyValue2}` : ''}`;
+    if (!result[combinedKey]) {
+      // eslint-disable-next-line no-param-reassign
+      result[combinedKey] = [];
+    }
+    result[combinedKey].push(item);
+    return result;
+  }, {});
+};
+
 export const maxElementFromAnArray = (arr: any[], key: string) => {
   return arr.reduce((prev, nex) => {
     const previous = jsonify(prev);
@@ -179,6 +195,138 @@ const Utils = {
 
   getApiURL() {
     return Utils.isProd() ? `https://steward-prod-rmq4b.ondigitalocean.app` : `https://king-prawn-app-ovupz.ondigitalocean.app`;
+  },
+
+  getMoMoURL() {
+    return Utils.isProd() ? `https://sandbox.momodeveloper.mtn.com` : `https://sandbox.momodeveloper.mtn.com`;
+  },
+
+  getMoMoCollectionKey() {
+    return Utils.isProd() ? `febc3f760f6643a8ab7dc6db7c9656cb` : `b613cffce55b4422bc03fde213efa160`;
+  },
+
+  getMoMoCollectionWidgetKey() {
+    return Utils.isProd() ? `3df959f0ea46451583d67c087f03d6d0` : `f8a2c767ff044a09b854b5ba312a2873`;
+  },
+
+  getMoMoDisbursementKey() {
+    return Utils.isProd() ? `71eb435db4ee4738a22446fe6eafdbbc` : `1590ffcb20dd4b0db830562f1d99d90d`;
+  },
+
+  getMoMoAuth() {
+    return Utils.isProd()
+      ? {
+          userReferenceId: `30293133-188e-41f8-a65c-433c321c1ae2`,
+          apiKey: 'b3e3e99adbc54225bcc523af01ee1021',
+          targetEnironment: `production`,
+        }
+      : {
+          userReferenceId: `30293133-188e-41f8-a65c-433c321c1ae2`,
+          apiKey: 'b3e3e99adbc54225bcc523af01ee1021',
+          targetEnironment: `sandbox`,
+        };
+  },
+
+  getMoMoProductKeys() {
+    return Utils.isProd()
+      ? {
+          collection: `febc3f760f6643a8ab7dc6db7c9656cb`,
+          collectionWidget: '3df959f0ea46451583d67c087f03d6d0',
+          disbursement: `71eb435db4ee4738a22446fe6eafdbbc`,
+        }
+      : {
+          collection: `b613cffce55b4422bc03fde213efa160`,
+          collectionWidget: 'f8a2c767ff044a09b854b5ba312a2873',
+          disbursement: `1590ffcb20dd4b0db830562f1d99d90d`,
+        };
+  },
+
+  getCurrentDate() {
+    return dateFns.format(new Date(), 'yyyy-MM-dd');
+  },
+
+  firstDateIsBeforeSecondDate(firstDate: Date, secondDate = new Date()) {
+    return dateFns.isBefore(firstDate, secondDate);
+  },
+
+  firstDateIsAfterSecondDate(firstDate: Date, secondDate = new Date()) {
+    return dateFns.isAfter(firstDate, secondDate);
+  },
+
+  isWithinInterval(dateToCheck: Date, firstDate: Date, secondDate = new Date()) {
+    return dateFns.isWithinInterval(dateToCheck, {
+      start: firstDate,
+      end: secondDate,
+    });
+  },
+
+  isDateToday(date: Date) {
+    return dateFns.isToday(new Date(date));
+  },
+
+  isDateTomorrow(date: Date) {
+    return dateFns.isTomorrow(new Date(date));
+  },
+
+  addDays(date: Date, daysCount: number) {
+    return dateFns.addDays(new Date(date), daysCount);
+  },
+
+  isSameDay(firstDate: Date, secondDate: Date) {
+    return dateFns.isSameDay(firstDate, secondDate);
+  },
+
+  parseISO(date: Date) {
+    return dateFns.parseISO(date);
+  },
+
+  getUniqueNonRepeatedElements(firstArray: string[] = [], secondArray: string[] = []): string[] {
+    return firstArray
+      .filter((element) => !secondArray.includes(element)) // filtering out elements present in secondArray
+      .concat(secondArray.filter((element) => !firstArray.includes(element))); // Concatenate elements from secondArray not present in firstArray
+  },
+
+  getUniqueElements(firstArray: string[] = [], secondArray: string[] = []): string[] {
+    const concatenatedArray = firstArray.concat(secondArray);
+    return [...new Set(concatenatedArray)];
+  },
+
+  paginationOrderAndCursor(cursor: number, query: any): any {
+    const order: any = { created_at: 'DESC' };
+    // eslint-disable-next-line no-param-reassign
+    if (cursor) query.id = order.created_at === 'ASC' ? MoreThan(cursor) : LessThan(cursor);
+    return { order, query, cursor };
+  },
+
+  paginationMetaCursor(data: any): any {
+    const { responseArray, perPage, cursor } = data;
+    const hasMore = responseArray.length === Number(perPage);
+    const newCursor = hasMore ? responseArray[perPage - 1].id : null;
+    const previousCursor = cursor && responseArray.length ? responseArray[0].id : null;
+    return { hasMore, newCursor, previousCursor };
+  },
+
+  paginationRangeAndOffset(data: { page: number; perPage: number; from: any; to: any; query: any }): any {
+    const { page, from, to, perPage, query } = data;
+    const offset = (page - 1) * perPage;
+    // const order: any = { created_at: 'DESC' };
+    if (from && to) {
+      query.created_at = Between(from, to);
+    } else if (from) {
+      query.created_at = MoreThanOrEqual(from);
+    } else if (to) {
+      query.created_at = LessThanOrEqual(to);
+    }
+    return { offset, query };
+  },
+
+  paginationMetaOffset(data: any): any {
+    const { total, perPage, page } = data;
+    const totalPages = Math.ceil(total / perPage);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+    const nextPage = hasNextPage ? Number(page) + 1 : null;
+    return { nextPage, totalPages, hasNextPage, hasPreviousPage };
   },
 };
 

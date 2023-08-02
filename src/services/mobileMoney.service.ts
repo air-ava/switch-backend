@@ -1,3 +1,4 @@
+import { Preference } from './../database/models/preferences.model';
 import { IStudentClass } from './../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // creditWalletOnMobileMoney
@@ -12,6 +13,7 @@ import { getStudent } from '../database/repositories/student.repo';
 import { getOneTransactionREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { initiateCollection } from '../integrations/bayonic/collection.integration';
 import { Service as WalletService } from './wallet.service';
+import PreferenceService from './preference.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { fetchUserBySlug, fetchUserProfile } from './user.service';
 import { creditLedgerWallet, debitLedgerWallet } from './lien.service';
@@ -20,10 +22,15 @@ import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo
 import { ENVIRONMENT, STEWARD_BASE_URL } from '../utils/secrets';
 import Settings from './settings.service';
 import Utils from '../utils/utils';
+import { sendSms } from '../integrations/africasTalking/sms.integration';
+import { sendEmail } from '../utils/mailtrap';
+import FeesService from './fees.service';
+import { findUser } from '../database/repositories/user.repo';
+import { createPaymentContacts } from '../database/repositories/paymentContact.repo';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
-    const { amountWithFees, amount, user, student, reciever, phoneNumber, school } = payload;
+    const { amountWithFees, amount, user, student, reciever, phoneNumber, school, studentTutition } = payload;
 
     let { purpose } = payload;
     const reference = v4();
@@ -65,7 +72,13 @@ export const Service = {
     }
     const description = `${purpose} for ${initiator.first_name} ${initiator.last_name} at ${school.name}`;
     const { contact, id: collectRequestId, status } = data;
+    if (purpose === 'Payment:School-Fees') metadata.studentTutition = studentTutition;
     // create contact for the payer
+    const paymentContact = await createPaymentContacts({
+      school: school.id,
+      phone_number: phoneNumber,
+      status: STATUSES.ACTIVE,
+    });
 
     await saveMobileMoneyTransaction({
       tx_reference: reference,
@@ -86,6 +99,7 @@ export const Service = {
         collectRequestId,
         fundersPhone: data.phonenumber,
         fundersNetwork: contact.network_name,
+        paymentContact,
       },
       reference,
       status: STATUSES.PROCESSING,
@@ -198,7 +212,9 @@ export const Service = {
         User: user,
         description,
         amount,
+        currency,
         metadata: transactionMetadata,
+        created_at,
       } = await getOneTransactionREPO({ reference, txn_type: 'credit', channel: 'mobile-money' }, [], ['User', 'Wallet', 'Reciepts']);
       await debitLedgerWallet({
         amount,
@@ -257,7 +273,51 @@ export const Service = {
         },
         // t,
       );
+
+      // todo: record Transaction for a Tuition Fee
+      // studentTutition
+      // Top Up Beneficiary Payment Like debitLedgerWallet
+      if (transactionMetadata.studentTutition) {
+        const { amount: reccordAmount, studentTutition, paymentContact, ...rest } = transactionMetadata;
+        const { id: beneficiaryId, Fee, beneficiary_type: beneficiaryType } = studentTutition;
+        await FeesService.recordInstallment({
+          amount: reccordAmount,
+          reference,
+          paymentContact,
+          metadata: rest,
+          beneficiaryId,
+        });
+      }
+
       // await t.commitTransaction();
+      const { data } = await PreferenceService.getNotificationContacts(wallet.entity_id);
+      const { emails, phoneNumbers, transactions: transactionNotification } = data;
+      const { notifyInflow, notifyOutflow } = transactionNotification;
+      if (notifyInflow.includes('phoneNumbers'))
+        sendSms({
+          phoneNumber: data.phoneNumbers,
+          message: `amount: ${currency}${amount}\n
+            method: mobile-money\n
+            type: credit\n
+            description: ${description}\n
+            reference: ${reference}\n
+            date: ${created_at}\n`,
+        });
+      // if (notifyInflow.includes('email')) {
+      //   sendEmail({
+      //     recipientEmail: emails,
+      //     purpose: 'welcome_user',
+      //     templateInfo: {
+      //       firstName: ` ${user.first_name}`,
+      //       reference,
+      //       description,
+      //       date: created_at,
+      //       amount: `${currency}${amount}`,
+      //       type: 'credit',
+      //       method: 'mobile-money',
+      //     },
+      //   });
+      // }
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();

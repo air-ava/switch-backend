@@ -1,6 +1,9 @@
+import { PAYMENT_TYPE } from './../database/models/paymentType.model';
+import { Product } from './../database/models/product.model';
 import { getRepository } from 'typeorm';
 import { ISettings } from '../database/modelInterfaces';
 import { JobTitle } from '../database/models/jobTitle.model';
+import { PaymentType } from '../database/models/paymentType.model';
 import { findSettingsREPO } from '../database/repositories/settings.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import Utils from '../utils/utils';
@@ -16,7 +19,7 @@ const settings: any = {
       purpose: 'Fees:Business:Debit-transaction-charge',
       // purpose: 'Fees:Debit',
       percent: 0.5,
-      ceiling: 5000,
+      ceiling: 500000,
     },
     'school-fees': {
       purpose: 'Fees:Business:School-Payment',
@@ -53,7 +56,32 @@ const settings: any = {
   DEFAULT_EMAIL: '@usersteward.com',
   USSD: {
     serviceCode: Utils.isStaging() ? '*384*3124#' : '*284*76#',
-    // serviceCode: '*284*76#',
+  },
+  SCHOOL_PRODUCT: {
+    tuition: 'tuition-fees',
+    product: 'product',
+  },
+  TRANSACTION_PURPOSE: {
+    'bank-transfer': {
+      purpose: 'Withdraw:Bank-Transfer',
+      type: 'debit',
+    },
+    'school-fees': {
+      purpose: 'Payment:School-Fees',
+      type: 'credit',
+    },
+    settlement: {
+      purpose: 'Withdraw:Settlement',
+      type: 'debit',
+    },
+    'cash-out': {
+      purpose: 'Withdraw:Wallet-Cash-Out',
+      type: 'debit',
+    },
+    'top-up': {
+      purpose: 'Funding:Wallet-Top-Up',
+      type: 'credit',
+    },
   },
   TRANSACTION_PURPOSE: {
     'bank-transfer': {
@@ -105,9 +133,16 @@ const loadJobTitles = async () => {
   settings.JOB_TITLES = jobTitles;
 };
 
+const loadPaymentTypes = async () => {
+  const paymentTypes = {};
+  const response = await getRepository(PaymentType).find({});
+  mapper(response, 'value', 'id', paymentTypes);
+  settings.PAYMENT_TYPES = paymentTypes;
+};
+
 const Service = {
   async init(): Promise<void> {
-    await Promise.all([loadSettings(), loadJobTitles()]);
+    await Promise.all([loadSettings(), loadJobTitles(), loadPaymentTypes()]);
   },
   get(key: string): any {
     loadSettings();

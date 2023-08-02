@@ -1,10 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { IStudent } from '../modelInterfaces';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne, OneToMany } from 'typeorm';
+import { StudentClass } from './studentClass.model';
 
 @Entity('class_level')
 export class ClassLevel {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ unique: true })
+  code: string;
 
   @Column()
   education_level: string;
@@ -23,4 +26,7 @@ export class ClassLevel {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => StudentClass, (classLevel) => classLevel.Class_Level)
+  Classes: StudentClass[];
 }

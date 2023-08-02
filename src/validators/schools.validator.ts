@@ -23,3 +23,15 @@ export const schoolContact = joi.object().keys({
     localFormat: joi.string().required(),
   }),
 });
+
+export const addClass = joi.object().keys({
+  code: joi.string().pattern(new RegExp('cll_.{17}$')).messages({
+    'string.pattern.base': 'Invalid class level code',
+  }),
+});
+
+export const getClassLevel = joi.object().keys({
+  code: joi.string().pattern(new RegExp('edl_.{17}$')).messages({
+    'string.pattern.base': 'Invalid educational level code',
+  }),
+});
