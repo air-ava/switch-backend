@@ -45,7 +45,7 @@
     "randomstring": "^1.2.1",
     "swagger-jsdoc": "^6.2.5",
     "swagger-ui-express": "^4.5.0",
-    "typeorm": "^0.2.32",
+    "typeorm": "^0.2.45",
     "winston": "^3.3.3"
   },
   "devDependencies": {
