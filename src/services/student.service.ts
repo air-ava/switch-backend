@@ -92,7 +92,7 @@ const Service = {
       uniqueStudentId,
       userId: studentUserRecord.id,
       status: STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'],
-      paymentTypeId: PAYMENT_TYPE[partPayment as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'],
+      paymentTypeId: PAYMENT_TYPE[partPayment.toUpperCase() as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'],
     });
 
     await saveStudentClassREPO({
@@ -362,7 +362,7 @@ const Service = {
     let updateStudentPayload: any;
     if (partPayment) {
       partPayment = partPayment.toUpperCase();
-      updateStudentPayload.paymentTypeId = PAYMENT_TYPE[partPayment as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'];
+      updateStudentPayload.paymentTypeId = PAYMENT_TYPE[partPayment.toUpperCase() as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'];
     }
     if (status) {
       updateStudentPayload.status = STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'];
