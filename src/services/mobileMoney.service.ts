@@ -53,7 +53,8 @@ export const Service = {
     const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
     if (!getWallet) throw walletError;
 
-    const initiator = student.User || reciever;
+    // eslint-disable-next-line prettier/prettier
+    const initiator = student ? (student.User || reciever) : reciever;
     const { success, data, error } = await initiateCollection({
       phonenumber: phoneNumber,
       first_name: initiator.first_name,

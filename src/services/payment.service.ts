@@ -156,6 +156,8 @@ export const buildCollectionRequestPayload = async ({
     const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
     if (!wallet) throw new NotFoundError('Wallet');
     reciever = wallet.User;
+    // eslint-disable-next-line no-param-reassign
+    user = wallet.User;
   }
 
   return {

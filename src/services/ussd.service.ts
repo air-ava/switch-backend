@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import * as bcrypt from 'bcrypt';
 import { IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { getStudent } from '../database/repositories/student.repo';
-import { sendObjectResponse, BadRequestException } from '../utils/errors';
+import { sendObjectResponse, BadRequestException, NotFoundError } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { buildCollectionRequestPayload } from './payment.service';
 import Settings from './settings.service';
@@ -10,6 +11,8 @@ import { Service as BayonicService } from './mobileMoney.service';
 import { Service as WalletService } from './wallet.service';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { STEWARD_BASE_URL } from '../utils/secrets';
+import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
+import { getSchool } from '../database/repositories/schools.repo';
 
 const Service = {
   async getStudent(criteria: any): Promise<theResponse> {
@@ -119,6 +122,106 @@ const Service = {
     }
 
     return BadRequestException('END Invalid ussd code');
+  },
+
+  async schoolSessionHandler(criteria: any): Promise<theResponse> {
+    const { serviceCode, text, sessionId, networkCode } = criteria;
+    let { phoneNumber } = criteria;
+
+    const paths = text?.split('*');
+
+    const choices = ['1', '2', '3'];
+    const [checkWalletBalance, sendMoney, payLoan] = choices;
+    const baseResponse = `CON Welcome to Steward Schools
+      1. Check Wallet Balance
+      2. Send Money (MoMo)
+      3. Pay Loan
+    `;
+
+    const enterSchoolCode = `CON Enter School Code`;
+    const badChoice = `END We currently do not provide this service.`;
+
+    if (serviceCode !== Settings.get('USSD').schoolServiceCode) return BadRequestException('END Invalid ussd code');
+    if (!paths || !paths.length) return sendObjectResponse(baseResponse);
+
+    const [choice, schoolId, incomingAmount] = paths;
+
+    if (!choice) return sendObjectResponse(baseResponse);
+    if (!choices.includes(choice)) return sendObjectResponse(badChoice);
+    if (choice === payLoan) return sendObjectResponse('END Coming Soon');
+
+    if (!schoolId && choice) return sendObjectResponse(enterSchoolCode);
+    if (schoolId.length !== 10) return BadRequestException('END Invalid school code');
+    if (schoolId.length === 10) {
+      if (networkCode === '99999') phoneNumber = '+80000000003';
+    }
+    if (choice === checkWalletBalance) return Service.checkWalletBalance({ schoolId, text });
+    if (choice === sendMoney) return Service.sendMoney({ schoolId, text, phoneNumber });
+    return BadRequestException('END Invalid ussd code');
+  },
+
+  async checkWalletBalance(data: any): Promise<theResponse> {
+    const { text, schoolId: walletId } = data;
+
+    const paths = text?.split('*');
+    const [, , transactionPin] = paths;
+
+    const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId, entity: 'school' }, [], undefined, ['User']);
+    if (!wallet) return BadRequestException('END Wallet does not exist');
+
+    if (transactionPin && !bcrypt.compareSync(transactionPin, wallet.transaction_pin)) {
+      return BadRequestException('END Provided PIN is incorrect');
+    }
+
+    const school = await getSchool({ id: wallet.entity_id }, []);
+    if (!school) return BadRequestException('END School does not exist');
+
+    const baseResponse = `END ${school.name}
+    Wallet balnce: ${wallet.currency}${wallet.balance}`;
+
+    return sendObjectResponse(baseResponse, wallet);
+  },
+
+  async sendMoney(data: any): Promise<theResponse> {
+    const { text, schoolId: walletId, networkCode, phoneNumber } = data;
+
+    const paths = text?.split('*');
+    const [, , recieversPhone, incomingAmount] = paths;
+
+    if (!recieversPhone) return BadRequestException('END Recievers Phone Number is needed');
+
+    if (incomingAmount) {
+      const { allFees: fees } = await WalletService.getAllFees(incomingAmount, [
+        'mobile-money-subscription-school-fees',
+        'steward-charge-school-fees',
+        'mobile-money-collection-fees',
+      ]);
+
+      const sumTotal = Number(incomingAmount) + Number(fees / 100);
+
+      const amountBaseResponse = `END Amount: UGX${incomingAmount}
+      Fee: UGX${fees / 100}
+      Proceed to confirm payment`;
+
+      if (networkCode === '99999' && Number(incomingAmount) > 1000) return BadRequestException('END Incoming Amount is higher than 1000');
+      if (networkCode !== '99999' && Number(incomingAmount) < 500) return BadRequestException('END Incoming Amount is lower than 500');
+
+      const query = await buildCollectionRequestPayload({
+        walletId,
+        feature_name: 'tuition-fees',
+        phoneNumber,
+        amount: incomingAmount * 100,
+        amountWithFees: sumTotal * 100,
+      });
+      if (query.error) return BadRequestException(`END ${query.error}`);
+      // const response = await BayonicService.initiateCollectionRequest(query);
+      // return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Completing School Fees Payment');
+      return sendObjectResponse(`${amountBaseResponse}`);
+    }
+
+    const baseResponse = `CON Confirm this Phone ${recieversPhone}`;
+
+    return sendObjectResponse(baseResponse);
   },
 
   getTelco(code: string): string {
