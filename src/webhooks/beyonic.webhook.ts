@@ -1,7 +1,7 @@
 import { Metadata } from 'libphonenumber-js';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { recordFLWWebhook, verifyChargeFromWebhook } from '../services/cards.service';
-import MobileMoneyService, { bayonicCollectionHandler } from '../services/mobileMoney.service';
+import MobileMoneyService, { bayonicCollectionHandler, bayonicPaymentHandler } from '../services/mobileMoney.service';
 import { theResponse } from '../utils/interface';
 import logger from '../utils/logger';
 import { STEWARD_BASE_URL } from '../utils/secrets';
@@ -72,6 +72,44 @@ export const completeContactCreation = async (payload: any): Promise<any> => {
   }
 };
 
+export const completePayment = async (payload: any): Promise<any> => {
+  try {
+    await bayonicPaymentHandler(payload);
+  } catch (error: any) {
+    console.log(error);
+    throw error;
+  }
+  // try {
+  //   console.log(payload);
+  //   const { id: paymentId, collection_request, state: incomingStatus } = payload;
+  //   const { fee_transaction, type } = collection_request;
+
+  //   const txData = await MobileMoneyService.generateMobileMoneyData(collection_request);
+  //   const { reference, purpose, metadata, status, school } = txData.data;
+
+  //   metadata.paymentId = paymentId;
+  //   metadata.type = type;
+
+  //   // saveThirdPartyLogsREPO({
+  //   //   event: 'collection.received',
+  //   //   message: `Mobile-Money-Collection:${incomingStatus}`,
+  //   //   endpoint: `${STEWARD_BASE_URL}/webhook/beyonic`,
+  //   //   school: school.id,
+  //   //   endpoint_verb: 'POST',
+  //   //   status_code: '200',
+  //   //   payload: JSON.stringify(payload),
+  //   //   provider_type: 'payment-provider',
+  //   //   provider: 'BEYONIC',
+  //   //   reference,
+  //   // });
+
+  //   // await MobileMoneyService.completeTransaction({ reference, purpose, metadata, status });
+  // } catch (error: any) {
+  //   console.log(error);
+  //   throw error;
+  // }
+};
+
 export async function bayonicWebhookHandler(payload: any): Promise<any> {
   const { event } = payload.hook;
   switch (event) {
@@ -83,6 +121,9 @@ export async function bayonicWebhookHandler(payload: any): Promise<any> {
       break;
     case 'collection.received':
       await completeCollection(payload.data);
+      break;
+    case 'payment.status.changed':
+      await completePayment(payload.data);
       break;
     default:
       break;

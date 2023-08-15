@@ -1015,3 +1015,23 @@ export interface IPreference {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface IMobileMoneyPayment {
+  id: number;
+  status: number;
+  amount: number;
+  fee: number;
+  currency: string;
+  narration: string;
+  description: string;
+  code: string;
+  transaction_reference: string;
+  processor_reference: string;
+  processor: string;
+  response: string;
+  metadata: JSON;
+  receiver: number;
+  type: string;
+  created_at: Date;
+}
+

@@ -13,6 +13,8 @@ import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo
 import { STEWARD_BASE_URL } from '../utils/secrets';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { getSchool } from '../database/repositories/schools.repo';
+import { v4 } from 'uuid';
+import { createMobileMoneyPaymentREPO } from '../database/repositories/mobileMoneyPayment.repo';
 
 const Service = {
   async getStudent(criteria: any): Promise<theResponse> {
@@ -212,11 +214,23 @@ const Service = {
         phoneNumber,
         amount: incomingAmount * 100,
         amountWithFees: sumTotal * 100,
+        transactionPurpose: 'cash-out',
       });
       if (query.error) return BadRequestException(`END ${query.error}`);
-      // const response = await BayonicService.initiateCollectionRequest(query);
-      // return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Completing School Fees Payment');
-      return sendObjectResponse(`${amountBaseResponse}`);
+      // const reference = v4();
+      // query.description = `USSD:Payment:Steward:${reference}`;
+      // query.reference = reference;
+      // const response = await WalletService.debitWallet(query);
+
+      const response = await BayonicService.initiatePayment({
+        amount: query.amount,
+        purpose: 'cash-out',
+        method: `USSD:Payment`,
+        network: `${networkCode}:${Service.getTelco(networkCode)}`,
+      });
+      // const response = await BayonicService.initiatePayment(query);
+      return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Withdrawal');
+      // return sendObjectResponse(`${amountBaseResponse}`);
     }
 
     const baseResponse = `CON Confirm this Phone ${recieversPhone}`;

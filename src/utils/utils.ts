@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { parsePhoneNumber } from 'libphonenumber-js';
 import randomstring from 'randomstring';
-import { ENVIRONMENT } from './secrets';
 import { MoreThan, LessThan, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { ENVIRONMENT } from './secrets';
+
 const dateFns = require('date-fns');
 
 const table_prefix = {
@@ -199,6 +200,12 @@ const Utils = {
 
   getMoMoURL() {
     return Utils.isProd() ? `https://sandbox.momodeveloper.mtn.com` : `https://sandbox.momodeveloper.mtn.com`;
+  },
+
+  getWebhookURL(view = false) {
+    return Utils.isProd()
+      ? `https://steward-prod-rmq4b.ondigitalocean.app/webhook/beyonic`
+      : `${view ? 'https://webhook.site/40fa9975-72f0-46f9-b71a-731997a4f349' : 'https://king-prawn-app-ovupz.ondigitalocean.app/webhook/beyonic'}`;
   },
 
   getMoMoCollectionKey() {

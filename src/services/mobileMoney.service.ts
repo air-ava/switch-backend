@@ -11,7 +11,7 @@ import { STATUSES } from '../database/models/status.model';
 import { saveMobileMoneyTransaction, updateMobileMoneyTransactionREPO } from '../database/repositories/mobileMoneyTransactions.repo';
 import { getStudent } from '../database/repositories/student.repo';
 import { getOneTransactionREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
-import { initiateCollection } from '../integrations/bayonic/collection.integration';
+import { createPayment, initiateCollection } from '../integrations/bayonic/collection.integration';
 import { Service as WalletService } from './wallet.service';
 import PreferenceService from './preference.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
@@ -27,6 +27,7 @@ import { sendEmail } from '../utils/mailtrap';
 import FeesService from './fees.service';
 import { findUser } from '../database/repositories/user.repo';
 import { createPaymentContacts } from '../database/repositories/paymentContact.repo';
+import { createMobileMoneyPaymentREPO, updateMobileMoneyPaymentREPO } from '../database/repositories/mobileMoneyPayment.repo';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
@@ -129,6 +130,143 @@ export const Service = {
       data,
     };
   },
+  
+  async initiatePayment(payload: any) {
+    const txPurpose = Settings.get('TRANSACTION_PURPOSE');
+    const { amountWithFees, amount, user, student, network, method, reciever, phoneNumber, school, studentTutition } = payload;
+
+    let { purpose } = payload;
+    const initiator = reciever;
+    const reference = v4();
+    const metadata: any = {
+      amountWithFees,
+      amount,
+      charges: amountWithFees - amount,
+      tx_reference: reference,
+      transaction_type: purpose,
+    };
+
+    if (purpose === 'cash-out') {
+      metadata.username = reciever.uniquePaymentId;
+      purpose = txPurpose[purpose].purpose;
+    }
+    const description = `${purpose} from ${school.name} through ${method} to ${phoneNumber}`;
+
+    const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
+    if (!getWallet) throw walletError;
+
+    const response = await WalletService.debitWallet({
+      reference,
+      description,
+      amount,
+      purpose,
+    });
+
+    const paymentContact = await createPaymentContacts({
+      school: school.id,
+      phone_number: phoneNumber,
+      status: STATUSES.ACTIVE,
+      metadata: { network },
+    });
+
+    // createMobileMoneyPaymentREPO
+
+    const { success, data, error } = await createPayment({
+      phonenumber: phoneNumber,
+      amount: amount / 100,
+      description,
+      metadata,
+    });
+
+    // const { success, data, error } = await initiateCollection({
+    //   phonenumber: phoneNumber,
+    //   first_name: initiator.first_name,
+    //   last_name: initiator.last_name,
+    //   // amount: amount / 100,
+    //   amount: amountWithFees / 100,
+    //   currency: Utils.isStaging() ? 'BXC' : wallet.currency,
+    //   metadata,
+    //   reason: `${purpose}`,
+    //   send_instructions: true,
+    //   success_message: `${purpose} for ${initiator.first_name} ${initiator.last_name} at ${school.name} Successfully Paid`,
+    // });
+    if (!success) {
+      console.log({ error });
+      throw new Error(error || 'collection request failed');
+    }
+    
+    const { contact, id: collectRequestId, state: status } = data;
+    // if (purpose === 'Payment:School-Fees') metadata.studentTutition = studentTutition;
+    // // create contact for the payer
+    // const paymentContact = await createPaymentContacts({
+    //   school: school.id,
+    //   phone_number: phoneNumber,
+    //   status: STATUSES.ACTIVE,
+    // });
+
+    // await saveMobileMoneyTransaction({
+    //   tx_reference: reference,
+    //   status: Service.getBayonicStatus(status),
+    //   processor_transaction_id: collectRequestId,
+    // });
+    const { data: sortedData } = await Service.generateMobileMoneyPaymentData(data);
+    await createMobileMoneyPaymentREPO({
+      transaction_reference: reference,
+      status: sortedData.status,
+      processor_reference: sortedData.requestId,
+      amount,
+      narration: sortedData.narration,
+      fee: sortedData.fee,
+      metadata: { contact: sortedData.phone_nos },
+      purpose,
+      reason: sortedData.reason,
+      receiver: paymentContact.id,
+      description: sortedData.description,
+      processor: 'BEYONIC',
+    });
+    await saveTransaction({
+      walletId: wallet.id,
+      userId: user.id,
+      // amount,
+      amount: amountWithFees,
+      // balance_after: Number(wallet.balance) + Number(amount),
+      balance_after: Number(wallet.balance) + Number(amountWithFees),
+      balance_before: Number(wallet.balance),
+      purpose,
+      metadata: {
+        ...metadata,
+        collectRequestId,
+        fundersPhone: data.phonenumber,
+        fundersNetwork: network,
+        paymentContact,
+      },
+      reference,
+      status: STATUSES.PROCESSING,
+      description,
+      txn_type: 'credit',
+    });
+    await creditLedgerWallet({
+      // amount: Number(amount),
+      amount: Number(amountWithFees),
+      user,
+      walletId: wallet.id,
+      reference,
+      description,
+      metadata: {
+        ...metadata,
+        purpose,
+        collectRequestId,
+        fundersPhone: data.phonenumber,
+        fundersNetwork: contact.network_name,
+      },
+      saveToTransaction: false,
+    });
+
+    return {
+      success: true,
+      data,
+    };
+  },
 
   getBayonicStatus(incomingStatus: string) {
     const bayonicStatus: any = {
@@ -138,6 +276,11 @@ export const Service = {
       failed: STATUSES.FAILED,
       instructions_sent: STATUSES.PROCESSING,
       new: STATUSES.NEW,
+      cancelled: STATUSES.CANCELLED,
+      rejected: STATUSES.CANCELLED,
+      processed_with_errors: STATUSES.CANCELLED,
+      scheduled: STATUSES.PROCESSING,
+      processed: STATUSES.PROCESSED,
     };
     return bayonicStatus[incomingStatus];
   },
@@ -173,6 +316,99 @@ export const Service = {
     return { success: true, data: { ...returnData, metadata, purpose, reference, requestId, status: Service.getBayonicStatus(status) } };
   },
 
+  async generateMobileMoneyPaymentData(payload: any) {
+    const {
+      charged_fee,
+      payment_fx_details,
+      state: status,
+      id: requestId,
+      phone_nos,
+      transactions,
+      account: accountId,
+      amount,
+      currency,
+      payment_type: type,
+      description,
+      remote_transaction_id,
+      ...rest
+    } = payload;
+    let { metadata } = payload;
+    const [firstPhone] = phone_nos;
+    const { username, tx_reference: reference, transaction_type } = metadata;
+    console.log({ metadata });
+
+    const [beyonicTransaction] = transactions;
+    const { id: transactionId, type: channel, fee_transaction } = beyonicTransaction || {};
+
+    const feeAmount = fee_transaction ? Math.abs(parseFloat(fee_transaction.amount)) : 0;
+
+    metadata = {};
+    metadata.collectRequestId = requestId;
+    metadata.contacts = phone_nos;
+    metadata.fundersPhone = firstPhone?.phonenumber;
+    metadata.charged_fee = charged_fee && charged_fee;
+    metadata.payment_fx_details = payment_fx_details && payment_fx_details;
+    metadata.networkReference = remote_transaction_id && remote_transaction_id;
+    metadata.providerCharge = {
+      amount: feeAmount,
+      ...(fee_transaction && {
+        description: fee_transaction?.description,
+        type: fee_transaction?.type,
+        currency: fee_transaction?.currency,
+        accountCharged: fee_transaction?.account.id,
+      }),
+    };
+
+    let reason;
+
+    switch (status) {
+      case 'cancelled':
+        reason = rest.cancelled_reason;
+        break;
+      case 'rejected':
+        reason = rest.rejected_reason;
+        break;
+      case 'processed_with_errors':
+        reason = rest.last_error;
+        break;
+      default:
+        reason = null;
+        break;
+    }
+    // metadata.fundersNetwork = contact.network_name;
+
+    const txPurpose = Settings.get('TRANSACTION_PURPOSE');
+    let { purpose } = txPurpose['cash-out'];
+    let returnData: any;
+    // if (transaction_type === txPurpose['cash-out']) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (txPurpose.hasOwnProperty(transaction_type)) {
+      purpose = txPurpose['cash-out'].purpose;
+      returnData = { uniquePaymentId: username };
+    }
+
+    console.log({ returnData });
+
+    return {
+      success: true,
+      data: {
+        ...returnData,
+        narration: `${transactionId}-${remote_transaction_id}-${type}-${accountId}`,
+        description,
+        channel,
+        amount,
+        fee: feeAmount * 100,
+        currency,
+        metadata,
+        purpose,
+        reason,
+        reference,
+        requestId,
+        status: Service.getBayonicStatus(status),
+      },
+    };
+  },
+
   // create MobileMoney details for the collection Contact to know where the money goes to
   async updateMobileMoneyTransactions(payload: any) {
     const { reference, status, requestId, school, incomingData, incomingStatus, metadata } = payload.data;
@@ -189,6 +425,36 @@ export const Service = {
     await saveThirdPartyLogsREPO({
       event: 'collectionrequest.status.changed',
       message: `Mobile-Money-Collection-Request:${incomingStatus}`,
+      endpoint: `${STEWARD_BASE_URL}/webhook/beyonic`,
+      school: school.id,
+      endpoint_verb: 'POST',
+      status_code: '200',
+      payload: JSON.stringify(incomingData),
+      provider_type: 'payment-provider',
+      provider: 'BEYONIC',
+      reference,
+    });
+
+    console.log('saveMobileMoneyTransaction');
+    return { success: true };
+  },
+
+  // Update the mobile Money payment transactions
+  async updateMobileMoneyPayments(payload: any) {
+    const { reference, status, requestId, school, incomingData, incomingStatus, metadata } = payload.data;
+    await updateMobileMoneyPaymentREPO(
+      {
+        transaction_reference: reference,
+        processor_reference: requestId,
+      },
+      { status },
+    );
+
+    if (status === STATUSES.FAILED) await updateTransactionREPO({ reference, txn_type: 'debit', channel: 'mobile-money' }, { status, metadata });
+
+    await saveThirdPartyLogsREPO({
+      event: 'payment.status.changed',
+      message: `Mobile-Money-Payment:${incomingStatus}`,
       endpoint: `${STEWARD_BASE_URL}/webhook/beyonic`,
       school: school.id,
       endpoint_verb: 'POST',
@@ -358,4 +624,35 @@ export async function bayonicCollectionHandler(payload: any): Promise<any> {
   }
 }
 
+export async function bayonicPaymentHandler(payload: any): Promise<any> {
+  const { state: incomingStatus } = payload;
+  const txData = await Service.generateMobileMoneyPaymentData(payload);
+
+  console.log({ incomingStatus, txData });
+
+  txData.data.incomingData = payload;
+  txData.data.incomingStatus = incomingStatus;
+
+  switch (incomingStatus) {
+    case 'scheduled':
+      await Service.updateMobileMoneyPayments(txData);
+      break;
+    case 'cancelled':
+      await Service.updateMobileMoneyPayments(txData);
+      break;
+    case 'processed':
+      await Service.updateMobileMoneyPayments(txData);
+      break;
+    case 'rejected':
+      await Service.updateMobileMoneyPayments(txData);
+      break;
+    case 'processed_with_errors':
+      await Service.updateMobileMoneyPayments(txData);
+      break;
+    default:
+      break;
+  }
+}
+
 export default Service;
+
