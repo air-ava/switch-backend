@@ -44,8 +44,14 @@ import { Sanitizer } from '../utils/sanitizer';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
-    const { session, status, first_name, last_name, gender, other_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
+    const { session, status, first_name, last_name, gender, other_name, school, guardians, phone_number: reqPhone, email } = payload;
+    let { class: classId } = payload;
 
+    if (classId.includes('cll_')) {
+      const foundClassLevel = await getClassLevel({ code: classId }, []);
+      if (!foundClassLevel) throw new NotFoundError('Class Level');
+      classId = foundClassLevel.id;
+    }
     const foundSchoolClass = await getSchoolClass({ school_id: school.id, class_id: classId, status: STATUSES.ACTIVE }, []);
     if (!foundSchoolClass) throw new NotFoundError(`Class for this this school`);
 
