@@ -48,7 +48,8 @@ export const addGuardiansToStudentCONTROLLER: RequestHandler = async (req, res) 
 };
 
 export const editStudentCONTROLLER: RequestHandler = async (req, res) => {
-  const payload = { ...req.body, ...req.params };
+  const { school } = req;
+  const payload = { ...req.body, ...req.params, school };
 
   const { status } = req.body;
   const validation = editStudentsValidator.validate({ status });

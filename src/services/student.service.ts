@@ -352,8 +352,17 @@ const Service = {
   },
 
   async editStudent(criteria: any): Promise<theResponse> {
-    const { status, id: studentId, guardians, addGuardians, class: classId, phone_number: reqPhone } = criteria;
-    let { partPayment } = criteria;
+    const { status, id: studentId, guardians, addGuardians, phone_number: reqPhone, school } = criteria;
+    let { class: classId, partPayment } = criteria;
+
+    if (classId.includes('cll_')) {
+      const foundClassLevel = await getClassLevel({ code: classId }, []);
+      if (!foundClassLevel) throw new NotFoundError('Class Level');
+    
+      const schoolClass = await getSchoolClass({ class_id: foundClassLevel.id, school_id: school.id }, [], ['ClassLevel']);
+      if (!schoolClass) throw new NotFoundError('Class For School');
+      classId = schoolClass.code;
+    }
 
     if (addGuardians && addGuardians.length > 2) throw new ValidationError('You can not have more than two(2) Guardians');
     const student = await getStudent(
@@ -365,7 +374,7 @@ const Service = {
     if (addGuardians && addGuardians.length && student.StudentGuardians.length > 1)
       throw new ValidationError('You have hit the max number of guardians for this student');
 
-    let updateStudentPayload: any;
+    const updateStudentPayload: any = {};
     if (partPayment) {
       partPayment = partPayment.toUpperCase();
       updateStudentPayload.paymentTypeId = PAYMENT_TYPE[partPayment.toUpperCase() as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'];
@@ -375,9 +384,9 @@ const Service = {
     }
     if (status || partPayment) await updateStudent({ id: student.id }, updateStudentPayload);
     if (classId) {
-      const existingClass = await getStudentClass({ code: classId }, []);
+      const existingClass = await getSchoolClass({ code: classId }, []);
       if (!existingClass) throw new NotFoundError('class');
-      await updateStudentClass({ id: student.id }, { classId });
+      await updateStudentClass({ id: student.id }, { classId: existingClass.class_id });
     }
     const studentPayload: any = {};
     if (criteria.first_name) studentPayload.first_name = criteria.first_name;
