@@ -52,6 +52,11 @@ const Service = {
       if (!foundClassLevel) throw new NotFoundError('Class Level');
       classId = foundClassLevel.id;
     }
+    if (classId.includes('shc_')) {
+      const schoolClass = await getSchoolClass({ code: classId }, [], ['ClassLevel']);
+      if (!schoolClass) throw new NotFoundError('Class For School');
+      classId = schoolClass.class_id;
+    }
     const foundSchoolClass = await getSchoolClass({ school_id: school.id, class_id: classId, status: STATUSES.ACTIVE }, []);
     if (!foundSchoolClass) throw new NotFoundError(`Class for this this school`);
 
