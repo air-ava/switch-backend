@@ -110,6 +110,7 @@ const Service = {
       studentId: student.id,
       classId,
       school_id: schoolId,
+      session: session.id,
     });
 
     if (guardians) {
