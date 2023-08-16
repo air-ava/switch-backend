@@ -16,6 +16,7 @@ export class createPaymentContactsTable1685070481556 implements MigrationInterfa
           {
             name: 'name',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'school',
@@ -28,10 +29,12 @@ export class createPaymentContactsTable1685070481556 implements MigrationInterfa
           {
             name: 'address_id',
             type: 'int',
+            isNullable: true,
           },
           {
             name: 'email',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'status',
