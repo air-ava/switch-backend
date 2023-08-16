@@ -47,12 +47,12 @@ const Service = {
     const { session, status, first_name, last_name, gender, other_name, school, guardians, phone_number: reqPhone, email } = payload;
     let { class: classId } = payload;
 
-    if (classId.includes('cll_')) {
+    if (typeof classId === 'string' && classId.includes('cll_')) {
       const foundClassLevel = await getClassLevel({ code: classId }, []);
       if (!foundClassLevel) throw new NotFoundError('Class Level');
       classId = foundClassLevel.id;
     }
-    if (classId.includes('shc_')) {
+    if (typeof classId === 'string' && classId.includes('shc_')) {
       const schoolClass = await getSchoolClass({ code: classId }, [], ['ClassLevel']);
       if (!schoolClass) throw new NotFoundError('Class For School');
       classId = schoolClass.class_id;
