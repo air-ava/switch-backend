@@ -4,6 +4,8 @@ import ResponseService from '../utils/response';
 import { NotFoundError, ValidationError, oldSendObjectResponse } from '../utils/errors';
 import { Sanitizer } from '../utils/sanitizer';
 import { getStudentsValidator, editStudentsValidator, editStudentFeeValidator } from '../validators/student.validator';
+import { STATUSES } from '../database/models/status.model';
+import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 
 const errorMessages = {
   listClasses: 'Could not list classes',

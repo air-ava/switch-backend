@@ -41,11 +41,12 @@ import {
 import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { listProductTransaction, listProductTransactionForBeneficiary } from '../database/repositories/productTransaction.repo';
 import { Sanitizer } from '../utils/sanitizer';
+import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
-    const { session, status, first_name, last_name, gender, other_name, school, guardians, phone_number: reqPhone, email } = payload;
-    let { class: classId } = payload;
+    const { status = 'active', first_name, last_name, gender, other_name, school, guardians, phone_number: reqPhone, email } = payload;
+    let { session, class: classId } = payload;
 
     if (typeof classId === 'string' && classId.includes('cll_')) {
       const foundClassLevel = await getClassLevel({ code: classId }, []);
@@ -57,14 +58,18 @@ const Service = {
       if (!schoolClass) throw new NotFoundError('Class For School');
       classId = schoolClass.class_id;
     }
-    const foundSchoolClass = await getSchoolClass({ school_id: school.id, class_id: classId, status: STATUSES.ACTIVE }, []);
+
+    const schoolId = typeof school === 'number' ? school : school.id;
+    if (!session) {
+      session = await getSchoolSession({ country: 'UGANDA', status: STATUSES.ACTIVE }, []);
+    }
+    
+    const foundSchoolClass = await getSchoolClass({ school_id: schoolId, class_id: classId, status: STATUSES.ACTIVE }, []);
     if (!foundSchoolClass) throw new NotFoundError(`Class for this this school`);
 
     let { partPayment = 'installmental' } = payload;
     partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
-
-    const schoolId = typeof school === 'number' ? school : school.id;
 
     // default student email
     let studentEmail;
