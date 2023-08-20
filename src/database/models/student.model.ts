@@ -41,8 +41,8 @@ export class Student {
   @JoinColumn({ name: 'schoolId', referencedColumnName: 'id' })
   School: ISchools;
   
-  @OneToOne('Schools', 'students')
-  @JoinColumn({ name: 'schoolId', referencedColumnName: 'id' })
+  @OneToOne('StudentClass', 'students')
+  @JoinColumn({ name: 'id', referencedColumnName: 'studentId' })
   Class: IStudentClass;
 
   // @ManyToOne('StudentClass', 'students')
