@@ -33,14 +33,18 @@ const Service = {
     // const  = studentTutitionFees;
 
     const { class: ClassName, class_short_name } = studentCurrentClass.ClassLevel;
-    const { product_currency, amount_outstanding, amount_paid } = studentTutitionFee;
+    const { product_currency, amount_outstanding, amount_paid } = studentTutitionFee || {};
 
     if (amount_outstanding < 1) return BadRequestException('END This student has no pending payments to make');
     const baseResponse = `CON ${School.name},
     ${User.first_name} ${User.last_name},
     ${ClassName} (${class_short_name}),
-    Amount paid - ${product_currency}${amount_paid / 100}
-    Amount due - ${product_currency}${amount_outstanding / 100}
+    ${
+      Fees.length
+        ? `Amount paid - ${product_currency}${amount_paid / 100}
+           Amount due - ${product_currency}${amount_outstanding / 100}`
+        : ``
+    }
     Enter the amount you want to pay
     `;
 

@@ -41,19 +41,35 @@ import {
 import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { listProductTransaction, listProductTransactionForBeneficiary } from '../database/repositories/productTransaction.repo';
 import { Sanitizer } from '../utils/sanitizer';
+import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 
 const Service = {
   async addStudentToSchool(payload: any): Promise<theResponse> {
-    const { session, status, first_name, last_name, gender, other_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
+    const { status = 'active', first_name, last_name, gender, other_name, school, guardians, phone_number: reqPhone, email } = payload;
+    let { session, class: classId } = payload;
 
-    const foundSchoolClass = await getSchoolClass({ school_id: school.id, class_id: classId, status: STATUSES.ACTIVE }, []);
+    if (typeof classId === 'string' && classId.includes('cll_')) {
+      const foundClassLevel = await getClassLevel({ code: classId }, []);
+      if (!foundClassLevel) throw new NotFoundError('Class Level');
+      classId = foundClassLevel.id;
+    }
+    if (typeof classId === 'string' && classId.includes('shc_')) {
+      const schoolClass = await getSchoolClass({ code: classId }, [], ['ClassLevel']);
+      if (!schoolClass) throw new NotFoundError('Class For School');
+      classId = schoolClass.class_id;
+    }
+
+    const schoolId = typeof school === 'number' ? school : school.id;
+    if (!session) {
+      session = await getSchoolSession({ country: 'UGANDA', status: STATUSES.ACTIVE }, []);
+    }
+    
+    const foundSchoolClass = await getSchoolClass({ school_id: schoolId, class_id: classId, status: STATUSES.ACTIVE }, []);
     if (!foundSchoolClass) throw new NotFoundError(`Class for this this school`);
 
     let { partPayment = 'installmental' } = payload;
     partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
-
-    const schoolId = typeof school === 'number' ? school : school.id;
 
     // default student email
     let studentEmail;
@@ -99,6 +115,7 @@ const Service = {
       studentId: student.id,
       classId,
       school_id: schoolId,
+      session: session.id,
     });
 
     if (guardians) {
@@ -346,8 +363,17 @@ const Service = {
   },
 
   async editStudent(criteria: any): Promise<theResponse> {
-    const { status, id: studentId, guardians, addGuardians, class: classId, phone_number: reqPhone } = criteria;
-    let { partPayment } = criteria;
+    const { status, id: studentId, guardians, addGuardians, phone_number: reqPhone, school } = criteria;
+    let { class: classId, partPayment } = criteria;
+
+    if (classId.includes('cll_')) {
+      const foundClassLevel = await getClassLevel({ code: classId }, []);
+      if (!foundClassLevel) throw new NotFoundError('Class Level');
+    
+      const schoolClass = await getSchoolClass({ class_id: foundClassLevel.id, school_id: school.id }, [], ['ClassLevel']);
+      if (!schoolClass) throw new NotFoundError('Class For School');
+      classId = schoolClass.code;
+    }
 
     if (addGuardians && addGuardians.length > 2) throw new ValidationError('You can not have more than two(2) Guardians');
     const student = await getStudent(
@@ -359,7 +385,7 @@ const Service = {
     if (addGuardians && addGuardians.length && student.StudentGuardians.length > 1)
       throw new ValidationError('You have hit the max number of guardians for this student');
 
-    let updateStudentPayload: any;
+    const updateStudentPayload: any = {};
     if (partPayment) {
       partPayment = partPayment.toUpperCase();
       updateStudentPayload.paymentTypeId = PAYMENT_TYPE[partPayment.toUpperCase() as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'];
@@ -369,9 +395,9 @@ const Service = {
     }
     if (status || partPayment) await updateStudent({ id: student.id }, updateStudentPayload);
     if (classId) {
-      const existingClass = await getStudentClass({ code: classId }, []);
+      const existingClass = await getSchoolClass({ code: classId }, []);
       if (!existingClass) throw new NotFoundError('class');
-      await updateStudentClass({ id: student.id }, { classId });
+      await updateStudentClass({ id: student.id }, { classId: existingClass.class_id });
     }
     const studentPayload: any = {};
     if (criteria.first_name) studentPayload.first_name = criteria.first_name;

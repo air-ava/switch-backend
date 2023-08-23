@@ -370,7 +370,18 @@ const Service = {
         ...rest,
       },
       [],
-      ['ClassLevel', 'School', 'School.Students', 'Fees', 'Fees.ProductType', 'Fees.PaymentType', 'Fees.Period', 'Fees.Session'],
+      [
+        'ClassLevel',
+        'ClassLevel.Classes',
+        'School',
+        'School.Students',
+        'School.Students.Class',
+        'Fees',
+        'Fees.ProductType',
+        'Fees.PaymentType',
+        'Fees.Period',
+        'Fees.Session',
+      ],
     );
     return sendObjectResponse('All Classes retrieved successfully', response);
   },

@@ -27,7 +27,7 @@ export class createBeneficiaryProductPaymentTable1685070525649 implements Migrat
           },
           {
             name: 'product_currency',
-            type: 'int',
+            type: 'varchar',
           },
           {
             name: 'amount_paid',
