@@ -4,6 +4,8 @@ import ResponseService from '../utils/response';
 import { NotFoundError, ValidationError, oldSendObjectResponse } from '../utils/errors';
 import { Sanitizer } from '../utils/sanitizer';
 import { getStudentsValidator, editStudentsValidator, editStudentFeeValidator } from '../validators/student.validator';
+import { STATUSES } from '../database/models/status.model';
+import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 
 const errorMessages = {
   listClasses: 'Could not list classes',
@@ -25,19 +27,26 @@ export const listClassCONTROLLER: RequestHandler = async (req, res) => {
   }
 };
 
-export const addStudentToSchoolCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const { school, organisation, educationalSession } = req;
-    const payload = { ...req.body, school, organisation, session: educationalSession };
+// export const addStudentToSchoolCONTROLLER: RequestHandler = async (req, res) => {
+//   try {
+//     const { school, organisation, educationalSession } = req;
+//     const payload = { ...req.body, school, organisation, session: educationalSession };
 
-    const response = await StudentService.addStudentToSchool(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
-  }
+//     const response = await StudentService.addStudentToSchool(payload);
+//     const responseCode = response.success === true ? 200 : 400;
+//     return res.status(responseCode).json(response);
+//   } catch (error: any) {
+//     return error.message
+//       ? res.status(400).json({ success: false, error: error.message })
+//       : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
+//   }
+// };
+export const addStudentToSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  const { school, organisation, educationalSession } = req;
+  const payload = { ...req.body, school, organisation, session: educationalSession };
+  const response = await StudentService.addStudentToSchool(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const addGuardiansToStudentCONTROLLER: RequestHandler = async (req, res) => {
@@ -48,7 +57,8 @@ export const addGuardiansToStudentCONTROLLER: RequestHandler = async (req, res) 
 };
 
 export const editStudentCONTROLLER: RequestHandler = async (req, res) => {
-  const payload = { ...req.body, ...req.params };
+  const { school } = req;
+  const payload = { ...req.body, ...req.params, school };
 
   const { status } = req.body;
   const validation = editStudentsValidator.validate({ status });

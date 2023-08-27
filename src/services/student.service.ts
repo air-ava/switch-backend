@@ -1,15 +1,19 @@
-import { v4 } from 'uuid';
+/* eslint-disable consistent-return */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable array-callback-return */
+/* eslint-disable lines-between-class-members */
 import randomstring from 'randomstring';
 // import { StudentGuardian } from './../database/models/studentGuardian.model';
 import * as bcrypt from 'bcrypt';
-import { FindOperator, ILike, In, IsNull, Like, Not, Raw } from 'typeorm';
-import Utils, { createObjectFromArrayWithoutValue, mapAnArray } from '../utils/utils';
-import { ISchoolProduct, IStudent, IStudentClass } from '../database/modelInterfaces';
+import { In, IsNull, Like, Not } from 'typeorm';
+import { createObjectFromArrayWithoutValue, mapAnArray } from '../utils/utils';
+import { ISchoolProduct, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { PAYMENT_TYPE } from '../database/models/paymentType.model';
 import { getClassLevel, listClassLevel } from '../database/repositories/classLevel.repo';
 import { HttpStatus, CustomError, sendObjectResponse, ExistsError, NotFoundError, ValidationError } from '../utils/errors';
 import {
+  findUser,
   // getSearchUsers,
   listUser,
   saveAUser,
@@ -17,9 +21,9 @@ import {
 } from '../database/repositories/user.repo';
 import { theResponse } from '../utils/interface';
 import { getStudent, listStudent, saveStudentREPO, updateStudent } from '../database/repositories/student.repo';
-import { getStudentClass, listStudentClass, saveStudentClassREPO, updateStudentClass } from '../database/repositories/studentClass.repo';
+import { getStudentClass, saveStudentClassREPO, updateStudentClass } from '../database/repositories/studentClass.repo';
 import Settings from './settings.service';
-import { findOrCreateIndividual, saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
+import { findOrCreateIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
@@ -31,7 +35,6 @@ import {
   listStundentsInSchoolClass,
   saveSchoolClass,
 } from '../database/repositories/schoolClass.repo';
-import { getStudentsValidator } from '../validators/student.validator';
 import {
   getBeneficiaryProductPayment,
   listBeneficiaryProductPayments,
@@ -39,27 +42,82 @@ import {
   updateBeneficiaryProductPayment,
 } from '../database/repositories/beneficiaryProductPayment.repo';
 import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
-import { listProductTransaction, listProductTransactionForBeneficiary } from '../database/repositories/productTransaction.repo';
+import { listProductTransaction } from '../database/repositories/productTransaction.repo';
 import { Sanitizer } from '../utils/sanitizer';
+import { getSchoolSession } from '../database/repositories/schoolSession.repo';
+
+class StudentSetupBuilder {
+  private classId: string | number;
+  private schoolId: number;
+  private session: any;
+  private schoolClass: any;
+
+  constructor(private payload: { class: string | number; school: number | { id: number }; session: any }) {
+    this.classId = payload.class;
+    this.schoolId = typeof payload.school === 'number' ? payload.school : payload.school.id;
+    this.session = payload.session;
+  }
+
+  async setClassId(): Promise<StudentSetupBuilder> {
+    if (typeof this.classId === 'string' && this.classId.includes('cll_')) {
+      const foundClassLevel = await getClassLevel({ code: this.classId }, []);
+      if (!foundClassLevel) throw new NotFoundError('Class Level');
+      this.classId = foundClassLevel.id;
+    }
+    if (typeof this.classId === 'string' && this.classId.includes('shc_')) {
+      const schoolClass = await getSchoolClass({ code: this.classId }, [], ['ClassLevel']);
+      if (!schoolClass) throw new NotFoundError('Class For School');
+      this.classId = schoolClass.class_id;
+    }
+    return this;
+  }
+
+  async setSession(): Promise<StudentSetupBuilder> {
+    if (!this.session) {
+      this.session = await getSchoolSession({ country: 'UGANDA', status: STATUSES.ACTIVE }, []);
+    }
+    return this;
+  }
+
+  async setSchoolClass(): Promise<StudentSetupBuilder> {
+    const foundSchoolClass = await getSchoolClass({ school_id: this.schoolId, class_id: this.classId, status: STATUSES.ACTIVE }, []);
+    if (!foundSchoolClass) throw new NotFoundError(`Class for this this school`);
+    this.schoolClass = foundSchoolClass;
+    return this;
+  }
+
+  build(): { classId: string | number; schoolId: number; session: any; schoolClass: any } {
+    return {
+      classId: this.classId,
+      schoolId: this.schoolId,
+      session: this.session,
+      schoolClass: this.schoolClass,
+    };
+  }
+}
 
 const Service = {
+  // Clases to be used in the code
+  StudentSetupBuilder,
   async addStudentToSchool(payload: any): Promise<theResponse> {
-    const { session, status, first_name, last_name, gender, other_name, school, class: classId, guardians, phone_number: reqPhone, email } = payload;
+    const { status = 'active', first_name, last_name, gender, other_name, school, guardians, phone_number: reqPhone, email } = payload;
 
-    const foundSchoolClass = await getSchoolClass({ school_id: school.id, class_id: classId, status: STATUSES.ACTIVE }, []);
-    if (!foundSchoolClass) throw new NotFoundError(`Class for this this school`);
+    const studentSetup = new Service.StudentSetupBuilder({ class: payload.class, school: payload.school, session: payload.session });
+    await studentSetup.setClassId();
+    await studentSetup.setSession();
+    await studentSetup.setSchoolClass();
+    const { classId, schoolId, session, schoolClass: foundSchoolClass } = studentSetup.build();
 
     let { partPayment = 'installmental' } = payload;
+
     partPayment = partPayment.toUpperCase();
     guardians as { firstName: string; lastName: string; relationship: string; gender: 'male' | 'female' | 'others' }[];
-
-    const schoolId = typeof school === 'number' ? school : school.id;
 
     // default student email
     let studentEmail;
     if (email) studentEmail = email;
     else {
-      studentEmail = `${first_name}+${last_name}+student${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
+      studentEmail = `${first_name}+${last_name}${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
       const studentsFound = await listUser({ email: Like(`%${first_name}+${last_name}%`) }, []);
       if (studentsFound.length) studentEmail = `${first_name}+${last_name}${studentsFound.length + 1}${Settings.get('DEFAULT_STUDENT_EMAIL')}`;
     }
@@ -67,6 +125,13 @@ const Service = {
     const uniqueStudentId = randomstring.generate({ length: 9, charset: 'numeric' });
     const remember_token = randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' });
     const passwordHash = bcrypt.hashSync(`${first_name}${last_name}`, 8);
+
+    // Convert status to its corresponding numerical value
+    const statusValue = STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'];
+
+    // Check if user already exists
+    const existingUser = await findUser({ first_name, last_name, other_name, gender, status: STATUSES.UNVERIFIED }, [], []);
+    if (existingUser) throw new ExistsError('User');
 
     const studentPayload: any = {
       email: studentEmail,
@@ -87,18 +152,27 @@ const Service = {
 
     const studentUserRecord = await saveAUser(studentPayload);
 
+    // Check if student already exists
+    const existingStudent = await getStudent({ userId: studentUserRecord.id }, [], []);
+    if (existingStudent) throw new ExistsError('Student');
+
     const student = await saveStudentREPO({
       schoolId,
       uniqueStudentId,
       userId: studentUserRecord.id,
-      status: STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'],
+      status: statusValue,
       paymentTypeId: PAYMENT_TYPE[partPayment.toUpperCase() as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'],
     });
+
+    // Check if student already exists in the class
+    const existingStudentClass = await getStudentClass({ studentId: student.id, classId }, [], []);
+    if (existingStudentClass) throw new CustomError('Student already exists in the class');
 
     await saveStudentClassREPO({
       studentId: student.id,
       classId,
       school_id: schoolId,
+      session: session.id,
     });
 
     if (guardians) {
@@ -124,16 +198,25 @@ const Service = {
     );
     if (classFees.length)
       await Promise.all(
-        classFees.map((classFee: ISchoolProduct) =>
-          saveBeneficiaryProductPayment({
-            beneficiary_type: 'student',
-            beneficiary_id: student.id,
-            product_id: classFee.id,
-            amount_paid: 0,
-            amount_outstanding: classFee.amount,
-            product_currency: classFee.currency,
-          }),
-        ),
+        classFees.map(async (classFee: ISchoolProduct) => {
+          // Check if BeneficiaryProductPayment already exists
+          const existingBeneficiaryProductPayment = await getBeneficiaryProductPayment(
+            { beneficiary_type: 'student', beneficiary_id: student.id, product_id: classFee.id },
+            [],
+            [],
+          );
+          if (!existingBeneficiaryProductPayment) {
+            // If not, create a new one
+            await saveBeneficiaryProductPayment({
+              beneficiary_type: 'student',
+              beneficiary_id: student.id,
+              product_id: classFee.id,
+              amount_paid: 0,
+              amount_outstanding: classFee.amount,
+              product_currency: classFee.currency,
+            });
+          }
+        }),
       );
 
     return sendObjectResponse('Student created successfully');
@@ -346,8 +429,15 @@ const Service = {
   },
 
   async editStudent(criteria: any): Promise<theResponse> {
-    const { status, id: studentId, guardians, addGuardians, class: classId, phone_number: reqPhone } = criteria;
+    const { status, id: studentId, guardians, addGuardians, phone_number: reqPhone, school } = criteria;
+    // let { class: classId, partPayment } = criteria;
     let { partPayment } = criteria;
+
+    const studentSetup = new Service.StudentSetupBuilder({ class: criteria.class, school: criteria.school, session: criteria.session });
+    await studentSetup.setClassId();
+    await studentSetup.setSchoolClass();
+    const { schoolClass: foundSchoolClass } = studentSetup.build();
+    const { id: classId } = foundSchoolClass.id;
 
     if (addGuardians && addGuardians.length > 2) throw new ValidationError('You can not have more than two(2) Guardians');
     const student = await getStudent(
@@ -359,7 +449,7 @@ const Service = {
     if (addGuardians && addGuardians.length && student.StudentGuardians.length > 1)
       throw new ValidationError('You have hit the max number of guardians for this student');
 
-    let updateStudentPayload: any;
+    const updateStudentPayload: any = {};
     if (partPayment) {
       partPayment = partPayment.toUpperCase();
       updateStudentPayload.paymentTypeId = PAYMENT_TYPE[partPayment.toUpperCase() as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'];
@@ -369,9 +459,9 @@ const Service = {
     }
     if (status || partPayment) await updateStudent({ id: student.id }, updateStudentPayload);
     if (classId) {
-      const existingClass = await getStudentClass({ code: classId }, []);
+      const existingClass = await getSchoolClass({ code: classId }, []);
       if (!existingClass) throw new NotFoundError('class');
-      await updateStudentClass({ id: student.id }, { classId });
+      await updateStudentClass({ id: student.id }, { classId: existingClass.class_id });
     }
     const studentPayload: any = {};
     if (criteria.first_name) studentPayload.first_name = criteria.first_name;

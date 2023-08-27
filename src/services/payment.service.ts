@@ -136,7 +136,7 @@ export const buildCollectionRequestPayload = async ({
       // eslint-disable-next-line no-param-reassign
       user = organization.Owner;
     }
-    if (student.Fees) {
+    if (student.Fees.length) {
       const [studentTutitionFee] = student.Fees.filter(
         (value: any) => value.beneficiary_type === 'student' && value.Fee.feature_name === feature_name && value.Fee.status === STATUSES.ACTIVE,
       );

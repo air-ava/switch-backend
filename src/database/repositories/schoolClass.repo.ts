@@ -47,7 +47,12 @@ export const listSchoolClass = async (
     const { currency } = classRoom.Fees[0] || { currency: 'UGX' };
     classRoom.totalFee = amountPaid;
     classRoom.currency = currency;
-    classRoom.studentCount = classRoom.School.Students.length;
+    classRoom.studentCount = classRoom.School.Students.reduce(
+      (acc: any, curr: any) => (classRoom.class_id === curr.Class.classId ? acc + 1 : acc),
+      0,
+    );
+
+    // classRoom.studentCount = classRoom.School.Students.length;
   });
 
   return classes;
