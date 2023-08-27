@@ -73,6 +73,60 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
         channel: 'otps',
         blocks: slackBlocks,
       };
+    case 'payment_notification':
+      slackBlocks.push({
+        type: 'section',
+        text: {
+          text: `⚠️ A Paymnet Needs your Attention Details are: \n\n *School name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
+          type: 'mrkdwn',
+        },
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: '*Payment Type*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.payment_type}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Processor*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.provider}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Reference*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.reference}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Event Type*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.event_type}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Event*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.event}`,
+          },
+        ],
+      });
+      return {
+        channel: 'payment-notify',
+        blocks: slackBlocks,
+      };
     case 'bank_transfer':
       slackBlocks.push({
         type: 'section',

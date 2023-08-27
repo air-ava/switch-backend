@@ -158,7 +158,7 @@ const Service = {
       if (networkCode === '99999') phoneNumber = '+80000000003';
     }
     if (choice === checkWalletBalance) return Service.checkWalletBalance({ schoolId, text });
-    if (choice === sendMoney) return Service.sendMoney({ schoolId, text, phoneNumber });
+    if (choice === sendMoney) return Service.sendMoney({ schoolId, text, phoneNumber, networkCode });
     return BadRequestException('END Invalid ussd code');
   },
 
@@ -217,16 +217,14 @@ const Service = {
         transactionPurpose: 'cash-out',
       });
       if (query.error) return BadRequestException(`END ${query.error}`);
-      // const reference = v4();
-      // query.description = `USSD:Payment:Steward:${reference}`;
-      // query.reference = reference;
-      // const response = await WalletService.debitWallet(query);
 
       const response = await BayonicService.initiatePayment({
+        ...query,
         amount: query.amount,
         purpose: 'cash-out',
         method: `USSD:Payment`,
         network: `${networkCode}:${Service.getTelco(networkCode)}`,
+        network_name: Service.getTelco(networkCode),
       });
       // const response = await BayonicService.initiatePayment(query);
       return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Withdrawal');

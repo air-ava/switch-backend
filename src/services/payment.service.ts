@@ -156,9 +156,13 @@ export const buildCollectionRequestPayload = async ({
   } else {
     const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
     if (!wallet) throw new NotFoundError('Wallet');
-    reciever = wallet.User;
+    reciever = wallet;
     // eslint-disable-next-line no-param-reassign
     user = wallet.User;
+    if (!school) {
+      const { data: foundSchool } = await getSchoolDetails({ user });
+      school = foundSchool;
+    }
   }
   const txPurpose = Settings.get('TRANSACTION_PURPOSE');
 

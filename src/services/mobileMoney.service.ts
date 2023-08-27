@@ -1,16 +1,17 @@
-import { Preference } from './../database/models/preferences.model';
-import { IStudentClass } from './../database/modelInterfaces';
+/* eslint-disable consistent-return */
+import { v4 } from 'uuid';
+import { Not, In } from 'typeorm';
+import { Preference } from '../database/models/preferences.model';
+import { IStudentClass } from '../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // creditWalletOnMobileMoney
 // chargeWalletOnMobileMoney
 
-import { v4 } from 'uuid';
-import { Not, In } from 'typeorm';
 import { getQueryRunner } from '../database/helpers/db';
 import { STATUSES } from '../database/models/status.model';
 import { saveMobileMoneyTransaction, updateMobileMoneyTransactionREPO } from '../database/repositories/mobileMoneyTransactions.repo';
 import { getStudent } from '../database/repositories/student.repo';
-import { getOneTransactionREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
+import { getOneTransactionREPO, getTransactionsREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { createPayment, initiateCollection } from '../integrations/bayonic/collection.integration';
 import { Service as WalletService } from './wallet.service';
 import PreferenceService from './preference.service';
@@ -27,7 +28,14 @@ import { sendEmail } from '../utils/mailtrap';
 import FeesService from './fees.service';
 import { findUser } from '../database/repositories/user.repo';
 import { createPaymentContacts } from '../database/repositories/paymentContact.repo';
-import { createMobileMoneyPaymentREPO, updateMobileMoneyPaymentREPO } from '../database/repositories/mobileMoneyPayment.repo';
+import {
+  createMobileMoneyPaymentREPO,
+  getMobileMoneyPaymentREPO,
+  updateMobileMoneyPaymentREPO,
+} from '../database/repositories/mobileMoneyPayment.repo';
+import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { NotificationHandler } from './helper.service';
+import { getSchool } from '../database/repositories/schools.repo';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
@@ -130,10 +138,10 @@ export const Service = {
       data,
     };
   },
-  
+
   async initiatePayment(payload: any) {
     const txPurpose = Settings.get('TRANSACTION_PURPOSE');
-    const { amountWithFees, amount, user, student, network, method, reciever, phoneNumber, school, studentTutition } = payload;
+    const { amountWithFees, amount, user, student, network, network_name, method, reciever, phoneNumber, school, studentTutition } = payload;
 
     let { purpose } = payload;
     const initiator = reciever;
@@ -155,11 +163,13 @@ export const Service = {
     const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
     if (!getWallet) throw walletError;
 
-    const response = await WalletService.debitWallet({
+    await WalletService.debitWallet({
       reference,
       description,
       amount,
       purpose,
+      user,
+      wallet_id: wallet.id,
     });
 
     const paymentContact = await createPaymentContacts({
@@ -178,37 +188,12 @@ export const Service = {
       metadata,
     });
 
-    // const { success, data, error } = await initiateCollection({
-    //   phonenumber: phoneNumber,
-    //   first_name: initiator.first_name,
-    //   last_name: initiator.last_name,
-    //   // amount: amount / 100,
-    //   amount: amountWithFees / 100,
-    //   currency: Utils.isStaging() ? 'BXC' : wallet.currency,
-    //   metadata,
-    //   reason: `${purpose}`,
-    //   send_instructions: true,
-    //   success_message: `${purpose} for ${initiator.first_name} ${initiator.last_name} at ${school.name} Successfully Paid`,
-    // });
     if (!success) {
       console.log({ error });
       throw new Error(error || 'collection request failed');
     }
-    
-    const { contact, id: collectRequestId, state: status } = data;
-    // if (purpose === 'Payment:School-Fees') metadata.studentTutition = studentTutition;
-    // // create contact for the payer
-    // const paymentContact = await createPaymentContacts({
-    //   school: school.id,
-    //   phone_number: phoneNumber,
-    //   status: STATUSES.ACTIVE,
-    // });
 
-    // await saveMobileMoneyTransaction({
-    //   tx_reference: reference,
-    //   status: Service.getBayonicStatus(status),
-    //   processor_transaction_id: collectRequestId,
-    // });
+    const { contact, id: collectRequestId, state: status } = data;
     const { data: sortedData } = await Service.generateMobileMoneyPaymentData(data);
     await createMobileMoneyPaymentREPO({
       transaction_reference: reference,
@@ -217,34 +202,25 @@ export const Service = {
       amount,
       narration: sortedData.narration,
       fee: sortedData.fee,
-      metadata: { contact: sortedData.phone_nos },
+      metadata: { contact: data.phone_nos },
       purpose,
       reason: sortedData.reason,
       receiver: paymentContact.id,
       description: sortedData.description,
       processor: 'BEYONIC',
     });
-    await saveTransaction({
-      walletId: wallet.id,
-      userId: user.id,
-      // amount,
-      amount: amountWithFees,
-      // balance_after: Number(wallet.balance) + Number(amount),
-      balance_after: Number(wallet.balance) + Number(amountWithFees),
-      balance_before: Number(wallet.balance),
-      purpose,
-      metadata: {
-        ...metadata,
-        collectRequestId,
-        fundersPhone: data.phonenumber,
-        fundersNetwork: network,
-        paymentContact,
+    await updateTransactionREPO(
+      { reference },
+      {
+        metadata: {
+          collectRequestId,
+          fundersPhone: data.phonenumber,
+          fundersNetwork: network,
+          paymentContact,
+        },
       },
-      reference,
-      status: STATUSES.PROCESSING,
-      description,
-      txn_type: 'credit',
-    });
+      // t,
+    );
     await creditLedgerWallet({
       // amount: Number(amount),
       amount: Number(amountWithFees),
@@ -257,7 +233,7 @@ export const Service = {
         purpose,
         collectRequestId,
         fundersPhone: data.phonenumber,
-        fundersNetwork: contact.network_name,
+        fundersNetwork: network_name || contact.network_name,
       },
       saveToTransaction: false,
     });
@@ -334,15 +310,14 @@ export const Service = {
     } = payload;
     let { metadata } = payload;
     const [firstPhone] = phone_nos;
-    const { username, tx_reference: reference, transaction_type } = metadata;
-    console.log({ metadata });
+    const { school: schoolCode, username, tx_reference: reference, transaction_type } = metadata;
 
     const [beyonicTransaction] = transactions;
     const { id: transactionId, type: channel, fee_transaction } = beyonicTransaction || {};
 
     const feeAmount = fee_transaction ? Math.abs(parseFloat(fee_transaction.amount)) : 0;
 
-    metadata = {};
+    metadata = { schoolCode };
     metadata.collectRequestId = requestId;
     metadata.contacts = phone_nos;
     metadata.fundersPhone = firstPhone?.phonenumber;
@@ -441,29 +416,72 @@ export const Service = {
 
   // Update the mobile Money payment transactions
   async updateMobileMoneyPayments(payload: any) {
-    const { reference, status, requestId, school, incomingData, incomingStatus, metadata } = payload.data;
+    const { amount, currency, reason, narration, fee, reference, status, requestId, incomingData, incomingStatus, metadata } = payload.data;
+    let { school } = payload.data;
+
+    if (!school) school = await getSchool({ code: metadata.schoolCode }, []);
+    const baseNotification = new NotificationHandler().withEvent('payment.status.changed').withProvider('BEYONIC').withReference(reference);
+    const thirdPartySetup = baseNotification
+      .withEndpoint(`${STEWARD_BASE_URL}/webhook/beyonic`)
+      .withEndpointVerb('POST')
+      .withSchool(school.id)
+      .withProviderType('payment-provider')
+      .withPayload(JSON.stringify(incomingData));
+    const slackSetup = baseNotification
+      .withAmount(`${currency}${amount / 100}`)
+      .withAction('Required:Complete-Payment')
+      .withPaymentType('mobile-money')
+      .withEventType('webhook')
+      .withSchoolName(school.name);
+
+    const mobileMoneyPaymentRecord = await getMobileMoneyPaymentREPO({ transaction_reference: reference, processor_reference: requestId }, []);
+    if (!mobileMoneyPaymentRecord) {
+      const thirdParty = await thirdPartySetup
+        .withMessage(`Mobile-Money-Payment:Failed:${incomingStatus}`)
+        .withStatusCode('400')
+        .logThirdPartyResponse();
+      await slackSetup.withReason('Mobile Money Payment Record Found').withThirdParty(thirdParty.id).sendSlackMessage('payment_notification');
+      return;
+    }
     await updateMobileMoneyPaymentREPO(
+      { id: mobileMoneyPaymentRecord.id },
       {
-        transaction_reference: reference,
-        processor_reference: requestId,
+        status,
+        ...(reason && { reason }),
+        ...(mobileMoneyPaymentRecord.narration.includes('undefined') && {
+          narration,
+          metadata,
+          fee,
+        }),
       },
-      { status },
     );
 
-    if (status === STATUSES.FAILED) await updateTransactionREPO({ reference, txn_type: 'debit', channel: 'mobile-money' }, { status, metadata });
+    if (status === STATUSES.FAILED || status === STATUSES.CANCELLED) {
+      const transactionRecord = await getOneTransactionREPO({ reference, txn_type: 'debit', channel: 'mobile-money' }, [], ['Wallet', 'Wallet.User']);
+      if (!transactionRecord) {
+        const thirdParty = await thirdPartySetup
+          .withMessage(`Mobile-Money-Payment:Failed:${incomingStatus}`)
+          .withStatusCode('400')
+          .logThirdPartyResponse();
+        await slackSetup.withReason('Transaction Not Found').withThirdParty(thirdParty.id).sendSlackMessage('payment_notification');
+        return;
+      }
+      await WalletService.creditWallet({
+        amount,
+        user: transactionRecord.Wallet.User,
+        wallet_id: transactionRecord.Wallet.id,
+        purpose: 'reversal',
+        description: 'Reversal of Debit',
+        metadata,
+        reference,
+        noTransaction: true,
+        // t,
+      });
+      await updateTransactionREPO({ id: transactionRecord.id }, { status, metadata });
+      // metadata.completed_at = new Date(Date.now());
+    }
 
-    await saveThirdPartyLogsREPO({
-      event: 'payment.status.changed',
-      message: `Mobile-Money-Payment:${incomingStatus}`,
-      endpoint: `${STEWARD_BASE_URL}/webhook/beyonic`,
-      school: school.id,
-      endpoint_verb: 'POST',
-      status_code: '200',
-      payload: JSON.stringify(incomingData),
-      provider_type: 'payment-provider',
-      provider: 'BEYONIC',
-      reference,
-    });
+    await thirdPartySetup.withMessage(`Mobile-Money-Payment:${incomingStatus}`).withStatusCode('200').logThirdPartyResponse();
 
     console.log('saveMobileMoneyTransaction');
     return { success: true };
@@ -655,4 +673,3 @@ export async function bayonicPaymentHandler(payload: any): Promise<any> {
 }
 
 export default Service;
-

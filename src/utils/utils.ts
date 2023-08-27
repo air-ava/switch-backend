@@ -205,7 +205,7 @@ const Utils = {
   getWebhookURL(view = false) {
     return Utils.isProd()
       ? `https://steward-prod-rmq4b.ondigitalocean.app/webhook/beyonic`
-      : `${view ? 'https://webhook.site/40fa9975-72f0-46f9-b71a-731997a4f349' : 'https://king-prawn-app-ovupz.ondigitalocean.app/webhook/beyonic'}`;
+      : `${view ? 'https://webhook.site/6c055143-7e7f-416b-9247-a72e220c48a6' : 'https://king-prawn-app-ovupz.ondigitalocean.app/webhook/beyonic'}`;
   },
 
   getMoMoCollectionKey() {

@@ -8,6 +8,9 @@ export class Schools {
   id: number;
 
   @Column()
+  code: string;
+
+  @Column()
   country: string;
 
   @Column()

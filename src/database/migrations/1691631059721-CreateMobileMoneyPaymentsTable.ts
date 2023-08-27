@@ -39,6 +39,7 @@ export class CreateMobileMoneyPaymentsTable1691631059721 implements MigrationInt
           {
             name: 'currency',
             type: 'varchar',
+            default: "'UGX'",
           },
           {
             name: 'narration',
@@ -68,10 +69,12 @@ export class CreateMobileMoneyPaymentsTable1691631059721 implements MigrationInt
           {
             name: 'response',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'metadata',
             type: 'json',
+            isNullable: true,
           },
           {
             name: 'receiver',
@@ -81,6 +84,16 @@ export class CreateMobileMoneyPaymentsTable1691631059721 implements MigrationInt
             name: 'type',
             type: 'varchar',
             default: "'mobile-money'",
+          },
+          {
+            name: 'created_at',
+            type: 'timestamp',
+            default: 'NOW()',
+          },
+          {
+            name: 'updated_at',
+            type: 'timestamp',
+            isNullable: true,
           },
         ],
       }),

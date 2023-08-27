@@ -1,5 +1,6 @@
 import { QueryRunner, getRepository, UpdateResult } from 'typeorm';
 import { MobileMoneyPayment } from '../models/mobileMoneyPayment.model';
+import randomstring from 'randomstring';
 
 export const getMobileMoneyPaymentREPO = async (
   queryParam: Partial<MobileMoneyPayment> | any,
@@ -34,7 +35,11 @@ export const createMobileMoneyPaymentREPO = async (
   t?: QueryRunner,
 ): Promise<any> => {
   const repository = t ? t.manager.getRepository(MobileMoneyPayment) : getRepository(MobileMoneyPayment);
-  return repository.save(queryParams);
+  const payload = {
+    code: `mmp_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    ...queryParams,
+  };
+  return repository.save(payload);
 };
 
 export const updateMobileMoneyPaymentREPO = async (

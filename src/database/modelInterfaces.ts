@@ -188,6 +188,7 @@ export interface IImage {
 
 export interface ISchools {
   id: number;
+  code: string;
   country: string;
   state: string;
   name: string;
