@@ -192,12 +192,9 @@ const Service = {
 
     if (!recieversPhone) return BadRequestException('END Recievers Phone Number is needed');
 
+    const feesNames = ['mobile-money-subscription-school-fees', 'steward-charge-school-fees', 'mobile-money-collection-fees'];
     if (incomingAmount) {
-      const { allFees: fees } = await WalletService.getAllFees(incomingAmount, [
-        'mobile-money-subscription-school-fees',
-        'steward-charge-school-fees',
-        'mobile-money-collection-fees',
-      ]);
+      const { allFees: fees } = await WalletService.getAllFees(incomingAmount, feesNames);
 
       const sumTotal = Number(incomingAmount) + Number(fees / 100);
 
@@ -220,6 +217,7 @@ const Service = {
 
       const response = await BayonicService.initiatePayment({
         ...query,
+        feesNames,
         amount: query.amount,
         purpose: 'cash-out',
         method: `USSD:Payment`,
