@@ -1034,5 +1034,5 @@ export interface IMobileMoneyPayment {
   receiver: number;
   type: string;
   created_at: Date;
+  updated_at: Date;
 }
-

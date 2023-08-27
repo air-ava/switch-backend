@@ -152,6 +152,7 @@ export const Service = {
       charges: amountWithFees - amount,
       tx_reference: reference,
       transaction_type: purpose,
+      school: school.code,
     };
 
     if (purpose === 'cash-out') {
