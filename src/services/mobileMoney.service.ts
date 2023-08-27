@@ -237,24 +237,6 @@ export const Service = {
       transactionAmount: amount,
     });
 
-    
-    // await creditLedgerWallet({
-    //   // amount: Number(amount),
-    //   amount: Number(amountWithFees),
-    //   user,
-    //   walletId: wallet.id,
-    //   reference,
-    //   description,
-    //   metadata: {
-    //     ...metadata,
-    //     purpose,
-    //     collectRequestId,
-    //     fundersPhone: data.phonenumber,
-    //     fundersNetwork: network_name || contact.network_name,
-    //   },
-    //   saveToTransaction: false,
-    // });
-
     return {
       success: true,
       data,
