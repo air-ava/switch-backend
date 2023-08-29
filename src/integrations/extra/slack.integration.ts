@@ -77,7 +77,7 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `⚠️ A Paymnet Needs your Attention Details are: \n\n *School name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
+          text: `⚠️ A Paymnet Needs your Attention Details are: \n\n *School name*: ${body.schoolName} \n *Reason*: ${body.reason}  \n *Account number*: ${body.accountNumber} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [
@@ -189,6 +189,11 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
 export const sendSlackMessage = async ({ body, feature }: { body: any; feature: string }): Promise<any> => {
   console.log({ body, feature });
   const { channel, blocks } = getSlackDetailsByFeature(feature, body);
+  if (feature === 'payment_notification' && body.payment_type === 'mobile-money') {
+    blocks[0].text.text = blocks[0].text.text.replace('Account number', 'Phone number');
+    blocks[0].text.text = blocks[0].text.text.replace(body.accountNumber, body.phoneNumber);
+  }
+  console.log({ channel, blocks, 'blocks[0].fields': blocks[0].fields, 'blocks[0].text': blocks[0].text });
   await axios.post(
     'https://slack.com/api/chat.postMessage',
     {
@@ -197,6 +202,8 @@ export const sendSlackMessage = async ({ body, feature }: { body: any; feature: 
     },
     { headers: { authorization: `Bearer ${SLACK_TOKEN}` } },
   );
+  console.log('ran-slack');
+  
 
   return { success: true };
 };

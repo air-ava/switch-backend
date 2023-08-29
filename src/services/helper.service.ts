@@ -236,8 +236,10 @@ export class NotificationHandler {
   private reference = '';
   private amount = '';
   private action = 'Required:Complete-Payment';
-  private reason = 'Mobile Money Payment Record Found';
+  private reason = 'Reason Not Stated';
   private thirdParty = '';
+  private phoneNumber = '';
+  private createdAt: Date | string = new Date();
   private event_type = 'webhook';
   private payment_type = 'mobile-money';
 
@@ -326,6 +328,16 @@ export class NotificationHandler {
     return this;
   }
 
+  withPhoneNumber(phoneNumber: string): NotificationHandler {
+    this.phoneNumber = phoneNumber;
+    return this;
+  }
+
+  withStartDate(start_date: string): NotificationHandler {
+    this.createdAt = start_date;
+    return this;
+  }
+
   build(): any {
     return {
       event: this.event && this.event,
@@ -343,6 +355,8 @@ export class NotificationHandler {
       action: this.action && this.action,
       reason: this.reason && this.reason,
       thirdParty: this.thirdParty && this.thirdParty,
+      createdAt: this.createdAt && this.createdAt,
+      phoneNumber: this.phoneNumber && this.phoneNumber,
       event_type: this.event_type && this.event_type,
       payment_type: this.payment_type && this.payment_type,
     };
