@@ -289,7 +289,7 @@ export const Service: any = {
     amount,
     user,
     wallet_id,
-    purpose = 'Withdraw:Wallet',
+    purpose = 'Withdraw:Wallet-Cash-Out',
     reference = v4(),
     description,
     metadata,

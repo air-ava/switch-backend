@@ -18,8 +18,9 @@ const settings: any = {
     'debit-fees': {
       purpose: 'Fees:Business:Debit-transaction-charge',
       // purpose: 'Fees:Debit',
-      percent: 0.5,
-      ceiling: 500000,
+      // percent: 0.5,
+      // ceiling: 500000,
+      flat: 0,
     },
     'school-fees': {
       purpose: 'Fees:Business:School-Payment',

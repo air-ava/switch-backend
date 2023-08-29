@@ -1,17 +1,18 @@
-import { Preference } from './../database/models/preferences.model';
-import { IStudentClass } from './../database/modelInterfaces';
+/* eslint-disable consistent-return */
+import { v4 } from 'uuid';
+import { Not, In } from 'typeorm';
+import { Preference } from '../database/models/preferences.model';
+import { IStudentClass } from '../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // creditWalletOnMobileMoney
 // chargeWalletOnMobileMoney
 
-import { v4 } from 'uuid';
-import { Not, In } from 'typeorm';
 import { getQueryRunner } from '../database/helpers/db';
 import { STATUSES } from '../database/models/status.model';
 import { saveMobileMoneyTransaction, updateMobileMoneyTransactionREPO } from '../database/repositories/mobileMoneyTransactions.repo';
 import { getStudent } from '../database/repositories/student.repo';
-import { getOneTransactionREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
-import { initiateCollection } from '../integrations/bayonic/collection.integration';
+import { getOneTransactionREPO, getTransactionsREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
+import { createPayment, initiateCollection } from '../integrations/bayonic/collection.integration';
 import { Service as WalletService } from './wallet.service';
 import PreferenceService from './preference.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
@@ -27,6 +28,15 @@ import { sendEmail } from '../utils/mailtrap';
 import FeesService from './fees.service';
 import { findUser } from '../database/repositories/user.repo';
 import { createPaymentContacts } from '../database/repositories/paymentContact.repo';
+import {
+  createMobileMoneyPaymentREPO,
+  getMobileMoneyPaymentREPO,
+  updateMobileMoneyPaymentREPO,
+} from '../database/repositories/mobileMoneyPayment.repo';
+import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { NotificationHandler } from './helper.service';
+import { getSchool } from '../database/repositories/schools.repo';
+import { mobileMoneyPaymentDTO } from '../dto/mobileMoney.dto';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
@@ -130,6 +140,113 @@ export const Service = {
     };
   },
 
+  async initiatePayment(payload: any) {
+    const txPurpose = Settings.get('TRANSACTION_PURPOSE');
+    const { amountWithFees, amount, user, student, network, network_name, method, reciever, phoneNumber, school, studentTutition, feesNames } =
+      payload;
+
+    let { purpose } = payload;
+    const initiator = reciever;
+    const reference = v4();
+    const metadata: any = {
+      amountWithFees,
+      amount,
+      charges: amountWithFees - amount,
+      tx_reference: reference,
+      transaction_type: purpose,
+      school: school.code,
+    };
+
+    if (purpose === 'cash-out') {
+      metadata.username = reciever.uniquePaymentId;
+      purpose = txPurpose[purpose].purpose;
+    }
+    const description = `${purpose} from ${school.name} through ${method} to ${phoneNumber}`;
+
+    const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
+    if (!getWallet) throw walletError;
+
+    await WalletService.debitWallet({
+      reference,
+      description,
+      amount,
+      purpose,
+      user,
+      status: STATUSES.PROCESSING,
+      wallet_id: wallet.id,
+    });
+
+    const paymentContact = await createPaymentContacts({
+      school: school.id,
+      phone_number: phoneNumber,
+      status: STATUSES.ACTIVE,
+      metadata: { network },
+    });
+
+    // createMobileMoneyPaymentREPO
+
+    const { success, data, error } = await createPayment({
+      phonenumber: phoneNumber,
+      amount: amount / 100,
+      description,
+      metadata,
+    });
+
+    if (!success) {
+      console.log({ error });
+      throw new Error(error || 'collection request failed');
+    }
+
+    const { contact, id: collectRequestId, state: status } = data;
+    const { data: sortedData } = await Service.generateMobileMoneyPaymentData(data);
+    await createMobileMoneyPaymentREPO({
+      transaction_reference: reference,
+      status: sortedData.status,
+      processor_reference: sortedData.requestId,
+      amount,
+      narration: sortedData.narration,
+      fee: sortedData.fee,
+      metadata: { contact: data.phone_nos },
+      purpose,
+      reason: sortedData.reason,
+      receiver: paymentContact.id,
+      description: sortedData.description,
+      processor: 'BEYONIC',
+    });
+    await updateTransactionREPO(
+      { reference },
+      {
+        metadata: {
+          collectRequestId,
+          fundersPhone: data.phonenumber,
+          fundersNetwork: network,
+          paymentContact,
+        },
+      },
+      // t,
+    );
+
+    // todo: soft debit transaction Fees
+    // - record transaction as pending
+    const {
+      success: debitSuccess,
+      data: transactionFees,
+      error: debitError,
+    } = await WalletService.debitTransactionFees({
+      wallet_id: wallet.id,
+      reference,
+      user,
+      description,
+      feesNames,
+      transactionAmount: amount,
+    });
+
+    return {
+      success: true,
+      data,
+    };
+  },
+
   getBayonicStatus(incomingStatus: string) {
     const bayonicStatus: any = {
       processing_started: STATUSES.INITIATED,
@@ -138,6 +255,11 @@ export const Service = {
       failed: STATUSES.FAILED,
       instructions_sent: STATUSES.PROCESSING,
       new: STATUSES.NEW,
+      cancelled: STATUSES.CANCELLED,
+      rejected: STATUSES.REJECTED,
+      processed_with_errors: STATUSES.COMPLETED,
+      scheduled: STATUSES.PROCESSING,
+      processed: STATUSES.PROCESSED,
     };
     return bayonicStatus[incomingStatus];
   },
@@ -173,6 +295,98 @@ export const Service = {
     return { success: true, data: { ...returnData, metadata, purpose, reference, requestId, status: Service.getBayonicStatus(status) } };
   },
 
+  async generateMobileMoneyPaymentData(payload: any) {
+    const {
+      charged_fee,
+      payment_fx_details,
+      state: status,
+      id: requestId,
+      phone_nos,
+      transactions,
+      account: accountId,
+      amount,
+      currency,
+      payment_type: type,
+      description,
+      remote_transaction_id,
+      ...rest
+    } = payload;
+    let { metadata } = payload;
+    const [firstPhone] = phone_nos;
+    const { school: schoolCode, username, tx_reference: reference, transaction_type } = metadata;
+
+    const [beyonicTransaction] = transactions;
+    const { id: transactionId, type: channel, fee_transaction } = beyonicTransaction || {};
+
+    const feeAmount = fee_transaction ? Math.abs(parseFloat(fee_transaction.amount)) : 0;
+
+    metadata = { schoolCode };
+    metadata.collectRequestId = requestId;
+    metadata.contacts = phone_nos;
+    metadata.fundersPhone = firstPhone?.phonenumber;
+    metadata.charged_fee = charged_fee && charged_fee;
+    metadata.payment_fx_details = payment_fx_details && payment_fx_details;
+    metadata.networkReference = remote_transaction_id && remote_transaction_id;
+    metadata.providerCharge = {
+      amount: feeAmount,
+      ...(fee_transaction && {
+        description: fee_transaction?.description,
+        type: fee_transaction?.type,
+        currency: fee_transaction?.currency,
+        accountCharged: fee_transaction?.account.id,
+      }),
+    };
+
+    let reason;
+
+    switch (status) {
+      case 'cancelled':
+        reason = rest.cancelled_reason;
+        break;
+      case 'rejected':
+        reason = rest.rejected_reason;
+        break;
+      case 'processed_with_errors':
+        reason = rest.last_error;
+        break;
+      default:
+        reason = null;
+        break;
+    }
+    // metadata.fundersNetwork = contact.network_name;
+
+    const txPurpose = Settings.get('TRANSACTION_PURPOSE');
+    let { purpose } = txPurpose['cash-out'];
+    let returnData: any;
+    // if (transaction_type === txPurpose['cash-out']) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (txPurpose.hasOwnProperty(transaction_type)) {
+      purpose = txPurpose['cash-out'].purpose;
+      returnData = { uniquePaymentId: username };
+    }
+
+    console.log({ returnData });
+
+    return {
+      success: true,
+      data: {
+        ...returnData,
+        narration: `${transactionId}-${remote_transaction_id}-${type}-${accountId}`,
+        description,
+        channel,
+        amount,
+        fee: feeAmount * 100,
+        currency,
+        metadata,
+        purpose,
+        reason,
+        reference,
+        requestId,
+        status: Service.getBayonicStatus(status),
+      },
+    };
+  },
+
   // create MobileMoney details for the collection Contact to know where the money goes to
   async updateMobileMoneyTransactions(payload: any) {
     const { reference, status, requestId, school, incomingData, incomingStatus, metadata } = payload.data;
@@ -201,6 +415,147 @@ export const Service = {
 
     console.log('saveMobileMoneyTransaction');
     return { success: true };
+  },
+
+  // Update the mobile Money payment transactions
+
+  async updateMobileMoneyPayments(payload: mobileMoneyPaymentDTO) {
+    const { amount, reason, narration, fee, reference, status, requestId, incomingStatus, metadata } = payload.data;
+    const { statusCode, statusMessage, slackSetup, thirdPartySetup } = payload;
+
+    const mobileMoneyPaymentRecord = await getMobileMoneyPaymentREPO({ transaction_reference: reference, processor_reference: requestId }, []);
+    if (!mobileMoneyPaymentRecord) {
+      const thirdParty = await thirdPartySetup
+        .withMessage(`Mobile-Money-Payment:Failed:${incomingStatus}`)
+        .withStatusCode('400')
+        .logThirdPartyResponse();
+      await slackSetup.withReason('Mobile Money Payment Record Not Found').withThirdParty(thirdParty.id).sendSlackMessage('payment_notification');
+      return { success: false };
+    }
+    await updateMobileMoneyPaymentREPO(
+      { id: mobileMoneyPaymentRecord.id },
+      {
+        status,
+        ...(reason && { reason }),
+        ...(mobileMoneyPaymentRecord.narration.includes('undefined') && {
+          narration,
+          metadata,
+          fee,
+        }),
+      },
+    );
+
+    const thirdParty = await thirdPartySetup
+      .withStatusCode(statusCode || '200')
+      .withMessage(statusMessage || `Mobile-Money-Payment:${incomingStatus}`)
+      .logThirdPartyResponse();
+
+    console.log('saveMobileMoneyTransaction');
+    return { success: true, data: { thirdParty } };
+  },
+
+  // Completes A Mobile Money Payment
+  async completeMobileMoneyPayments(payload: mobileMoneyPaymentDTO) {
+    const { incomingStatus, reference, purpose, metadata, status } = payload.data;
+    const { statusCode, slackSetup, thirdPartySetup } = payload;
+    try {
+      const {
+        Wallet: wallet,
+        User: user,
+        description,
+        amount,
+        currency,
+        metadata: transactionMetadata,
+        created_at,
+        id,
+      } = await getOneTransactionREPO({ reference, txn_type: 'debit', channel: 'mobile-money' }, [], ['User', 'Wallet', 'Reciepts']);
+
+      await updateTransactionREPO({ id }, { status: STATUSES.SUCCESS });
+      // Notify EveryOne for Transaction Completion
+      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference });
+    } catch (error) {
+      console.log({ error });
+      // await t.rollbackTransaction();
+    } finally {
+      // await t.release();
+    }
+  },
+
+  // Failes A Mobile Money Payment
+  async failMobileMoneyPayments(payload: mobileMoneyPaymentDTO) {
+    const { incomingStatus, reference, purpose, metadata, status } = payload.data;
+    const { statusCode, slackSetup, thirdPartySetup } = payload;
+    let { thirdParty } = payload;
+
+    try {
+      const transactionRecord = await getOneTransactionREPO({ reference, txn_type: 'debit', channel: 'mobile-money' }, [], ['Wallet', 'Wallet.User']);
+      if (!transactionRecord) {
+        thirdParty = thirdParty
+          ? await thirdPartySetup.withMessage(`Mobile-Money-Payment:Failed:${incomingStatus}`).withStatusCode('400').logThirdPartyResponse()
+          : thirdParty;
+        await slackSetup.withReason('Transaction Not Found').withThirdParty(thirdParty.id).sendSlackMessage('payment_notification');
+        return;
+      }
+      const { Wallet: wallet, User: user, description, amount, currency, metadata: transactionMetadata, created_at } = transactionRecord;
+      await WalletService.creditWallet({
+        amount: transactionMetadata.amountWithFees || amount,
+        user: transactionRecord.Wallet.User,
+        wallet_id: transactionRecord.Wallet.id,
+        purpose: 'reversal',
+        description: 'Reversal of Debit',
+        metadata,
+        reference,
+        noTransaction: true,
+      });
+      await updateTransactionREPO({ id: transactionRecord.id }, { status: STATUSES.FAILED, metadata });
+
+      // Notify EveryOne for Transaction Completion
+      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference });
+    } catch (error) {
+      console.log({ error });
+      // await t.rollbackTransaction();
+    } finally {
+      // await t.release();
+    }
+  },
+
+  async mobileMoneyPaymentNotification(payload: any) {
+    const { user, wallet, created_at, description, amount, currency, reference } = payload;
+    try {
+      const { data } = await PreferenceService.getNotificationContacts(wallet.entity_id);
+      const { emails, phoneNumbers, transactions: transactionNotification } = data;
+      const { notifyInflow, notifyOutflow } = transactionNotification;
+      if (notifyInflow.includes('phoneNumbers'))
+        sendSms({
+          phoneNumber: data.phoneNumbers,
+          message: `amount: ${currency}${amount}\n
+            method: mobile-money\n
+            type: credit\n
+            description: ${description}\n
+            reference: ${reference}\n
+            date: ${created_at}\n`,
+        });
+      // if (notifyInflow.includes('email')) {
+      //   sendEmail({
+      //     recipientEmail: emails,
+      //     purpose: 'welcome_user',
+      //     templateInfo: {
+      //       firstName: ` ${user.first_name}`,
+      //       reference,
+      //       description,
+      //       date: created_at,
+      //       amount: `${currency}${amount}`,
+      //       type: 'credit',
+      //       method: 'mobile-money',
+      //     },
+      //   });
+      // }
+    } catch (error) {
+      console.log({ error });
+      // await t.rollbackTransaction();
+    } finally {
+      // await t.release();
+    }
   },
 
   // Completes A Mobile Money Transaction
@@ -275,9 +630,6 @@ export const Service = {
         // t,
       );
 
-      // todo: record Transaction for a Tuition Fee
-      // studentTutition
-      // Top Up Beneficiary Payment Like debitLedgerWallet
       if (transactionMetadata.studentTutition) {
         const { amount: reccordAmount, studentTutition, paymentContact, ...rest } = transactionMetadata;
         const { id: beneficiaryId, Fee, beneficiary_type: beneficiaryType } = studentTutition;
@@ -290,35 +642,8 @@ export const Service = {
         });
       }
 
-      // await t.commitTransaction();
-      const { data } = await PreferenceService.getNotificationContacts(wallet.entity_id);
-      const { emails, phoneNumbers, transactions: transactionNotification } = data;
-      const { notifyInflow, notifyOutflow } = transactionNotification;
-      if (notifyInflow.includes('phoneNumbers'))
-        sendSms({
-          phoneNumber: data.phoneNumbers,
-          message: `amount: ${currency}${amount}\n
-            method: mobile-money\n
-            type: credit\n
-            description: ${description}\n
-            reference: ${reference}\n
-            date: ${created_at}\n`,
-        });
-      // if (notifyInflow.includes('email')) {
-      //   sendEmail({
-      //     recipientEmail: emails,
-      //     purpose: 'welcome_user',
-      //     templateInfo: {
-      //       firstName: ` ${user.first_name}`,
-      //       reference,
-      //       description,
-      //       date: created_at,
-      //       amount: `${currency}${amount}`,
-      //       type: 'credit',
-      //       method: 'mobile-money',
-      //     },
-      //   });
-      // }
+      // Notify EveryOne for Transaction Completion
+      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference });
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();
@@ -326,8 +651,6 @@ export const Service = {
       // await t.release();
     }
   },
-
-  // async bayonicCollectionVerification() {},
 };
 
 export async function bayonicCollectionHandler(payload: any): Promise<any> {
@@ -353,6 +676,82 @@ export async function bayonicCollectionHandler(payload: any): Promise<any> {
     case 'instructions_sent':
       await Service.updateMobileMoneyTransactions(txData);
       break;
+    default:
+      break;
+  }
+}
+
+export async function bayonicPaymentHandler(payload: any): Promise<any> {
+  const { state: incomingStatus, id: reference } = payload;
+  const txData = await Service.generateMobileMoneyPaymentData(payload);
+
+  txData.data.incomingData = payload;
+  txData.data.incomingStatus = incomingStatus;
+
+  let { school } = payload;
+  const { amount, currency, metadata, start_date } = payload;
+  const { incomingData, metadata: extraData } = txData.data;
+
+  if (!school) school = await getSchool({ code: metadata.school }, []);
+  const baseNotification = new NotificationHandler().withEvent('payment.status.changed').withProvider('BEYONIC').withReference(reference);
+  const thirdPartySetup = baseNotification
+    .withEndpoint(`${STEWARD_BASE_URL}/webhook/beyonic`)
+    .withEndpointVerb('POST')
+    .withSchool(school.id)
+    .withProviderType('payment-provider')
+    .withPayload(JSON.stringify(incomingData));
+  const slackSetup = baseNotification
+    .withAmount(`${currency}${amount / 100}`)
+    .withAction('Required:Complete-Payment')
+    .withPaymentType('mobile-money')
+    .withEventType('webhook')
+    .withSchoolName(school.name)
+    .withPhoneNumber(extraData.fundersPhone)
+    .withStartDate(start_date);
+
+  const updatePayload = { ...txData, thirdPartySetup, slackSetup };
+
+  switch (incomingStatus) {
+    case 'scheduled': {
+      await Service.updateMobileMoneyPayments(updatePayload);
+      break;
+    }
+    case 'cancelled': {
+      const { success, data: responseData } = await Service.updateMobileMoneyPayments({ ...updatePayload, statusCode: '400' });
+      if (success)
+        await Service.failMobileMoneyPayments({
+          ...updatePayload,
+          ...(responseData && { thirdParty: responseData.thirdParty }),
+        });
+      break;
+    }
+    case 'processed': {
+      const { success } = await Service.updateMobileMoneyPayments(updatePayload);
+      if (success) await Service.completeMobileMoneyPayments(updatePayload);
+      break;
+    }
+    case 'rejected': {
+      const { success, data: responseData } = await Service.updateMobileMoneyPayments({
+        ...updatePayload,
+        statusCode: '400',
+        statusMessage: `Mobile-Money-Payment:Failed:${incomingStatus}`,
+      });
+      if (success)
+        await Service.failMobileMoneyPayments({
+          ...updatePayload,
+          ...(responseData && { thirdParty: responseData.thirdParty }),
+        });
+      break;
+    }
+    case 'processed_with_errors': {
+      await Service.updateMobileMoneyPayments(updatePayload);
+      const thirdParty = await thirdPartySetup
+        .withMessage(`Mobile-Money-Payment:PROCESSED:${incomingStatus}`)
+        .withStatusCode('200')
+        .logThirdPartyResponse();
+      await slackSetup.withReason('Processed the Transaction with Errors').withThirdParty(thirdParty.id).sendSlackMessage('payment_notification');
+      break;
+    }
     default:
       break;
   }

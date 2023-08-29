@@ -13,6 +13,8 @@ import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo
 import { STEWARD_BASE_URL } from '../utils/secrets';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { getSchool } from '../database/repositories/schools.repo';
+import { v4 } from 'uuid';
+import { createMobileMoneyPaymentREPO } from '../database/repositories/mobileMoneyPayment.repo';
 
 const Service = {
   async getStudent(criteria: any): Promise<theResponse> {
@@ -160,7 +162,7 @@ const Service = {
       if (networkCode === '99999') phoneNumber = '+80000000003';
     }
     if (choice === checkWalletBalance) return Service.checkWalletBalance({ schoolId, text });
-    if (choice === sendMoney) return Service.sendMoney({ schoolId, text, phoneNumber });
+    if (choice === sendMoney) return Service.sendMoney({ schoolId, text, phoneNumber, networkCode });
     return BadRequestException('END Invalid ussd code');
   },
 
@@ -194,12 +196,9 @@ const Service = {
 
     if (!recieversPhone) return BadRequestException('END Recievers Phone Number is needed');
 
+    const feesNames = ['mobile-money-subscription-school-fees', 'steward-charge-school-fees', 'mobile-money-collection-fees'];
     if (incomingAmount) {
-      const { allFees: fees } = await WalletService.getAllFees(incomingAmount, [
-        'mobile-money-subscription-school-fees',
-        'steward-charge-school-fees',
-        'mobile-money-collection-fees',
-      ]);
+      const { allFees: fees } = await WalletService.getAllFees(incomingAmount, feesNames);
 
       const sumTotal = Number(incomingAmount) + Number(fees / 100);
 
@@ -216,11 +215,22 @@ const Service = {
         phoneNumber,
         amount: incomingAmount * 100,
         amountWithFees: sumTotal * 100,
+        transactionPurpose: 'cash-out',
       });
       if (query.error) return BadRequestException(`END ${query.error}`);
-      // const response = await BayonicService.initiateCollectionRequest(query);
-      // return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Completing School Fees Payment');
-      return sendObjectResponse(`${amountBaseResponse}`);
+
+      const response = await BayonicService.initiatePayment({
+        ...query,
+        feesNames,
+        amount: query.amount,
+        purpose: 'cash-out',
+        method: `USSD:Payment`,
+        network: `${networkCode}:${Service.getTelco(networkCode)}`,
+        network_name: Service.getTelco(networkCode),
+      });
+      // const response = await BayonicService.initiatePayment(query);
+      return response.success ? sendObjectResponse(`${amountBaseResponse}`) : BadRequestException('END Error With Withdrawal');
+      // return sendObjectResponse(`${amountBaseResponse}`);
     }
 
     const baseResponse = `CON Confirm this Phone ${recieversPhone}`;

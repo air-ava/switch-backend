@@ -32,15 +32,7 @@ const Service = {
     } = await getListOfTransactionsForSettlement(wallet.id, settlementDate, 'Fees:');
     const debitedTransactions = await getTotalSuccessfulDebit(wallet.id, 'Fees:');
     const total = transactionTotal - (debitedTransactions as { totalOut: number }).totalOut;
-    // console.log({
-    //   debitedTransactions,
-    //   total,
-    //   selectedDate,
-    //   walletId: wallet.id,
-    //   transactionTotal,
-    //   transactionCount,
-    //   creditTransactions: creditTransactions.splice(25, 28),
-    // });
+
     const description = `Settlement for ${transactionCount} transactions at ${transactionTotal}`;
 
     const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
