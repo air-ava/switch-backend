@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { SLACK_TOKEN } from '../../utils/secrets';
+import Utils from '../../utils/utils';
 
 function getSlackDetailsByFeature(feature: string, body: any): any {
   const slackBlocks = [];
@@ -77,7 +78,7 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `⚠️ A Paymnet Needs your Attention Details are: \n\n *School name*: ${body.schoolName} \n *Reason*: ${body.reason}  \n *Account number*: ${body.accountNumber} \n *Initiated On*: ${body.createdAt}`,
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n ⚠️ A Paymnet Needs your Attention Details are: \n\n *School name*: ${body.schoolName} \n *Reason*: ${body.reason}  \n *Account number*: ${body.accountNumber} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [
@@ -131,7 +132,7 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `A Bank Transfer has been initiated. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n A Bank Transfer has been initiated. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [
@@ -193,7 +194,6 @@ export const sendSlackMessage = async ({ body, feature }: { body: any; feature: 
     blocks[0].text.text = blocks[0].text.text.replace('Account number', 'Phone number');
     blocks[0].text.text = blocks[0].text.text.replace(body.accountNumber, body.phoneNumber);
   }
-  console.log({ channel, blocks, 'blocks[0].fields': blocks[0].fields, 'blocks[0].text': blocks[0].text });
   await axios.post(
     'https://slack.com/api/chat.postMessage',
     {
@@ -202,8 +202,5 @@ export const sendSlackMessage = async ({ body, feature }: { body: any; feature: 
     },
     { headers: { authorization: `Bearer ${SLACK_TOKEN}` } },
   );
-  console.log('ran-slack');
-  
-
   return { success: true };
 };
