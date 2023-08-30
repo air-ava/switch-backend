@@ -22,7 +22,7 @@ import { catchErrors } from '../utils/errors';
 const router = express.Router();
 
 router.get('/', catchErrors(listStudentCONTROLLER));
-router.post('/', addStudentToSchoolCONTROLLER);
+router.post('/', catchErrors(addStudentToSchoolCONTROLLER));
 router.get('/class', catchErrors(listStundentsInSchoolClassCONTROLLER));
 router.get('/class/:code/detail', catchErrors(classDetailsCONTROLLER));
 router.get('/class/:code/analysis', catchErrors(classAnalysisCONTROLLER));

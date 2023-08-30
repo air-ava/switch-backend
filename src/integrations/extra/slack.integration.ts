@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { SLACK_TOKEN } from '../../utils/secrets';
+import Utils from '../../utils/utils';
 
 function getSlackDetailsByFeature(feature: string, body: any): any {
   const slackBlocks = [];
@@ -73,11 +74,65 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
         channel: 'otps',
         blocks: slackBlocks,
       };
+    case 'payment_notification':
+      slackBlocks.push({
+        type: 'section',
+        text: {
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n ⚠️ A Paymnet Needs your Attention Details are: \n\n *School name*: ${body.schoolName} \n *Reason*: ${body.reason}  \n *Account number*: ${body.accountNumber} \n *Initiated On*: ${body.createdAt}`,
+          type: 'mrkdwn',
+        },
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: '*Payment Type*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.payment_type}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Processor*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.provider}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Reference*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.reference}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Event Type*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.event_type}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Event*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.event}`,
+          },
+        ],
+      });
+      return {
+        channel: 'payment-notify',
+        blocks: slackBlocks,
+      };
     case 'bank_transfer':
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `A Bank Transfer has been initiated. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n A Bank Transfer has been initiated. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [
@@ -135,6 +190,10 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
 export const sendSlackMessage = async ({ body, feature }: { body: any; feature: string }): Promise<any> => {
   console.log({ body, feature });
   const { channel, blocks } = getSlackDetailsByFeature(feature, body);
+  if (feature === 'payment_notification' && body.payment_type === 'mobile-money') {
+    blocks[0].text.text = blocks[0].text.text.replace('Account number', 'Phone number');
+    blocks[0].text.text = blocks[0].text.text.replace(body.accountNumber, body.phoneNumber);
+  }
   await axios.post(
     'https://slack.com/api/chat.postMessage',
     {
@@ -143,6 +202,5 @@ export const sendSlackMessage = async ({ body, feature }: { body: any; feature: 
     },
     { headers: { authorization: `Bearer ${SLACK_TOKEN}` } },
   );
-
   return { success: true };
 };

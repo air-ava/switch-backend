@@ -32,6 +32,7 @@ import {
   getBeneficiaryProductPayment,
   incrementAmountPaid,
   decrementAmountOutstanding,
+  increaseOutstandingAmount,
 } from '../database/repositories/beneficiaryProductPayment.repo';
 import { SchoolProduct } from '../database/models/schoolProduct.model';
 import { listStudent } from '../database/repositories/student.repo';
@@ -104,6 +105,7 @@ const Service: any = {
     }
 
     await updateSchoolProduct({ id: fee.id }, feePayload);
+    if (amount) await increaseOutstandingAmount({ product_id: fee.id }, amount - fee.amount);
     return sendObjectResponse('Fee edited successfully');
   },
 

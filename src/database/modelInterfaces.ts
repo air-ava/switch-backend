@@ -188,6 +188,7 @@ export interface IImage {
 
 export interface ISchools {
   id: number;
+  code: string;
   country: string;
   state: string;
   name: string;
@@ -1012,6 +1013,26 @@ export interface IPreference {
   entity_id: number;
   configuration: JSON;
   status: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IMobileMoneyPayment {
+  id: number;
+  status: number;
+  amount: number;
+  fee: number;
+  currency: string;
+  narration: string;
+  description: string;
+  code: string;
+  transaction_reference: string;
+  processor_reference: string;
+  processor: string;
+  response: string;
+  metadata: JSON;
+  receiver: number;
+  type: string;
   created_at: Date;
   updated_at: Date;
 }

@@ -114,6 +114,7 @@ export const buildCollectionRequestPayload = async ({
   amountWithFees,
   feature_name,
   ussd = true,
+  transactionPurpose,
 }: any): Promise<any> => {
   let school;
   let reciever;
@@ -155,8 +156,15 @@ export const buildCollectionRequestPayload = async ({
   } else {
     const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId }, [], undefined, ['User']);
     if (!wallet) throw new NotFoundError('Wallet');
-    reciever = wallet.User;
+    reciever = wallet;
+    // eslint-disable-next-line no-param-reassign
+    user = wallet.User;
+    if (!school) {
+      const { data: foundSchool } = await getSchoolDetails({ user });
+      school = foundSchool;
+    }
   }
+  const txPurpose = Settings.get('TRANSACTION_PURPOSE');
 
   return {
     user,
@@ -167,7 +175,8 @@ export const buildCollectionRequestPayload = async ({
       studentTutition: reciever.Fees && studentTutition,
     }),
     ...(walletId && { reciever }),
-    purpose: studentId ? 'school-fees' : 'top-up',
+    // eslint-disable-next-line no-nested-ternary
+    purpose: transactionPurpose ? txPurpose[transactionPurpose].purpose : studentId ? 'school-fees' : 'top-up',
     school,
     amountWithFees,
   };

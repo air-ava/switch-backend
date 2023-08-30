@@ -28,18 +28,11 @@ export const listClassCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const addStudentToSchoolCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const { school, organisation, educationalSession } = req;
-    const payload = { ...req.body, school, organisation, session: educationalSession };
-
-    const response = await StudentService.addStudentToSchool(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.addStudent, data: error });
-  }
+  const { school, organisation, educationalSession } = req;
+  const payload = { ...req.body, school, organisation, session: educationalSession };
+  const response = await StudentService.addStudentToSchool(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const addGuardiansToStudentCONTROLLER: RequestHandler = async (req, res) => {

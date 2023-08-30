@@ -23,7 +23,7 @@ module.exports = {
     max: 25,
     connectionTimeoutMillis: 1000,
     // ssl: true,
-    ssl: { rejectUnauthorized: false },
+    // ssl: { rejectUnauthorized: false },
     // sslcert: '/etc/ssl/certs/ca-certificates.crt',
     // ssl: {},
   },

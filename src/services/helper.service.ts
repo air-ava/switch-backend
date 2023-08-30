@@ -1,3 +1,4 @@
+/* eslint-disable lines-between-class-members */
 import { Not } from 'typeorm';
 import { theResponse } from '../utils/interface';
 import { getOnePhoneNumber, createAPhoneNumber } from '../database/repositories/phoneNumber.repo';
@@ -26,6 +27,8 @@ import { getOneAssetsREPO, createAssetsREPO } from '../database/repositories/ass
 import { getOneOrganisationREPO, createOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool } from '../database/repositories/schools.repo';
 import { listJobTitleREPO } from '../database/repositories/jobTitle.repo';
+import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
+import { sendSlackMessage } from '../integrations/extra/slack.integration';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO, remember_token?: string): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
@@ -218,3 +221,160 @@ export const listJobTitles = async (): Promise<theResponse> => {
   const response = await listJobTitleREPO({}, []);
   return sendObjectResponse(`Job titles retrieved successfully`, response);
 };
+
+export class NotificationHandler {
+  private event = 'payment.status.changed';
+  private message = '';
+  private endpoint = '';
+  private school = 0;
+  private schoolName = '';
+  private endpoint_verb = 'POST';
+  private status_code = '200';
+  private payload = '';
+  private provider_type = 'payment-provider';
+  private provider = 'BEYONIC';
+  private reference = '';
+  private amount = '';
+  private action = 'Required:Complete-Payment';
+  private reason = 'Reason Not Stated';
+  private thirdParty = '';
+  private phoneNumber = '';
+  private createdAt: Date | string = new Date();
+  private event_type = 'webhook';
+  private payment_type = 'mobile-money';
+
+  withEvent(event: string): NotificationHandler {
+    this.event = event;
+    return this;
+  }
+
+  withMessage(message: string): NotificationHandler {
+    this.message = message;
+    return this;
+  }
+
+  withEndpoint(endpoint: string): NotificationHandler {
+    this.endpoint = endpoint;
+    return this;
+  }
+
+  withSchool(school: number): NotificationHandler {
+    this.school = school;
+    return this;
+  }
+
+  withSchoolName(schoolName: string): NotificationHandler {
+    this.schoolName = schoolName;
+    return this;
+  }
+
+  withEndpointVerb(endpoint_verb: string): NotificationHandler {
+    this.endpoint_verb = endpoint_verb;
+    return this;
+  }
+
+  withStatusCode(status_code: string): NotificationHandler {
+    this.status_code = status_code;
+    return this;
+  }
+
+  withPayload(payload: string): NotificationHandler {
+    this.payload = payload;
+    return this;
+  }
+
+  withProviderType(provider_type: string): NotificationHandler {
+    this.provider_type = provider_type;
+    return this;
+  }
+
+  withProvider(provider: string): NotificationHandler {
+    this.provider = provider;
+    return this;
+  }
+
+  withReference(reference: string): NotificationHandler {
+    this.reference = reference;
+    return this;
+  }
+
+  withAmount(amount: string): NotificationHandler {
+    this.amount = amount;
+    return this;
+  }
+
+  withAction(action: string): NotificationHandler {
+    this.action = action;
+    return this;
+  }
+
+  withReason(reason: string): NotificationHandler {
+    this.reason = reason;
+    return this;
+  }
+
+  withThirdParty(thirdParty: string): NotificationHandler {
+    this.thirdParty = thirdParty;
+    return this;
+  }
+
+  withEventType(event_type: string): NotificationHandler {
+    this.event_type = event_type;
+    return this;
+  }
+
+  withPaymentType(payment_type: string): NotificationHandler {
+    this.payment_type = payment_type;
+    return this;
+  }
+
+  withPhoneNumber(phoneNumber: string): NotificationHandler {
+    this.phoneNumber = phoneNumber;
+    return this;
+  }
+
+  withStartDate(start_date: string): NotificationHandler {
+    this.createdAt = start_date;
+    return this;
+  }
+
+  build(): any {
+    return {
+      event: this.event && this.event,
+      message: this.message && this.message,
+      endpoint: this.endpoint && this.endpoint,
+      school: this.school && this.school,
+      schoolName: this.schoolName && this.schoolName,
+      endpoint_verb: this.endpoint_verb && this.endpoint_verb,
+      status_code: this.status_code && this.status_code,
+      payload: this.payload && this.payload,
+      provider_type: this.provider_type && this.provider_type,
+      provider: this.provider && this.provider,
+      reference: this.reference && this.reference,
+      amount: this.amount && this.amount,
+      action: this.action && this.action,
+      reason: this.reason && this.reason,
+      thirdParty: this.thirdParty && this.thirdParty,
+      createdAt: this.createdAt && this.createdAt,
+      phoneNumber: this.phoneNumber && this.phoneNumber,
+      event_type: this.event_type && this.event_type,
+      payment_type: this.payment_type && this.payment_type,
+    };
+  }
+
+  async logThirdPartyResponse(): Promise<any> {
+    // Build the payload for saveThirdPartyLogsREPO
+    const payload = this.build();
+
+    // Call saveThirdPartyLogsREPO and return the result
+    return saveThirdPartyLogsREPO(payload);
+  }
+
+  async sendSlackMessage(feature: string): Promise<any> {
+    // Build the payload for sendSlackMessage
+    const body = this.build();
+
+    // Call sendSlackMessage and return the result
+    return sendSlackMessage({ feature, body });
+  }
+}

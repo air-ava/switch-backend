@@ -1,7 +1,7 @@
 import { Metadata } from 'libphonenumber-js';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { recordFLWWebhook, verifyChargeFromWebhook } from '../services/cards.service';
-import MobileMoneyService, { bayonicCollectionHandler } from '../services/mobileMoney.service';
+import MobileMoneyService, { bayonicCollectionHandler, bayonicPaymentHandler } from '../services/mobileMoney.service';
 import { theResponse } from '../utils/interface';
 import logger from '../utils/logger';
 import { STEWARD_BASE_URL } from '../utils/secrets';
@@ -72,6 +72,15 @@ export const completeContactCreation = async (payload: any): Promise<any> => {
   }
 };
 
+export const completePayment = async (payload: any): Promise<any> => {
+  try {
+    await bayonicPaymentHandler(payload);
+  } catch (error: any) {
+    console.log(error);
+    throw error;
+  }
+};
+
 export async function bayonicWebhookHandler(payload: any): Promise<any> {
   const { event } = payload.hook;
   switch (event) {
@@ -83,6 +92,9 @@ export async function bayonicWebhookHandler(payload: any): Promise<any> {
       break;
     case 'collection.received':
       await completeCollection(payload.data);
+      break;
+    case 'payment.status.changed':
+      await completePayment(payload.data);
       break;
     default:
       break;

@@ -733,12 +733,13 @@ export const Sanitizer = {
 
   sanitizeSettlement(payload: any): any {
     if (!payload) return null;
-    const { status, processor_transaction_id, Transactions, creditTransactions, ...rest } = Sanitizer.jsonify(payload);
+    const { bankId, status, processor_transaction_id, Transactions, creditTransactions, Bank, ...rest } = Sanitizer.jsonify(payload);
     const Transaction = Sanitizer.filterTransactionsByPurpose(Transactions, 'Withdraw:Settlement');
     return {
       ...rest,
       currency: Transactions && Transactions[0].Wallet && Transactions[0].Wallet.currency,
       payment: Transaction && Sanitizer.sanitizeLightTransaction(Transaction),
+      bank: Bank && Sanitizer.sanitizeBank(Bank),
       paymentTransactions: Transaction && Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeLightTransaction),
       transactions: creditTransactions && Sanitizer.sanitizeAllArray(creditTransactions, Sanitizer.sanitizeLightTransaction),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),

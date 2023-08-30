@@ -18,8 +18,9 @@ const settings: any = {
     'debit-fees': {
       purpose: 'Fees:Business:Debit-transaction-charge',
       // purpose: 'Fees:Debit',
-      percent: 0.5,
-      ceiling: 500000,
+      // percent: 0.5,
+      // ceiling: 500000,
+      flat: 0,
     },
     'school-fees': {
       purpose: 'Fees:Business:School-Payment',
@@ -56,6 +57,7 @@ const settings: any = {
   DEFAULT_EMAIL: '@usersteward.com',
   USSD: {
     serviceCode: Utils.isStaging() ? '*384*3124#' : '*284*76#',
+    schoolServiceCode: '*384*78393#',
   },
   SCHOOL_PRODUCT: {
     tuition: 'tuition-fees',
