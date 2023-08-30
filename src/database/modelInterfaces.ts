@@ -1036,3 +1036,32 @@ export interface IMobileMoneyPayment {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface ILoan {
+  id: number;
+  code: string;
+  initiatorType: number;
+  initiator: number;
+  completion_date?: Date;
+  approval_date?: Date;
+  schedule_id: number;
+  status: number;
+  productId: number;
+  score: number;
+  debtServiceRatio?: number;
+  currency: string;
+  requestAmount: number;
+  approvedAmount: number;
+  purpose: string;
+  interest?: number;
+  amount_paid: number;
+  isPropertyCollaterized: boolean;
+  collateralReference?: string;
+  documentReference?: string;
+  penaltyStatus: number;
+  penalty_amount: number;
+  penalty_amount_paid: number;
+  gracePeriodStatus: number;
+  created_at: Date;
+  updated_at: Date;
+}
