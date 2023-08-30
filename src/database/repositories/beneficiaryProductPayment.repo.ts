@@ -1,7 +1,8 @@
 import randomstring from 'randomstring';
-import { QueryRunner, getRepository, UpdateResult } from 'typeorm';
+import { QueryRunner, getRepository, UpdateResult, Not } from 'typeorm';
 import { IBeneficiaryProductPayment } from '../modelInterfaces';
 import { BeneficiaryProductPayment } from '../models/beneficiaryProductPayment.model';
+import { STATUSES } from '../models/status.model';
 
 export const getBeneficiaryProductPayment = async (
   queryParam: Partial<IBeneficiaryProductPayment> | any,
@@ -70,4 +71,17 @@ export const incrementAmountOutstanding = (id: number, amount: number, t?: Query
 export const decrementAmountOutstanding = (id: number, amount: number, t?: QueryRunner): Promise<UpdateResult> => {
   const repository = t ? t.manager.getRepository(BeneficiaryProductPayment) : getRepository(BeneficiaryProductPayment);
   return repository.decrement({ id }, 'amount_outstanding', amount);
+};
+
+export const increaseOutstandingAmount = (
+  queryParams: Partial<IBeneficiaryProductPayment> | any,
+  amount: number,
+  t?: QueryRunner,
+): Promise<UpdateResult> => {
+  const repository = t ? t.manager.getRepository(BeneficiaryProductPayment) : getRepository(BeneficiaryProductPayment);
+  const payload = {
+    ...queryParams,
+    status: Not(STATUSES.DELETED),
+  };
+  return repository.increment(payload, 'amount_outstanding', amount);
 };
