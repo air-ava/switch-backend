@@ -1065,3 +1065,17 @@ export interface ILoan {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface ILoanActivity {
+  id: number;
+  code: string;
+  entity: string;
+  entityId: number;
+  stage: string;
+  responsibleParty: string;
+  responsiblePartyId: number;
+  notes?: string;
+  status: number;
+  created_at: Date;
+  updated_at?: Date;
+}
