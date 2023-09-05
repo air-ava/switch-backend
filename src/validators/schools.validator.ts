@@ -30,6 +30,15 @@ export const addClass = joi.object().keys({
   }),
 });
 
+export const addClassAdmin = joi.object().keys({
+  code: joi.string().pattern(new RegExp('cll_.{17}$')).messages({
+    'string.pattern.base': 'Invalid class level code',
+  }),
+  schoolCode: joi.string().pattern(new RegExp('scl_.{17}$')).messages({
+    'string.pattern.base': 'Invalid school code',
+  }),
+});
+
 export const getClassLevel = joi.object().keys({
   code: joi.string().pattern(new RegExp('edl_.{17}$')).messages({
     'string.pattern.base': 'Invalid educational level code',

@@ -359,6 +359,7 @@ export const backOfficeVerifiesSchool = async (data: any): Promise<theResponse> 
   }
 };
 
+
 const Service = {
   async listClassInSchool(data: any): Promise<theResponse> {
     const { school, ...rest } = data;
@@ -416,6 +417,25 @@ const Service = {
   async educationLevel(): Promise<theResponse> {
     const educationLevel = await listEducationLevel({}, []);
     return sendObjectResponse('Retrieved Educational Level Successfully', educationLevel);
+  },
+
+  async getSchoolAsAdmin(schoolId: any): Promise<theResponse> {
+    const schoolCriteria = schoolId.includes('scl_') ? { code: schoolId } : { id: schoolId };
+    const school = await getSchool(
+      schoolCriteria,
+      [],
+      ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo', 'Organisation.Owner.phoneNumber'],
+    );
+    if (!school) throw Error('School not found');
+    const { Organisation: organisation, country } = school;
+    const owner = (organisation as any).Owner;
+    const schoolDetails = { school, organisation, country };
+
+    return sendObjectResponse('Retrieved School Details Successfully', {
+      school,
+      user: owner,
+      schoolDetails,
+    });
   },
 };
 export default Service;

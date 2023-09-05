@@ -12,13 +12,16 @@ import {
   listSchoolCONTROLLER,
   verifySchoolCONTROLLER,
   updateSchoolAdminCONTROLLER,
+  addClassToSchoolAdminCONTROLLER,
 } from '../../controllers/school.controller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 
 router.get('/', listSchoolCONTROLLER);
 router.post('/verify', verifySchoolCONTROLLER);
 router.patch('/:id', updateSchoolAdminCONTROLLER);
+router.post('/:schoolCode/class/:code', catchErrors(addClassToSchoolAdminCONTROLLER));
 // router.get('/', getSchoolCONTROLLER);
 // router.post('/info', schoolInfoCONTROLLER);
 // router.post('/contact', schoolContactCONTROLLER);

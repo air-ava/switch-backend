@@ -15,7 +15,7 @@ import DocumentService from '../services/document.service';
 import StudentService from '../services/student.service';
 import ResponseService from '../utils/response';
 import { Sanitizer } from '../utils/sanitizer';
-import { addClass, getClassLevel } from '../validators/schools.validator';
+import { addClass, addClassAdmin, getClassLevel } from '../validators/schools.validator';
 import ValidationError from '../utils/validationError';
 
 const errorMessages = {
@@ -191,6 +191,22 @@ export const addClassToSchoolCONTROLLER: RequestHandler = async (req, res) => {
 
   const validation = addClass.validate({ code });
   if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await SchoolService.addClassToSchool(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const addClassToSchoolAdminCONTROLLER: RequestHandler = async (req, res) => {
+  // const { school } = req;
+  const { code, schoolCode } = req.params;
+  const validation = addClassAdmin.validate({ code, schoolCode });
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const {
+    data: { school },
+  } = await SchoolService.getSchoolAsAdmin(schoolCode);
+  const payload = { code, school };
 
   const response = await SchoolService.addClassToSchool(payload);
   const { data, message, error } = response;
