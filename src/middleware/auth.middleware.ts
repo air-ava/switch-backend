@@ -42,6 +42,23 @@ const sessionData = {
     const { id, originalUrl } = data;
     if (!originalUrl.includes('/api/')) throw Error(`Invalid token provided`);
 
+    // const user = await findUser({ id }, []);
+    // if (!user) throw Error(`User doesn't exists`);
+    // const organisation = await getOneOrganisationREPO({ id: (user as IUser).organisation }, []);
+    // let school;
+    // if (organisation) {
+    //   if (organisation) {
+    //     school = await getSchool({ organisation_id: organisation.id }, [], ['Logo']);
+    //     if (school) school = school as any;
+    //   }
+    // }
+
+    // return { user, organisation, school };
+    return sessionData.getDashboardData({ id });
+  },
+
+  async getDashboardData(data: any): Promise<any> {
+    const { id } = data;
     const user = await findUser({ id }, []);
     if (!user) throw Error(`User doesn't exists`);
     const organisation = await getOneOrganisationREPO({ id: (user as IUser).organisation }, []);
@@ -99,3 +116,5 @@ export const validateSession: RequestHandler = async (req, res, next) => {
       : res.status(500).json({ success: false, error: 'Error with Session Validation', data: error });
   }
 };
+
+export default sessionData;

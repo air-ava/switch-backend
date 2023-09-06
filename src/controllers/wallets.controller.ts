@@ -5,8 +5,10 @@ import { oldSendObjectResponse } from '../utils/errors';
 import { Service as WalletService } from '../services/wallet.service';
 import { getQueryRunner } from '../database/helpers/db';
 import { Sanitizer } from '../utils/sanitizer';
-import { updateTransactionREPO } from '../database/repositories/transaction.repo';
+import { getOneTransactionREPO, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import Settings from '../services/settings.service';
+import sessionData from '../middleware/auth.middleware';
+import AuditLogsService from '../services/auditLogs.service';
 
 export const getWalletCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -51,24 +53,43 @@ export const updateWalletPinCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
-  const reference = v4();
+  const { backOfficeUser } = req;
+  let { user } = req;
+  const { type } = req.query;
+  const { code: id } = req.params;
+  const { amount, description } = req.body;
+
   const txPurpose = Settings.get('TRANSACTION_PURPOSE');
   let { purpose } = txPurpose['top-up'];
-  // let purpose = 'Funding:Wallet-Top-Up';
-  if (req.query.type === 'school-fees') purpose = txPurpose['school-fees'];
-  if (req.query.type === 'disburse-loan') purpose = txPurpose['disburse-loan'];
+  const feesNames = ['credit-fees'];
+  // eslint-disable-next-line default-case
+  switch (type) {
+    case 'school-fees':
+      purpose = txPurpose['school-fees'].purpose;
+      feesNames.push('school-fees');
+      break;
+    case 'disburse-loan':
+      purpose = txPurpose['disburse-loan'].purpose;
+      feesNames.push('loan-processing-fees');
+      break;
+  }
+
+  if (!user || typeof user !== 'object') user = (await sessionData.getDashboardData({ id })).user;
+
+  const reference = v4();
   const t = await getQueryRunner();
+
   try {
     const payload: any = {
-      user: req.user,
-      amount: req.body.amount,
-      description: req.body.description,
+      user,
+      amount,
+      description,
       purpose,
       reference,
       t,
     };
 
-    const { success, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user: req.user, t });
+    const { success, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user, t });
     if (!success) throw walletError;
 
     payload.wallet_id = wallet.id;
@@ -81,16 +102,17 @@ export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
     } = await WalletService.debitTransactionFees({
       wallet_id: wallet.id,
       reference,
-      user: req.user,
-      description: req.body.description,
-      feesNames: ['school-fees', 'credit-fees'],
-      transactionAmount: req.body.amount,
+      user,
+      description,
+      feesNames,
+      transactionAmount: amount,
       t,
     });
     if (!debitSuccess) throw debitError;
 
     const feesConfig = Settings.get('TRANSACTION_FEES');
     const feesPurposeNames: string[] = [feesConfig['school-fees'].purpose, feesConfig['credit-fees'].purpose];
+
     await updateTransactionREPO(
       { reference, purpose: Not(In(feesPurposeNames)) },
       {
@@ -103,9 +125,19 @@ export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
     );
 
     await t.commitTransaction();
+    if (backOfficeUser) {
+      const updatedTransaction = await getOneTransactionREPO({ reference, purpose: Not(In(feesPurposeNames)) }, []);
+      AuditLogsService.createLog({
+        event: `credit-wallet:for-${type}`,
+        user_type: 'backOfficeUsers',
+        user: backOfficeUser.id,
+        delta: JSON.stringify(updatedTransaction),
+        table_type: 'transaction',
+        table_id: updatedTransaction.id,
+      });
+    }
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
-    // data.fees = transactionFees;
     return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
   } catch (error) {
     console.log({ error });

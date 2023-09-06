@@ -12,19 +12,18 @@ const settings: any = {
   TRANSACTION_FEES: {
     'credit-fees': {
       purpose: 'Fees:Business:Credit-transaction-charge',
-      // purpose: 'Fees:Credit',
+      flat: 0,
+    },
+    'loan-processing-fees': {
+      purpose: 'Fees:Business:Loan-processing-charge',
       flat: 0,
     },
     'debit-fees': {
       purpose: 'Fees:Business:Debit-transaction-charge',
-      // purpose: 'Fees:Debit',
-      // percent: 0.5,
-      // ceiling: 500000,
       flat: 0,
     },
     'school-fees': {
       purpose: 'Fees:Business:School-Payment',
-      // purpose: 'Fees:School-Payment',
       percent: 0.5,
       ceiling: 8000,
       floor: 1000,
@@ -32,18 +31,14 @@ const settings: any = {
     },
     'mobile-money-fee': {
       purpose: 'Fees:Business:Mobile-Money',
-      // purpose: 'Fees:Mobile-Money',
       flat: 20,
     },
     'mobile-money-subscription-school-fees': {
       purpose: 'Fees:EndUser:offset-Charge',
-      // purpose: 'Fees:offset-Charge',
       flat: Utils.isStaging() ? 1000 : 100000,
     },
     'steward-charge-school-fees': {
       purpose: 'Fees:EndUser:steward-Charge',
-      // purpose: 'Fees:steward-Charge',
-      // flat: 200,
       flat: 0,
     },
     'mobile-money-collection-fees': {
