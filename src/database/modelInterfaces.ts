@@ -1036,3 +1036,17 @@ export interface IMobileMoneyPayment {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface IAuditLog {
+  id: number;
+  code?: string;
+  event?: string;
+  user_type?: string;
+  user_id?: number;
+  table_type?: string;
+  table_id?: number;
+  initial_state?: string;
+  delta?: string;
+  created_at: Date;
+  updated_at?: Date;
+}

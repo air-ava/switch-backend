@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { theResponse } from '../utils/interface';
 import ValidationError from '../utils/validationError';
 import ModelRepo from '../database/repositories/index.repo';
+import AuditLogsRepo from '../database/repositories/auditLogs.repo';
 
 const Service = {
   async createLog({
@@ -19,20 +21,20 @@ const Service = {
     }
     const foundTable = code && (await ModelRepo.findTableById(tableName, code));
 
-    return `AuditLogsRepo.createAnAuditLogs({
-      queryParams: {
-        event,
-        user_type,
-        user,
-        initial_state: initialState && initialState,
-        delta,
-        table_type: tableName,
-        table_id: rowId || foundTable.id,
-      },
-    })`;
+    return AuditLogsRepo.createAuditLog({
+      event,
+      user_type,
+      user_id: user,
+      initial_state: initialState && initialState,
+      delta,
+      table_type: tableName,
+      table_id: rowId || foundTable.id,
+    });
   },
 
   updateLog(code: string, payload: any) {
-    return `AuditLogsRepo.updateAAuditLogs(payload, { where: { code } })`;
+    return AuditLogsRepo.updateAuditLog(payload, { where: { code } });
   },
 };
+
+export default Service;

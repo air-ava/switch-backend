@@ -400,7 +400,7 @@ const Service = {
       class_id: foundClassLevel.id,
       status: STATUSES.ACTIVE,
     });
-    return sendObjectResponse('Added Class to School Successfully');
+    return sendObjectResponse('Added Class to School Successfully', schoolClass);
   },
   
   async listClassLevelByEducationLevel(data: any): Promise<theResponse> {

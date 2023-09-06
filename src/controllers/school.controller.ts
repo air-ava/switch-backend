@@ -13,6 +13,7 @@ import SchoolService, {
 // import SchoolService from '../services/school.service';
 import DocumentService from '../services/document.service';
 import StudentService from '../services/student.service';
+import AuditLogsService from '../services/auditLogs.service';
 import ResponseService from '../utils/response';
 import { Sanitizer } from '../utils/sanitizer';
 import { addClass, addClassAdmin, getClassLevel } from '../validators/schools.validator';
@@ -194,11 +195,11 @@ export const addClassToSchoolCONTROLLER: RequestHandler = async (req, res) => {
 
   const response = await SchoolService.addClassToSchool(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, data);
+  return ResponseService.success(res, message || error);
 };
 
 export const addClassToSchoolAdminCONTROLLER: RequestHandler = async (req, res) => {
-  // const { school } = req;
+  const { backOfficeUser } = req;
   const { code, schoolCode } = req.params;
   const validation = addClassAdmin.validate({ code, schoolCode });
   if (validation.error) throw new ValidationError(validation.error.message);
@@ -209,8 +210,19 @@ export const addClassToSchoolAdminCONTROLLER: RequestHandler = async (req, res) 
   const payload = { code, school };
 
   const response = await SchoolService.addClassToSchool(payload);
+
+  // record the action of the admin user
+  const schoolClass = response.data;
+  await AuditLogsService.createLog({
+    event: 'add-class-to-school',
+    user_type: 'backOfficeUsers',
+    user: backOfficeUser.id,
+    delta: JSON.stringify(schoolClass),
+    table_type: 'schoolClass',
+    table_id: schoolClass.id,
+  });
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, data);
+  return ResponseService.success(res, message || error);
 };
 
 export const listClassInSchoolCONTROLLER: RequestHandler = async (req, res) => {

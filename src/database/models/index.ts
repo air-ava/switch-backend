@@ -1,5 +1,6 @@
 import { Addresses } from './address.model';
 import { Assets } from './assets.model';
+import { AuditLog } from './auditLogs.model';
 import { BackOfficeBanks } from './backOfficeBanks.model';
 import { BackOfficeUsers } from './backOfficeUser.model';
 import { BankTransfers } from './bankTransfer.model';
@@ -67,6 +68,7 @@ import { Users } from './users.model';
 const Models: any = {
   addresses: Addresses,
   assets: Assets,
+  auditLog: AuditLog,
   backOfficeBanks: BackOfficeBanks,
   backOfficeUsers: BackOfficeUsers,
   cardTransactions: CardTransactions,
