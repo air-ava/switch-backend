@@ -2,6 +2,8 @@ import { RequestHandler } from 'express';
 import SchoolService from '../services/school.service';
 import FeesService from '../services/fees.service';
 import ResponseService from '../utils/response';
+import AuditLogsService from '../services/auditLogs.service';
+import SessionService from '../services/session.service';
 import { Sanitizer } from '../utils/sanitizer';
 import { editFeeValidator, getClassFeesValidator, getFeeValidator, getFeesValidator } from '../validators/fee.validator';
 import ValidationError from '../utils/validationError';
@@ -34,6 +36,19 @@ export const listFeeTypesCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeFeeType));
 };
 
+export const listFeeTypesAdminCONTROLLER: RequestHandler = async (req, res) => {
+  const { code: schoolCode } = req.params;
+
+  const {
+    data: { school },
+  } = await SchoolService.getSchoolAsAdmin(schoolCode);
+
+  const payload = { ...req.query, school };
+  const response = await FeesService.listFeeTypes(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeFeeType));
+};
+
 export const addFeeTypeCONTROLLER: RequestHandler = async (req, res) => {
   const { school } = req;
   const payload = { ...req.body, school };
@@ -50,6 +65,26 @@ export const addFeeCONTROLLER: RequestHandler = async (req, res) => {
     ? await FeesService.createFees({ incomigFees, ...payload })
     : await FeesService.createAFee({ ...req.body, ...payload });
   // const response = await FeesService.createAFee(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const addFeeAdminCONTROLLER: RequestHandler = async (req, res) => {
+  const { backOfficeUser } = req;
+  const { incomigFees } = req.body;
+  const { code: schoolCode } = req.params;
+
+  const {
+    data: { school },
+  } = await SchoolService.getSchoolAsAdmin(schoolCode);
+
+  const { data: educationalSession } = await SessionService.getSchoolAsAdmin(school);
+
+  const payload = { school, authSession: educationalSession };
+  const response = Array.isArray(incomigFees)
+    ? await FeesService.createFees({ incomigFees, ...payload, admin: backOfficeUser })
+    : await FeesService.createAFee({ ...req.body, ...payload, admin: backOfficeUser });
+
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };

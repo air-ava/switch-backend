@@ -52,8 +52,11 @@ export const updateWalletPinCONTROLLER: RequestHandler = async (req, res) => {
 
 export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
   const reference = v4();
-  let purpose = 'Funding:Wallet-Top-Up';
-  if (req.query.type === 'school-fees') purpose = 'Payment:School-Fees';
+  const txPurpose = Settings.get('TRANSACTION_PURPOSE');
+  let { purpose } = txPurpose['top-up'];
+  // let purpose = 'Funding:Wallet-Top-Up';
+  if (req.query.type === 'school-fees') purpose = txPurpose['school-fees'];
+  if (req.query.type === 'disburse-loan') purpose = txPurpose['disburse-loan'];
   const t = await getQueryRunner();
   try {
     const payload: any = {

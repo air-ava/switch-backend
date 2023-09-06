@@ -72,6 +72,10 @@ const settings: any = {
       purpose: 'Payment:School-Fees',
       type: 'credit',
     },
+    'disburse-loan': {
+      purpose: 'Funding:Loan:Wallet-Top-Up',
+      type: 'credit',
+    },
     settlement: {
       purpose: 'Withdraw:Settlement',
       type: 'debit',

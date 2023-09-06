@@ -3,7 +3,7 @@ import { updateSchedule } from '../database/repositories/schedule.repo';
 import { NotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
 import Settings from './settings.service';
 import ScheduleService from './schedule.service';
-import { listSchoolSession, saveSchoolSession } from '../database/repositories/schoolSession.repo';
+import { getSchoolSession, listSchoolSession, saveSchoolSession } from '../database/repositories/schoolSession.repo';
 import { STATUSES } from '../database/models/status.model';
 import { listSchoolPeriod, saveSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import Utils from '../utils/utils';
@@ -116,6 +116,12 @@ const Service = {
   async listSessions(data: any): Promise<theResponse> {
     const existingEducationalLevels = await listSchoolSession({ status: Not(STATUSES.DELETED) }, []);
     return sendObjectResponse('Sessions retrieved successfully', existingEducationalLevels);
+  },
+
+  async getSchoolAsAdmin(school: any): Promise<theResponse> {
+    const foundSession = await getSchoolSession({ country: 'UGANDA' || school.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
+    if (!foundSession) throw new ValidationError('No running session');
+    return sendObjectResponse('Sessions retrieved successfully', foundSession);
   },
 };
 

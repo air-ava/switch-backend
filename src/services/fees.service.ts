@@ -44,6 +44,7 @@ import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import Utils from '../utils/utils';
 import { listStudentClass } from '../database/repositories/studentClass.repo';
+import AuditLogsService from './auditLogs.service';
 
 const Service: any = {
   async getSchoolProduct(data: any): Promise<theResponse> {
@@ -72,7 +73,7 @@ const Service: any = {
     await updateSchoolProduct({ id: fee.id }, { status: STATUSES.DELETED });
     return sendObjectResponse('Fee deleted successfully');
   },
-  
+
   async editFee(data: any): Promise<theResponse> {
     const { data: fee } = await Service.isFeeInUse(data);
     const { currency, classCode, status, name, description, amount, feeType, paymentType, periodCode } = data;
@@ -239,7 +240,7 @@ const Service: any = {
   },
 
   async createAFee(data: any): Promise<theResponse> {
-    const { description, amount, currency, image, school, name, class: classCode, authSession, session } = data;
+    const { admin, description, amount, currency, image, school, name, class: classCode, authSession, session } = data;
     if (session) {
       const foundSession = await getSchoolSession({ code: session }, []);
       if (!foundSession || foundSession.status === STATUSES.DELETED) throw new NotFoundError('session');
@@ -269,6 +270,17 @@ const Service: any = {
       beneficiary_type: 'student',
     });
 
+    if (admin) {
+      const newFee = createdFee.data;
+      await AuditLogsService.createLog({
+        event: 'add-fee-to-school',
+        user_type: 'backOfficeUsers',
+        user: admin.id,
+        delta: JSON.stringify(newFee),
+        table_type: 'schoolProduct',
+        table_id: newFee.id,
+      });
+    }
     return sendObjectResponse('Fee created successfully', createdFee.data);
   },
 
@@ -287,8 +299,8 @@ const Service: any = {
   },
 
   async createFees(data: any): Promise<theResponse> {
-    const { incomigFees, school, authSession, session } = data;
-    await Service.callService('createAFee', incomigFees, { school, session, authSession });
+    const { incomigFees, school, authSession, session, ...rest } = data;
+    await Service.callService('createAFee', incomigFees, { school, session, authSession, ...rest });
     return sendObjectResponse('Fees created successfully');
   },
 
@@ -452,7 +464,6 @@ const Service: any = {
       [],
       ['Fees', 'ClassLevel', 'Fees.PaymentType', 'Fees.ProductType', 'Fees.Session', 'Fees.Period', 'Fees.SchoolClass'],
     );
-
 
     const groupedTransactions = createObjectFromArrayWithoutValue(
       Sanitizer.sanitizeAllArray(response.Fees, Sanitizer.sanitizeFee),
