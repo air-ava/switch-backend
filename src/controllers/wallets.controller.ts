@@ -1,7 +1,8 @@
 import { RequestHandler } from 'express';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { v4 } from 'uuid';
 import { Not, In } from 'typeorm';
-import { oldSendObjectResponse } from '../utils/errors';
+import { oldSendObjectResponse, sendObjectResponse } from '../utils/errors';
 import { Service as WalletService } from '../services/wallet.service';
 import { getQueryRunner } from '../database/helpers/db';
 import { Sanitizer } from '../utils/sanitizer';
@@ -60,17 +61,22 @@ export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
   const { amount, description } = req.body;
 
   const txPurpose = Settings.get('TRANSACTION_PURPOSE');
+  const feesConfig = Settings.get('TRANSACTION_FEES');
+
   let { purpose } = txPurpose['top-up'];
   const feesNames = ['credit-fees'];
+  const feesPurposeNames: string[] = [feesConfig['credit-fees'].purpose];
   // eslint-disable-next-line default-case
   switch (type) {
     case 'school-fees':
       purpose = txPurpose['school-fees'].purpose;
       feesNames.push('school-fees');
+      feesPurposeNames.push(feesConfig['school-fees'].purpose);
       break;
     case 'disburse-loan':
       purpose = txPurpose['disburse-loan'].purpose;
       feesNames.push('loan-processing-fees');
+      feesPurposeNames.push(feesConfig['loan-processing-fees'].purpose);
       break;
   }
 
@@ -80,14 +86,7 @@ export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
   const t = await getQueryRunner();
 
   try {
-    const payload: any = {
-      user,
-      amount,
-      description,
-      purpose,
-      reference,
-      t,
-    };
+    const payload: any = { user, amount, description, purpose, reference, t };
 
     const { success, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user, t });
     if (!success) throw walletError;
@@ -95,11 +94,8 @@ export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
     payload.wallet_id = wallet.id;
 
     const response = await WalletService.creditWallet(payload);
-    const {
-      success: debitSuccess,
-      data: transactionFees,
-      error: debitError,
-    } = await WalletService.debitTransactionFees({
+    // eslint-disable-next-line prettier/prettier
+    const { success: debitSuccess, data: transactionFees, error: debitError } = await WalletService.debitTransactionFees({
       wallet_id: wallet.id,
       reference,
       user,
@@ -109,9 +105,6 @@ export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
       t,
     });
     if (!debitSuccess) throw debitError;
-
-    const feesConfig = Settings.get('TRANSACTION_FEES');
-    const feesPurposeNames: string[] = [feesConfig['school-fees'].purpose, feesConfig['credit-fees'].purpose];
 
     await updateTransactionREPO(
       { reference, purpose: Not(In(feesPurposeNames)) },
@@ -200,7 +193,7 @@ export const withdrawFromWalletCONTROLLER: RequestHandler = async (req, res) => 
     const responseCode = response.success === true ? 200 : 400;
     const { data, message, error } = response;
     // data.fees = transactionFees;
-    return res.status(responseCode).json(oldSendObjectResponse(message || error, data, true));
+    return res.status(responseCode).json(sendObjectResponse(message || error, data));
   } catch (error) {
     console.log({ error });
     await t.rollbackTransaction();
