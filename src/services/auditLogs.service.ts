@@ -35,6 +35,11 @@ const Service = {
   updateLog(code: string, payload: any) {
     return AuditLogsRepo.updateAuditLog(payload, { where: { code } });
   },
+
+  listAuditLogs(data: any) {
+    const { user_type = 'backOfficeUsers', userCode } = data;
+    return AuditLogsRepo.listAuditLogs({ user_type }, []);
+  },
 };
 
 export default Service;

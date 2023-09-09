@@ -23,6 +23,20 @@ const Repo = {
         });
   },
 
+  async listBackOfficeUsers(
+    queryParam: Partial<IBackOfficeUsers | any>,
+    selectOptions: Array<keyof BackOfficeUsers>,
+    relationOptions?: any[],
+    t?: QueryRunner,
+  ): Promise<BackOfficeUsers[] | any[]> {
+    const repository = t ? t.manager.getRepository(BackOfficeUsers) : getRepository(BackOfficeUsers);
+    return repository.find({
+      where: queryParam,
+      ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+      ...(relationOptions && { relations: relationOptions }),
+    });
+  },
+
   async saveABackOfficeUser(payload: Partial<IBackOfficeUsers>, t?: QueryRunner): Promise<BackOfficeUsers> {
     const { ...rest } = payload;
     return t ? t.manager.save(BackOfficeUsers, rest) : getRepository(BackOfficeUsers).save(rest);

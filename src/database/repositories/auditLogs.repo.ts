@@ -12,7 +12,7 @@ const Repository = {
   async getAuditLog(
     queryParam: QueryParam,
     selectOptions: SelectOptions,
-    relationOptions: RelationOptions,
+    relationOptions?: RelationOptions,
     t?: Transaction,
   ): Promise<AuditLog | undefined> {
     const repository = t ? t.manager.getRepository(AuditLog) : getRepository(AuditLog);
@@ -26,7 +26,7 @@ const Repository = {
   async listAuditLogs(
     queryParam: QueryParam,
     selectOptions: SelectOptions,
-    relationOptions: RelationOptions,
+    relationOptions?: RelationOptions,
     t?: Transaction,
   ): Promise<AuditLog[] | any[]> {
     const repository = t ? t.manager.getRepository(AuditLog) : getRepository(AuditLog);

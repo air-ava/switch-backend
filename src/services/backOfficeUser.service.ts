@@ -116,6 +116,11 @@ const Service = {
       return BadRequestException(e.message);
     }
   },
+  
+  async listBackOfficeUser(data: any): Promise<any> {
+    const users = await BackOfficeUserRepo.listBackOfficeUsers({ status: STATUSES.ACTIVE }, []);
+    return sendObjectResponse('retrieved admin users', users);
+  },
 };
 
 export default Service;
