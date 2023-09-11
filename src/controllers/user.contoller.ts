@@ -1,5 +1,8 @@
+import { Sanitizer } from './../utils/sanitizer';
 import { RequestHandler } from 'express';
 import { fetchUser, fetchUserBySlug, fetchUserProfile, listUsers, updateUserProfile } from '../services/user.service';
+import BackOfficeService from '../services/backOfficeUser.service';
+import ResponseService from '../utils/response';
 
 const errorMessages = {
   userDetails: 'Could not update user details',
@@ -41,6 +44,12 @@ export const listUsersCONTROLLER: RequestHandler = async (req, res) => {
       ? res.status(400).json({ success: false, error: error.message })
       : res.status(500).json({ success: false, error: errorMessages.userDetails, data: error });
   }
+};
+
+export const listAdninUsersCONTROLLER: RequestHandler = async (req, res) => {
+  const response = await BackOfficeService.listBackOfficeUser(req.body);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeAdmin));
 };
 
 export const getUserCONTROLLER: RequestHandler = async (req, res) => {

@@ -228,6 +228,14 @@ export const Sanitizer = {
     };
     return sanitized;
   },
+  
+  sanitizeAdmin(payload: any): any {
+    if (!payload) return null;
+    const { id, ...rest } = Sanitizer.sanitizeAdminUser(payload);
+
+    const sanitized = { ...rest };
+    return sanitized;
+  },
 
   sanitizeSponsorship(payload: ISponsorships): any {
     if (!payload) return null;

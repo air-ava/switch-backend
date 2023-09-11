@@ -807,6 +807,7 @@ export interface IBankTransfers {
 }
 export interface IBackOfficeUsers {
   id: number;
+  code: string;
   email: string;
   name: string;
   slug: string;

@@ -5,10 +5,18 @@ import {
   resetPasswordCONTROLLER,
   verifyCONTROLLER,
 } from '../../controllers/auth.controller';
-import { fetchUserCONTROLLER, getUserCONTROLLER, listUsersCONTROLLER, updateUserCONTROLLER } from '../../controllers/user.contoller';
+import {
+  fetchUserCONTROLLER,
+  getUserCONTROLLER,
+  listAdninUsersCONTROLLER,
+  listUsersCONTROLLER,
+  updateUserCONTROLLER,
+} from '../../controllers/user.contoller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 
+router.get('/admin', catchErrors(listAdninUsersCONTROLLER));
 router.get('/', listUsersCONTROLLER);
 router.get('/:id', getUserCONTROLLER);
 router.post('/verify/:id', backOfficeVerifiesAccountCONTROLLER);

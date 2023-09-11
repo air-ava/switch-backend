@@ -9,6 +9,9 @@ export class BackOfficeUsers {
   id: number;
 
   @Column('text')
+  code: string;
+
+  @Column('text')
   email: string;
 
   @Column('text')
