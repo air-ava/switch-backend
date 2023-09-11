@@ -4,7 +4,7 @@
 import randomstring from 'randomstring';
 import { v4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
-import { QueryRunner } from 'typeorm';
+import { Not, QueryRunner } from 'typeorm';
 import { findCurrency } from '../database/repositories/curencies.repo';
 import { BadRequestException, NotFoundError, sendObjectResponse } from '../utils/errors';
 import { ControllerResponse, theResponse } from '../utils/interface';
@@ -310,7 +310,11 @@ export const Service: any = {
     transactionPin?: string;
     t: QueryRunner;
   }): Promise<ControllerResponse> {
-    const wallet = await WalletREPO.findWallet({ status: STATUSES.ACTIVE, userId: user.id, id: wallet_id }, ['id', 'balance', 'transaction_pin'], t);
+    const wallet = await WalletREPO.findWallet(
+      { status: Not(STATUSES.DELETED), userId: user.id, id: wallet_id },
+      ['id', 'balance', 'transaction_pin'],
+      t,
+    );
     if (!wallet) {
       return {
         success: false,
@@ -472,7 +476,7 @@ export const Service: any = {
   async freezeWallet(data: any): Promise<any> {
     const { uniquePaymentId, freeze } = data;
     const status = freeze ? STATUSES.FREEZE : STATUSES.ACTIVE;
-    const wallet = await WalletREPO.findWallet({ status: STATUSES.ACTIVE, uniquePaymentId }, ['id', 'balance', 'transaction_pin']);
+    const wallet = await WalletREPO.findWallet({ status: Not(STATUSES.DELETED), uniquePaymentId }, ['id', 'balance', 'transaction_pin']);
     if (!wallet) throw new NotFoundError('Wallet');
 
     await WalletREPO.updateWalletStatus({ queryParams: { uniquePaymentId }, status });
