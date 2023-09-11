@@ -168,7 +168,7 @@ const Service: any = {
       session,
       school,
       forPeriod = false,
-      forSession = false,
+      forSession = true,
       expiresAtPeriodEnd = false,
       addClass = false,
     } = data;
