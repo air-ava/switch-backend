@@ -10,13 +10,14 @@ import {
   recordBankTransferCONTROLLER,
   updateBankTransferCONTROLLER,
 } from '../../controllers/payment.controller';
-import { fundWalletCONTROLLER, withdrawFromWalletCONTROLLER } from '../../controllers/wallets.controller';
+import { freezeWalletCONTROLLER, fundWalletCONTROLLER, withdrawFromWalletCONTROLLER } from '../../controllers/wallets.controller';
 
 const router = express.Router();
 
 router.patch('/bank/update', updateBankTransferCONTROLLER);
 router.patch('/bank/complete', completeBankTransferCONTROLLER);
 router.get('/bank', listBankTransferCONTROLLER);
+router.patch('/freeze', freezeWalletCONTROLLER);
 router.get('/bank/:id', getBankTransferCONTROLLER);
 router.post('/top-up/:code', fundWalletCONTROLLER);
 // router.post('/', createPaymentCONTROLLER);

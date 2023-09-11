@@ -6,7 +6,7 @@ import { v4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
 import { QueryRunner } from 'typeorm';
 import { findCurrency } from '../database/repositories/curencies.repo';
-import { BadRequestException, sendObjectResponse } from '../utils/errors';
+import { BadRequestException, NotFoundError, sendObjectResponse } from '../utils/errors';
 import { ControllerResponse, theResponse } from '../utils/interface';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { getQueryRunner } from '../database/helpers/db';
@@ -337,6 +337,37 @@ export const Service: any = {
         error: 'Insufficient balance',
       };
     }
+    
+    if (wallet.status === STATUSES.FREEZE) {
+      return {
+        success: false,
+        error: 'Account is currenly frozen',
+      };
+    }
+
+    // if (perTransactionLimit && Number(amount) > perTransactionLimit) {
+    //   return {
+    //     success: false,
+    //     error: `Transaction exceeds limit by NGN ${numeral((Number(amount) - perTransactionLimit) / 100).format('0,0.00')}`,
+    //   };
+    // }
+  
+    // if (dailyLimit) {
+    //   const [totalDebitsToday, totalReversalsToday] = await Promise.all([
+    //     getTotalWalletTransactionsFromDate({
+    //       walletId: wallet.id,
+    //       startDate: startOfDay(new Date()),
+    //     }),
+    //     getTotalReversalsFromDate({ walletId: wallet.id, startDate: startOfDay(new Date()) }),
+    //   ]);
+    //   if (Number(amount) + Number(totalDebitsToday?.total) - Number(totalReversalsToday?.total) > dailyLimit)
+    //     return {
+    //       success: false,
+    //       error: `Transaction exceeds daily limit by NGN ${numeral(
+    //         (Number(amount) + Number(totalDebitsToday?.total) - Number(totalReversalsToday?.total) - dailyLimit) / 100,
+    //       ).format('0,0.00')}`,
+    //     };
+    // }
 
     await WalletREPO.decrementBalance(wallet.id, Number(amount), t);
 
@@ -436,5 +467,15 @@ export const Service: any = {
     }
     if (flat) fee = flat;
     return { purpose, fee };
+  },
+
+  async freezeWallet(data: any): Promise<any> {
+    const { uniquePaymentId, freeze } = data;
+    const status = freeze ? STATUSES.FREEZE : STATUSES.ACTIVE;
+    const wallet = await WalletREPO.findWallet({ status: STATUSES.ACTIVE, uniquePaymentId }, ['id', 'balance', 'transaction_pin']);
+    if (!wallet) throw new NotFoundError('Wallet');
+
+    await WalletREPO.updateWalletStatus({ queryParams: { uniquePaymentId }, status });
+    return sendObjectResponse(freeze ? 'Wallet Frozen' : 'Wallet Unfrozen', wallet);
   },
 };

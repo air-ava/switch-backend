@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { v4 } from 'uuid';
 import { Not, In } from 'typeorm';
-import { oldSendObjectResponse, sendObjectResponse } from '../utils/errors';
+import { ValidationError, oldSendObjectResponse, sendObjectResponse } from '../utils/errors';
 import { Service as WalletService } from '../services/wallet.service';
 import { getQueryRunner } from '../database/helpers/db';
 import { Sanitizer } from '../utils/sanitizer';
@@ -10,6 +10,8 @@ import { getOneTransactionREPO, updateTransactionREPO } from '../database/reposi
 import Settings from '../services/settings.service';
 import sessionData from '../middleware/auth.middleware';
 import AuditLogsService from '../services/auditLogs.service';
+import ResponseService from '../utils/response';
+import { freezeWalletValidator } from '../validators/wallet.validator';
 
 export const getWalletCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -201,4 +203,26 @@ export const withdrawFromWalletCONTROLLER: RequestHandler = async (req, res) => 
   } finally {
     await t.release();
   }
+};
+
+export const freezeWalletCONTROLLER: RequestHandler = async (req, res) => {
+  const { backOfficeUser } = req;
+  const { freeze } = req.body;
+
+  const validation = freezeWalletValidator.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await WalletService.freezeWallet(req.body);
+  const { data, message, error } = response;
+
+  const wallet = response.data;
+  AuditLogsService.createLog({
+    event: `${freeze ? 'freeze' : 'unfreeze'}-wallet`,
+    user_type: 'backOfficeUsers',
+    user: backOfficeUser.id,
+    delta: JSON.stringify(wallet),
+    table_type: 'wallet',
+    table_id: wallet.id,
+  });
+  return ResponseService.success(res, message || error);
 };

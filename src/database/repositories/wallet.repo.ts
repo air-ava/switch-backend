@@ -70,6 +70,11 @@ export const Repo = {
         });
   },
 
+  async updateWalletStatus({ queryParams, status, t }: { queryParams: Partial<IWallets>; status: number; t?: QueryRunner }): Promise<UpdateResult> {
+    const repository = t ? t.manager.getRepository(Wallets) : getRepository(Wallets);
+    return repository.update(queryParams, { status });
+  },
+
   async updateWalletTransactionPin({ walletId, pin, t }: { walletId: number; pin: string; t?: QueryRunner }): Promise<UpdateResult> {
     return t
       ? t.manager.update(Wallets, { id: walletId }, { transaction_pin: pin })
