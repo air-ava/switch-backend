@@ -15,6 +15,7 @@ import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { getSchool } from '../database/repositories/schools.repo';
 import { v4 } from 'uuid';
 import { createMobileMoneyPaymentREPO } from '../database/repositories/mobileMoneyPayment.repo';
+import { phoneValidator } from '../validators/phoneNumber.validator';
 
 const Service = {
   async getStudent(criteria: any): Promise<theResponse> {
@@ -73,8 +74,7 @@ const Service = {
 
     const choices = ['1'];
     const [paySchoolFees] = choices;
-    const baseResponse = `CON Welcome to Steward School Fees Payment
-      1. School fees payment
+    const baseResponse = `CON 1. School fees payment
     `;
 
     const choiceSchoolFees = `CON Enter Student Code`;
@@ -83,7 +83,7 @@ const Service = {
     if (serviceCode !== Settings.get('USSD').serviceCode) return BadRequestException('END Invalid ussd code');
     if (!paths || !paths.length) return sendObjectResponse(baseResponse);
 
-    const [choice, studentId, incomingAmount] = paths;
+    const [, choice, studentId, incomingAmount] = paths;
 
     const { allFees: fees } = await WalletService.getAllFees(incomingAmount, [
       'mobile-money-subscription-school-fees',
@@ -138,8 +138,7 @@ const Service = {
 
     const choices = ['1', '2', '3'];
     const [checkWalletBalance, sendMoney, payLoan] = choices;
-    const baseResponse = `CON Welcome to Steward Schools
-      1. Check Wallet Balance
+    const baseResponse = `CON 1. Check Wallet Balance
       2. Send Money (MoMo)
       3. Pay Loan
     `;
@@ -147,10 +146,13 @@ const Service = {
     const enterSchoolCode = `CON Enter School Code`;
     const badChoice = `END We currently do not provide this service.`;
 
-    if (serviceCode !== Settings.get('USSD').schoolServiceCode) return BadRequestException('END Invalid ussd code');
+    // if (serviceCode !== Settings.get('USSD').schoolServiceCode) return BadRequestException('END Invalid ussd code');
+    if (serviceCode !== Settings.get('USSD').serviceCode) return BadRequestException('END Invalid ussd code');
     if (!paths || !paths.length) return sendObjectResponse(baseResponse);
 
-    const [choice, schoolId, incomingAmount] = paths;
+    const [, choice, schoolId, incomingAmount] = paths;
+
+    console.log({ schoolSessionHandler: criteria, choice, choices });
 
     if (!choice) return sendObjectResponse(baseResponse);
     if (!choices.includes(choice)) return sendObjectResponse(badChoice);
@@ -170,7 +172,7 @@ const Service = {
     const { text, schoolId: walletId } = data;
 
     const paths = text?.split('*');
-    const [, , transactionPin] = paths;
+    const [, , , transactionPin] = paths;
 
     const wallet = await WalletREPO.findWallet({ uniquePaymentId: walletId, entity: 'school' }, [], undefined, ['User']);
     if (!wallet) return BadRequestException('END Wallet does not exist');
@@ -192,9 +194,11 @@ const Service = {
     const { text, schoolId: walletId, networkCode, phoneNumber } = data;
 
     const paths = text?.split('*');
-    const [, , recieversPhone, incomingAmount] = paths;
+    const [, , , recieversPhone, confirmPayment, incomingAmount] = paths;
 
-    if (!recieversPhone) return BadRequestException('END Recievers Phone Number is needed');
+    if (!recieversPhone) return BadRequestException('END Recievers Phone Number is needed, [eg: 256XXXXXXXXX]');
+    const { error } = phoneValidator.validate({ phone: recieversPhone });
+    if (error) return BadRequestException(`END ${error.message}`);
 
     const feesNames = ['mobile-money-subscription-school-fees', 'steward-charge-school-fees', 'mobile-money-collection-fees'];
     if (incomingAmount) {
@@ -233,7 +237,26 @@ const Service = {
       // return sendObjectResponse(`${amountBaseResponse}`);
     }
 
-    const baseResponse = `CON Confirm this Phone ${recieversPhone}`;
+    if (confirmPayment) {
+      const [yes, no] = ['1', '2'];
+      let response;
+      switch (confirmPayment) {
+        case yes:
+          response = sendObjectResponse(`CON Please enter amount`);
+          break;
+        case no:
+          response = BadRequestException('END Start again with the Correct Phone Number');
+          break;
+        default:
+          response = BadRequestException('END Invalid choice selected');
+      }
+      return response;
+    }
+
+    const baseResponse = `CON Confirm this Phone ${recieversPhone}
+    1. Yes
+    2. No
+    `;
 
     return sendObjectResponse(baseResponse);
   },
@@ -273,6 +296,40 @@ const Service = {
     };
 
     return telcoCodes[code];
+  },
+
+  async homePage(criteria: any): Promise<theResponse> {
+    const { serviceCode, text } = criteria;
+    const baseResponse = `CON Welcome to Steward
+      1. School Fees Payment
+      2. For Schools
+    `;
+    const paths = text?.split('*');
+    if (serviceCode !== Settings.get('USSD').serviceCode) return BadRequestException('END Invalid ussd code');
+
+    const choices = ['1', '2'];
+    const [paySchoolFees, schoolActivity] = choices;
+    const [firstLevelChoice] = paths;
+
+    if (!firstLevelChoice) return sendObjectResponse(baseResponse);
+    // const ussdServiceCodes = Settings.get('USSD');
+    console.log({
+      firstLevelChoice,
+      schoolActivity,
+    });
+    let response;
+    switch (firstLevelChoice) {
+      case paySchoolFees:
+        response = await Service.sessionHandler(criteria);
+        break;
+      case schoolActivity:
+        response = await Service.schoolSessionHandler(criteria);
+        break;
+      default:
+        response = BadRequestException('END Invalid ussd code');
+    }
+
+    return response;
   },
 };
 
