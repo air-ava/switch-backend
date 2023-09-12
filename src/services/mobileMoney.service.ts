@@ -640,7 +640,16 @@ export const Service = {
       }
 
       // Notify EveryOne for Transaction Completion
-      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference, type: 'Credit' });
+      Service.mobileMoneyPaymentNotification({
+        user,
+        wallet,
+        created_at,
+        description,
+        amount: transactionMetadata.amount / 100,
+        currency,
+        reference,
+        type: 'Credit',
+      });
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();
