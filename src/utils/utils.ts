@@ -1,8 +1,10 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { parsePhoneNumber } from 'libphonenumber-js';
 import randomstring from 'randomstring';
 import { MoreThan, LessThan, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { ENVIRONMENT } from './secrets';
+import ValidationError from './validationError';
 
 const dateFns = require('date-fns');
 
@@ -334,6 +336,22 @@ const Utils = {
     const hasPreviousPage = page > 1;
     const nextPage = hasNextPage ? Number(page) + 1 : null;
     return { nextPage, totalPages, hasNextPage, hasPreviousPage };
+  },
+
+  formatAndUpdatePhoneNumber(phone: string): string {
+    // eslint-disable-next-line prefer-const
+    let customRegex = /^\+\d{1,3}\d{3,}$/;
+    phone = phone.replace(/\D/g, '');
+    if (!phone.startsWith('+')) phone = `+${phone}`;
+    if (!customRegex.test(phone)) throw new ValidationError('Invalid Phone Number');
+    return phone;
+  },
+
+  limitAndAddEllipsis(inputString: string, maxLength = 30) {
+    if (inputString.length <= maxLength) {
+      return inputString; // Return the original string if it's within or equal to the limit
+    }
+    return `${inputString.slice(0, maxLength - 3)}...`; // Truncate and add ellipsis
   },
 };
 

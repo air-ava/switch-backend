@@ -1,5 +1,7 @@
 import { Client } from 'africastalking-ts';
 import { AFRICA_TALKING_API_KEY, AFRICA_TALKING_USERNAME } from '../../utils/secrets';
+import ValidationError from '../../utils/validationError';
+import Utils from '../../utils/utils';
 
 const africastalking = new Client({
   apiKey: AFRICA_TALKING_API_KEY,
@@ -9,8 +11,9 @@ const africastalking = new Client({
 export const sendSms = async (payload: any): Promise<any> => {
   const { phoneNumber, message } = payload;
   try {
+    const to = Array.isArray(phoneNumber) ? phoneNumber.map(Utils.formatAndUpdatePhoneNumber) : [`${Utils.formatAndUpdatePhoneNumber(phoneNumber)}`];
     const response = await africastalking.sendSms({
-      to: [`${phoneNumber}`],
+      to,
       message,
       // from: 'STEWARD',
     });
@@ -23,7 +26,7 @@ export const sendSms = async (payload: any): Promise<any> => {
     // logger.error(error);
     return {
       success: false,
-      error: error.response.data,
+      error: error.response?.data,
     };
   }
 };

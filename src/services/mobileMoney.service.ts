@@ -472,7 +472,7 @@ export const Service = {
 
       await updateTransactionREPO({ id }, { status: STATUSES.SUCCESS });
       // Notify EveryOne for Transaction Completion
-      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference });
+      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference, type: 'debit' });
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();
@@ -510,7 +510,7 @@ export const Service = {
       await updateTransactionREPO({ id: transactionRecord.id }, { status: STATUSES.FAILED, metadata });
 
       // Notify EveryOne for Transaction Completion
-      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference });
+      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference, type: 'credit' });
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();
@@ -520,20 +520,17 @@ export const Service = {
   },
 
   async mobileMoneyPaymentNotification(payload: any) {
-    const { user, wallet, created_at, description, amount, currency, reference } = payload;
+    const { user, wallet, created_at, description, amount, currency, reference, type, method = 'mobile-money' } = payload;
     try {
       const { data } = await PreferenceService.getNotificationContacts(wallet.entity_id);
       const { emails, phoneNumbers, transactions: transactionNotification } = data;
       const { notifyInflow, notifyOutflow } = transactionNotification;
       if (notifyInflow.includes('phoneNumbers'))
         sendSms({
-          phoneNumber: data.phoneNumbers,
-          message: `amount: ${currency}${amount}\n
-            method: mobile-money\n
-            type: credit\n
-            description: ${description}\n
-            reference: ${reference}\n
-            date: ${created_at}\n`,
+          phoneNumber: phoneNumbers,
+          message: `STEWARD Transaction Notification\n\nAmt: ${currency || 'UGX'}${amount}\ntype: ${type}\nDesc: ${Utils.limitAndAddEllipsis(
+            description,
+          )}\nBy: ${method}`,
         });
       // if (notifyInflow.includes('email')) {
       //   sendEmail({
@@ -643,7 +640,16 @@ export const Service = {
       }
 
       // Notify EveryOne for Transaction Completion
-      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference });
+      Service.mobileMoneyPaymentNotification({
+        user,
+        wallet,
+        created_at,
+        description,
+        amount: transactionMetadata.amount / 100,
+        currency,
+        reference,
+        type: 'Credit',
+      });
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();

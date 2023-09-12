@@ -17,7 +17,7 @@ export const completeCollectionRequest = async (payload: any): Promise<any> => {
 
 export const completeCollection = async (payload: any): Promise<any> => {
   try {
-    console.log(payload);
+    // console.log(payload);
     const { id: collectionId, collection_request, status: incomingStatus } = payload;
     const { fee_transaction, type } = collection_request;
 
