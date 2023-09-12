@@ -218,8 +218,17 @@ const Service = {
       const foundSchool = await getSchool({ id: schoolId }, [], ['phoneNumber']);
       if (!foundSchool) throw Error('School not found');
       // No notification method available
-      if (foundSchool.phoneNumber) (configuration as any).Notification.phoneNumbers = [foundSchool.phoneNumber.internationalFormat];
-      if (foundSchool.email) (configuration as any).Notification.emails = [foundSchool.email];
+      const modeOfNotification = [];
+      if (foundSchool.phoneNumber) {
+        (configuration as any).Notification.phoneNumbers = [foundSchool.phoneNumber.internationalFormat];
+        modeOfNotification.push('phoneNumbers');
+      }
+      if (foundSchool.email) {
+        (configuration as any).Notification.emails = [foundSchool.email];
+        modeOfNotification.push('email');
+      }
+      (configuration as any).Notification.transactions.notifyInflow = modeOfNotification;
+      (configuration as any).Notification.transactions.notifyOutflow = modeOfNotification;
     }
 
     return sendObjectResponse('Notification contacts retrieved successfully', (configuration as any).Notification);
