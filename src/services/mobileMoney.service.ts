@@ -527,7 +527,7 @@ export const Service = {
       const { notifyInflow, notifyOutflow } = transactionNotification;
       if (notifyInflow.includes('phoneNumbers'))
         sendSms({
-          phoneNumber: data.phoneNumbers,
+          phoneNumber: phoneNumbers,
           message: `STEWARD Transaction Notification\n\nAmt: ${currency || 'UGX'}${amount}\ntype: ${type}\nDesc: ${Utils.limitAndAddEllipsis(
             description,
           )}\nBy: ${method}`,
