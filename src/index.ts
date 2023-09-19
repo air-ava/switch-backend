@@ -9,8 +9,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 
-import swaggerUi from 'swagger-ui-express';
-import swaggerJSDoc from 'swagger-jsdoc';
 import Settings from './services/settings.service';
 // import { jsonify } from './utils/sanitizer';
 // import User from './database/models/user.entity';
@@ -21,7 +19,6 @@ import office from './routes/office/index';
 import webhook from './routes/webhook.routes';
 import ussd from './routes/ussd.routes';
 import jobs from './routes/jobs';
-import swagger from './routes/swagger';
 import { PORT, BASE_URL } from './utils/secrets';
 import { Log, log } from './utils/logs';
 
@@ -41,7 +38,6 @@ async function startServer(): Promise<void> {
   app.use('/office', office);
   app.use('/webhook', webhook);
   app.use('/ussd', ussd);
-  app.use('/swagger', swagger);
   app.use('/jobs', jobs);
 
   app.use((req, res, _next): void => {

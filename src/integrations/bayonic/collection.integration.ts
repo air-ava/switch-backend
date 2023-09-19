@@ -11,6 +11,7 @@ const axiosInstance = axios.create({
 });
 
 export const initiateCollection = async (payload: any): Promise<any> => {
+  console.log({ initiateCollection: payload });
   try {
     const response = await axiosInstance.post('collectionrequests', payload);
     return {
