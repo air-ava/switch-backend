@@ -1,12 +1,13 @@
 /* eslint-disable no-param-reassign */
 import randomstring from 'randomstring';
-import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
+import { QueryRunner, getRepository, In, UpdateResult, Not } from 'typeorm';
 import { ISchoolClass } from '../modelInterfaces';
 import { SchoolClass } from '../models/schoolClass.model';
 import { StudentClass } from '../models/studentClass.model';
 import Utils, { isValidDate } from '../../utils/utils';
 import exp from 'constants';
 import { STATUSES } from '../models/status.model';
+import { ClassLevel } from '../models/class.model';
 
 const dateFns = require('date-fns');
 
@@ -34,6 +35,7 @@ export const listSchoolClass = async (
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<SchoolClass[] | any> => {
+  console.log({ queryParam });
   const repository = t ? t.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
   const classes = await repository.find({
     where: queryParam,
@@ -53,6 +55,81 @@ export const listSchoolClass = async (
     );
 
     // classRoom.studentCount = classRoom.School.Students.length;
+  });
+
+  return classes;
+};
+
+export const listSchoolClass2 = async (
+  queryParam: Partial<ISchoolClass> | any,
+  selectOptions: Array<keyof SchoolClass> = [],
+  relationOptions?: any[],
+  t?: QueryRunner,
+): Promise<SchoolClass[] | any> => {
+  console.log({ queryParam });
+  const { school_id, status } = queryParam;
+  // const repository = t ? t.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
+  // const classes = await repository.find({
+  //   where: queryParam,
+  //   ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+  //   ...(relationOptions && { relations: relationOptions }),
+  // });
+
+  const queryBuilder = getRepository(SchoolClass).createQueryBuilder('SchoolClass');
+  const query = queryBuilder
+    .leftJoinAndSelect('SchoolClass.ClassLevel', 'ClassLevel')
+    .leftJoinAndSelect('SchoolClass.School', 'School')
+    .leftJoinAndSelect('ClassLevel.Classes', 'Classes')
+    .leftJoinAndSelect('SchoolClass.Fees', 'Fees')
+    .leftJoinAndSelect('Fees.ProductType', 'ProductType')
+    .leftJoinAndSelect('Fees.PaymentType', 'PaymentType')
+    .leftJoinAndSelect('Fees.Period', 'Period')
+    .leftJoinAndSelect('Fees.Session', 'Session')
+    .where(
+      'SchoolClass.status NOT LIKE :status AND Classes.school_id = :schoolId AND Classes.status NOT LIKE :status AND Fees.school_id = :schoolId',
+      {
+        status: STATUSES.DELETED,
+        schoolId: school_id,
+      },
+    );
+  const classes = await query.getMany();
+  console.log({ classes });
+
+  const secondQueryBuilder = getRepository(ClassLevel).createQueryBuilder('ClassLevel');
+  const secondQuery = secondQueryBuilder
+    .leftJoin('ClassLevel.Classes', 'StudentClass')
+    // .leftJoin('StudentClass.School', 'School')
+    // .leftJoin('StudentClass.Student', 'Student')
+    // .leftJoin('Student.School', 'StudentSchool')
+    // .leftJoin('StudentSchool.SchoolFees', 'Fees')
+    .leftJoin('school_product', 'Fees', 'StudentClass.school_id = Fees.school_id')
+    .select('ClassLevel.id', 'classId')
+    .addSelect('ClassLevel.class', 'className')
+    .addSelect('Fees.currency')
+    .addSelect('COUNT(DISTINCT StudentClass.studentId)', 'studentCount')
+    .addSelect('SUM(Fees.amount)', 'totalAmount')
+    .where('StudentClass.school_id = :schoolId', { schoolId: school_id })
+    .andWhere('Fees.status <> :status', { status: STATUSES.DELETED })
+    .andWhere('StudentClass.status <> :status', { status: STATUSES.DELETED });
+
+  const studentFees = await secondQuery
+    .groupBy('ClassLevel.id, ClassLevel.class, Fees.currency')
+    .orderBy('ClassLevel.id, Fees.currency')
+    .getRawMany();
+
+  console.log({ studentFees });
+  // return classes;
+
+  classes.forEach((classRoom: any) => {
+    // eslint-disable-next-line no-return-assign
+    const amountPaid = classRoom.Fees && classRoom.Fees.reduce((sum: any, fee: any) => (sum += +fee.amount), 0);
+    const { currency } = classRoom.Fees[0] || { currency: 'UGX' };
+    classRoom.totalFee = amountPaid;
+    classRoom.currency = currency;
+    classRoom.studentCount = classRoom.School.Students.reduce(
+      (acc: any, curr: any) => (classRoom.class_id === curr.Class.classId ? acc + 1 : acc),
+      0,
+    );
   });
 
   return classes;
