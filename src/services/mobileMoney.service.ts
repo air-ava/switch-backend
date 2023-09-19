@@ -37,6 +37,7 @@ import { sendSlackMessage } from '../integrations/extra/slack.integration';
 import { NotificationHandler } from './helper.service';
 import { getSchool } from '../database/repositories/schools.repo';
 import { mobileMoneyPaymentDTO } from '../dto/mobileMoney.dto';
+import ValidationError from '../utils/validationError';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
@@ -510,7 +511,19 @@ export const Service = {
       await updateTransactionREPO({ id: transactionRecord.id }, { status: STATUSES.FAILED, metadata });
 
       // Notify EveryOne for Transaction Completion
-      Service.mobileMoneyPaymentNotification({ user, wallet, created_at, description, amount, currency, reference, type: 'credit' });
+      Service.mobileMoneyPaymentNotification({
+        user,
+        wallet,
+        created_at,
+        description,
+        amount,
+        currency,
+        reference,
+        type: 'credit',
+        purpose,
+        username: metadata.username,
+        from: metadata.fundersPhone || metadata.paymentContact.phone_number,
+      });
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();
@@ -520,17 +533,36 @@ export const Service = {
   },
 
   async mobileMoneyPaymentNotification(payload: any) {
-    const { user, wallet, created_at, description, amount, currency, reference, type, method = 'mobile-money' } = payload;
+    const { from, user, wallet, created_at, description, amount, currency, reference, type, method = 'mobile-money', purpose, username } = payload;
     try {
       const { data } = await PreferenceService.getNotificationContacts(wallet.entity_id);
       const { emails, phoneNumbers, transactions: transactionNotification } = data;
       const { notifyInflow, notifyOutflow } = transactionNotification;
+      const extractedPurpose = purpose && purpose.split(':').pop().replace('-', ' ');
+      const extractedStudent = description && description.split(' for ').pop();
+      // const extractedSchool = extractedStudent && extractedStudent.split(' at ').pop();
+      const student: { [key: string]: any } = {};
+
+      // For Student
+      if (username.length === 9) {
+        const foundStudent = await getStudent({ uniqueStudentId: username }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
+        if (!foundStudent) throw new ValidationError('Completing payment Notification Failed');
+
+        const { User, School, Classes, Fees } = foundStudent;
+        const [studentCurrentClass] = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+        const { class: ClassName, class_short_name } = studentCurrentClass.ClassLevel;
+        student.name = `${User.first_name} ${User.last_name}`;
+        student.school = `${School.name}`;
+        student.class = `${ClassName}(${class_short_name})`;
+      }
       if (notifyInflow.includes('phoneNumbers'))
         sendSms({
           phoneNumber: phoneNumbers,
-          message: `STEWARD Transaction Notification\n\nAmt: ${currency || 'UGX'}${amount}\ntype: ${type}\nDesc: ${Utils.limitAndAddEllipsis(
-            description,
-          )}\nBy: ${method}`,
+          message: `STEWARD Transaction Notification\n\nFrom: ${from}\nAmt: ${
+            currency || 'UGX'
+          }${amount}\nType: ${type}\nPrps: ${extractedPurpose}\nBy: ${method}\nBal: ${wallet.currency}${wallet.balance / 100}\nFor: ${
+            student.name || extractedStudent
+          }\nClass: ${student.class}\nSch: ${student.school}`,
         });
       // if (notifyInflow.includes('email')) {
       //   sendEmail({
@@ -643,12 +675,15 @@ export const Service = {
       Service.mobileMoneyPaymentNotification({
         user,
         wallet,
-        created_at,
+        created_at: metadata.completed_at,
         description,
         amount: transactionMetadata.amount / 100,
         currency,
         reference,
         type: 'Credit',
+        purpose,
+        username: metadata.username,
+        from: metadata.fundersPhone || metadata.paymentContact.phone_number,
       });
     } catch (error) {
       console.log({ error });
