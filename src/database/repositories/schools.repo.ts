@@ -1,6 +1,7 @@
 import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
 import { ISchools } from '../modelInterfaces';
 import { Schools } from '../models/school.model';
+import randomstring from 'randomstring';
 
 export const getSchool = async (
   queryParam: Partial<ISchools> | any,
@@ -43,7 +44,11 @@ export const listSchools = async (
 };
 
 export const saveSchoolsREPO = (queryParams: Partial<ISchools>, transaction?: QueryRunner): Promise<any> => {
-  return transaction ? transaction.manager.save(Schools, queryParams) : getRepository(Schools).save(queryParams);
+  const payload = {
+    code: `scl_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    ...queryParams,
+  };
+  return transaction ? transaction.manager.save(Schools, payload) : getRepository(Schools).save(payload);
 };
 
 export const updateSchool = (queryParams: Pick<ISchools, 'id'>, updateFields: Partial<ISchools>, t?: QueryRunner): Promise<UpdateResult> => {
