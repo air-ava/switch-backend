@@ -20,8 +20,8 @@ module.exports = {
     seedsDir: 'src/database/seeder',
   },
   extra: {
-    max: 25,
-    connectionTimeoutMillis: 1000,
+    // max: 25,
+    // connectionTimeoutMillis: 1000,
     // ssl: true,
     // ssl: { rejectUnauthorized: false },
     // sslcert: '/etc/ssl/certs/ca-certificates.crt',

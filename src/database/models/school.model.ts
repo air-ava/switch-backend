@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
-import { IAssets, IAddress, IOrganisation, IPhoneNumber, IStudent } from '../modelInterfaces';
+import { IAssets, IAddress, IOrganisation, IPhoneNumber, IStudent, ISchoolProduct } from '../modelInterfaces';
 import { Student } from './student.model';
+import { SchoolProduct } from './schoolProduct.model';
 
 @Entity('schools')
 export class Schools {
@@ -73,4 +74,7 @@ export class Schools {
 
   @OneToMany(() => Student, (student) => student.Schools)
   Students: IStudent[];
+
+  @OneToMany(() => SchoolProduct, (fee) => fee.FeeRecords)
+  SchoolFees: ISchoolProduct[];
 }
