@@ -1,13 +1,14 @@
 /* eslint-disable no-param-reassign */
+import exp from 'constants';
 import randomstring from 'randomstring';
 import { QueryRunner, getRepository, In, UpdateResult, Not } from 'typeorm';
 import { ISchoolClass } from '../modelInterfaces';
 import { SchoolClass } from '../models/schoolClass.model';
 import { StudentClass } from '../models/studentClass.model';
-import Utils, { isValidDate } from '../../utils/utils';
-import exp from 'constants';
+import Utils, { createObjectFromArray, createObjectFromArrayWithoutValue, isValidDate } from '../../utils/utils';
 import { STATUSES } from '../models/status.model';
 import { ClassLevel } from '../models/class.model';
+import { SchoolProduct } from '../models/schoolProduct.model';
 
 const dateFns = require('date-fns');
 
@@ -60,7 +61,7 @@ export const listSchoolClass = async (
   return classes;
 };
 
-export const listSchoolClass2 = async (
+export const listSchoolsClassAndFees = async (
   queryParam: Partial<ISchoolClass> | any,
   selectOptions: Array<keyof SchoolClass> = [],
   relationOptions?: any[],
@@ -68,18 +69,11 @@ export const listSchoolClass2 = async (
 ): Promise<SchoolClass[] | any> => {
   console.log({ queryParam });
   const { school_id, status } = queryParam;
-  // const repository = t ? t.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
-  // const classes = await repository.find({
-  //   where: queryParam,
-  //   ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-  //   ...(relationOptions && { relations: relationOptions }),
-  // });
-
   const queryBuilder = getRepository(SchoolClass).createQueryBuilder('SchoolClass');
   const query = queryBuilder
     .leftJoinAndSelect('SchoolClass.ClassLevel', 'ClassLevel')
     .leftJoinAndSelect('SchoolClass.School', 'School')
-    .leftJoinAndSelect('ClassLevel.Classes', 'Classes')
+    .leftJoin('ClassLevel.Classes', 'Classes')
     .leftJoinAndSelect('SchoolClass.Fees', 'Fees')
     .leftJoinAndSelect('Fees.ProductType', 'ProductType')
     .leftJoinAndSelect('Fees.PaymentType', 'PaymentType')
@@ -93,43 +87,56 @@ export const listSchoolClass2 = async (
       },
     );
   const classes = await query.getMany();
-  console.log({ classes });
-
+  
+  // GET THE STUDENT COUNT per class
   const secondQueryBuilder = getRepository(ClassLevel).createQueryBuilder('ClassLevel');
   const secondQuery = secondQueryBuilder
     .leftJoin('ClassLevel.Classes', 'StudentClass')
-    // .leftJoin('StudentClass.School', 'School')
-    // .leftJoin('StudentClass.Student', 'Student')
-    // .leftJoin('Student.School', 'StudentSchool')
-    // .leftJoin('StudentSchool.SchoolFees', 'Fees')
     .leftJoin('school_product', 'Fees', 'StudentClass.school_id = Fees.school_id')
     .select('ClassLevel.id', 'classId')
     .addSelect('ClassLevel.class', 'className')
-    .addSelect('Fees.currency')
     .addSelect('COUNT(DISTINCT StudentClass.studentId)', 'studentCount')
-    .addSelect('SUM(Fees.amount)', 'totalAmount')
     .where('StudentClass.school_id = :schoolId', { schoolId: school_id })
     .andWhere('Fees.status <> :status', { status: STATUSES.DELETED })
     .andWhere('StudentClass.status <> :status', { status: STATUSES.DELETED });
+  const studentCount = await secondQuery.groupBy('ClassLevel.id, ClassLevel.class').orderBy('ClassLevel.id').getRawMany();
 
-  const studentFees = await secondQuery
-    .groupBy('ClassLevel.id, ClassLevel.class, Fees.currency')
-    .orderBy('ClassLevel.id, Fees.currency')
+  // GET the General Fees for the School
+  const subQueryBuilder = getRepository(SchoolProduct).createQueryBuilder();
+  const subQuery = await subQueryBuilder
+    .select('SUM(amount)', 'nullAmount')
+    .where('school_class_id IS NULL')
+    .andWhere('school_id = :schoolId', { schoolId: school_id })
+    .andWhere('status <> :status', { status: STATUSES.DELETED })
+    .getRawOne();
+
+  // GET the Fees Specific for the Class
+  const thirdQueryBuilder = getRepository(SchoolProduct).createQueryBuilder('SchoolProduct');
+  const thirdQuery = thirdQueryBuilder
+    .select('SchoolClass.class_id', 'classId')
+    .addSelect('SchoolProduct.school_class_id', 'school_class_id')
+    .addSelect('SchoolProduct.currency', 'currency')
+    .addSelect(`SUM(SchoolProduct.amount) + ${subQuery.nullAmount || 0}`, 'total_amount')
+    .leftJoin(SchoolClass, 'SchoolClass', 'SchoolProduct.school_class_id = SchoolClass.id')
+    .where('SchoolProduct.school_id = :schoolId', { schoolId: school_id })
+    .andWhere('SchoolProduct.status <> :status', { status: STATUSES.DELETED })
+    .andWhere('SchoolProduct.school_class_id IS NOT NULL');
+  const studentFees = await thirdQuery
+    .groupBy('SchoolProduct.school_class_id')
+    .addGroupBy('SchoolProduct.currency')
+    .addGroupBy('SchoolClass.class_id')
     .getRawMany();
 
-  console.log({ studentFees });
-  // return classes;
+  const studentFeesObject = createObjectFromArray(studentFees, 'classId', 'total_amount');
+  const studentCountObject = createObjectFromArray(studentCount, 'classId', 'studentCount');
+  console.log({ studentFees, studentFeesObject, studentCountObject });
 
   classes.forEach((classRoom: any) => {
     // eslint-disable-next-line no-return-assign
-    const amountPaid = classRoom.Fees && classRoom.Fees.reduce((sum: any, fee: any) => (sum += +fee.amount), 0);
-    const { currency } = classRoom.Fees[0] || { currency: 'UGX' };
-    classRoom.totalFee = amountPaid;
+    const { currency } = studentFees ? studentFees[0] : { currency: 'UGX' };
+    classRoom.totalFee = studentFeesObject ? studentFeesObject[`${classRoom.class_id}`] : 0;
     classRoom.currency = currency;
-    classRoom.studentCount = classRoom.School.Students.reduce(
-      (acc: any, curr: any) => (classRoom.class_id === curr.Class.classId ? acc + 1 : acc),
-      0,
-    );
+    classRoom.studentCount = studentCountObject ? studentCountObject[`${classRoom.class_id}`] : 0;
   });
 
   return classes;

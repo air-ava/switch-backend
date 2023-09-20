@@ -23,7 +23,7 @@ import { getProductType, listProductTypes, saveProductType } from '../database/r
 import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import { getClassLevel, listClassLevel } from '../database/repositories/classLevel.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
-import { getSchoolClass, listSchoolClass, listSchoolClass2, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import { getSchoolClass, listSchoolClass, listSchoolsClassAndFees, saveSchoolClass } from '../database/repositories/schoolClass.repo';
 import { Not } from 'typeorm';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 
@@ -368,22 +368,6 @@ const Service = {
     //     school_id: school.id,
     //     status: Not(STATUSES.DELETED),
     //     ...rest,
-    //     ClassLevel: {
-    //       Classes: {
-    //         school_id: school.id,
-    //       },
-    //     },
-    //     School: {
-    //       Students: {
-    //         schoolId: school.id,
-    //         Class: {
-    //           school_id: school.id,
-    //         },
-    //       },
-    //     },
-    //     Fees: {
-    //       school_id: school.id,
-    //     },
     //   },
     //   [],
     //   [
@@ -399,7 +383,7 @@ const Service = {
     //     'Fees.Session',
     //   ],
     // );
-    const response = await listSchoolClass2({
+    const response = await listSchoolsClassAndFees({
       school_id: school.id,
       status: Not(STATUSES.DELETED),
       ...rest,
