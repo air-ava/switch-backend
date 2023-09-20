@@ -67,7 +67,6 @@ export const listSchoolsClassAndFees = async (
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<SchoolClass[] | any> => {
-  console.log({ queryParam });
   const { school_id, status } = queryParam;
   const queryBuilder = getRepository(SchoolClass).createQueryBuilder('SchoolClass');
   const query = queryBuilder
