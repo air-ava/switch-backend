@@ -127,7 +127,6 @@ export const listSchoolsClassAndFees = async (
 
   const studentFeesObject = createObjectFromArray(studentFees, 'classId', 'total_amount');
   const studentCountObject = createObjectFromArray(studentCount, 'classId', 'studentCount');
-  console.log({ studentFees, studentFeesObject, studentCountObject });
 
   classes.forEach((classRoom: any) => {
     // eslint-disable-next-line no-return-assign
