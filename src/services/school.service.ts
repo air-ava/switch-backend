@@ -23,7 +23,7 @@ import { getProductType, listProductTypes, saveProductType } from '../database/r
 import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import { getClassLevel, listClassLevel } from '../database/repositories/classLevel.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
-import { getSchoolClass, listSchoolClass, saveSchoolClass } from '../database/repositories/schoolClass.repo';
+import { getSchoolClass, listSchoolClass, listSchoolsClassAndFees, saveSchoolClass } from '../database/repositories/schoolClass.repo';
 import { Not } from 'typeorm';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 
@@ -364,30 +364,35 @@ const Service = {
   async listClassInSchool(data: any): Promise<theResponse> {
     const { school, ...rest } = data;
     // todo: repo for sum of students and a sum of expected tuition fee
-    const response = await listSchoolClass(
-      {
-        school_id: school.id,
-        status: Not(STATUSES.DELETED),
-        ...rest,
-      },
-      [],
-      [
-        'ClassLevel',
-        'ClassLevel.Classes',
-        'School',
-        'School.Students',
-        'School.Students.Class',
-        'Fees',
-        'Fees.ProductType',
-        'Fees.PaymentType',
-        'Fees.Period',
-        'Fees.Session',
-      ],
-    );
+    // const response = await listSchoolClass(
+    //   {
+    //     school_id: school.id,
+    //     status: Not(STATUSES.DELETED),
+    //     ...rest,
+    //   },
+    //   [],
+    //   [
+    //     'ClassLevel',
+    //     'ClassLevel.Classes',
+    //     'School',
+    //     'School.Students',
+    //     'School.Students.Class',
+    //     'Fees',
+    //     'Fees.ProductType',
+    //     'Fees.PaymentType',
+    //     'Fees.Period',
+    //     'Fees.Session',
+    //   ],
+    // );
+    const response = await listSchoolsClassAndFees({
+      school_id: school.id,
+      status: Not(STATUSES.DELETED),
+      ...rest,
+    });
     return sendObjectResponse('All Classes retrieved successfully', response);
   },
 
-  async addClassToSchool(data: any): Promise<theResponse>{
+  async addClassToSchool(data: any): Promise<theResponse> {
     const { school, code: classCode } = data;
     const foundClassLevel = await getClassLevel({ code: classCode }, []);
     if (!foundClassLevel) throw new NotFoundError('Class Level');
@@ -402,12 +407,12 @@ const Service = {
     });
     return sendObjectResponse('Added Class to School Successfully', schoolClass);
   },
-  
+
   async listClassLevelByEducationLevel(data: any): Promise<theResponse> {
     const { code: educationalCode } = data;
     const educationLevel = await getEducationLevel({ code: educationalCode }, []);
     if (!educationLevel) throw new NotFoundError('Educational Level');
-    
+
     const foundClassLevel = await listClassLevel({ education_level: educationLevel.name === 'Secondary' ? 'Senior' : educationLevel.name }, []);
     if (!foundClassLevel) throw new NotFoundError('Class Level');
 

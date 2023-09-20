@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne, OneToMany } from 'typeorm';
-import { IClassLevel, ISchoolSession, IStudent } from '../modelInterfaces';
+import { IClassLevel, ISchoolSession, ISchools, IStudent } from '../modelInterfaces';
 
 @Entity('student_class')
 export class StudentClass {
@@ -38,6 +38,10 @@ export class StudentClass {
   @ManyToOne('Student', 'student_class')
   @JoinColumn({ name: 'studentId', referencedColumnName: 'id' })
   Student: IStudent;
+
+  @OneToOne('Schools', 'student_class')
+  @JoinColumn({ name: 'school_id' })
+  School: ISchools;
 
   // @OneToMany(() => StudentClass, (class) => class.Student)
   // class: StudentClass[];
