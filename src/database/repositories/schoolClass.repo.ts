@@ -36,7 +36,6 @@ export const listSchoolClass = async (
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<SchoolClass[] | any> => {
-  console.log({ queryParam });
   const repository = t ? t.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
   const classes = await repository.find({
     where: queryParam,
