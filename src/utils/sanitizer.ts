@@ -192,6 +192,7 @@ export const Sanitizer = {
       status,
       JobTitle,
       job_title,
+      email,
       ...rest
     } = Sanitizer.jsonify(payload);
 
@@ -207,6 +208,7 @@ export const Sanitizer = {
       userVerified: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       ...(phoneNumber && { phone_number: phoneNumber.internationalFormat }),
       phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
+      email: Sanitizer.sanitizeEmail(email),
       school: School && Sanitizer.sanitizeSchool(School),
       organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
       wallet: Wallet && Sanitizer.sanitizeWallet(Wallet),
@@ -247,7 +249,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizeNoId(payload: ISponsorships): any {
     if (!payload) return null;
     const { id, status, ...rest } = Sanitizer.jsonify(payload);
@@ -569,7 +571,7 @@ export const Sanitizer = {
     const sanitized = {
       id,
       ...rest,
-      // paymentStatus: 
+      // paymentStatus:
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       student: (Student || student) && Sanitizer.sanitizeStudent(Student || student),
       classLevel: ClassLevel && Sanitizer.sanitizeSchool(ClassLevel),
@@ -673,9 +675,10 @@ export const Sanitizer = {
 
   sanitizeOrganization(payload: IAssets): any {
     if (!payload) return null;
-    const { status, Owner, ...rest } = Sanitizer.jsonify(payload);
+    const { status, Owner, email, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
+      email: Sanitizer.sanitizeEmail(email),
       owner: Owner && Sanitizer.sanitizeUser(Owner),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
@@ -684,10 +687,11 @@ export const Sanitizer = {
   sanitizeSchool(payload: any): any {
     if (!payload) return null;
 
-    const { country, education_level, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } =
+    const { country, education_level, email, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } =
       Sanitizer.jsonify(payload);
     return {
       ...rest,
+      email: Sanitizer.sanitizeEmail(email),
       country: country ? Sanitizer.getStatusById(countryMapping, country) : country,
       education_level: education_level ? education_level.split(',') : [],
       address: Address && Sanitizer.sanitizeAddress(Address, true),
@@ -704,6 +708,11 @@ export const Sanitizer = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
+  },
+
+  sanitizeEmail(email: string): any {
+    if (!email) return null;
+    return email.includes('steward.com') ? null : email;
   },
 
   sanitizeBankTransfer(payload: any): any {
