@@ -533,7 +533,21 @@ export const Service = {
   },
 
   async mobileMoneyPaymentNotification(payload: any) {
-    const { from, user, wallet, created_at, description, amount, currency, reference, type, method = 'mobile-money', purpose, username } = payload;
+    const {
+      notifyAdmin = false,
+      from,
+      user,
+      wallet,
+      created_at,
+      description,
+      amount,
+      currency,
+      reference,
+      type,
+      method = 'mobile-money',
+      purpose,
+      username,
+    } = payload;
     try {
       const { data } = await PreferenceService.getNotificationContacts(wallet.entity_id);
       const { emails, phoneNumbers, transactions: transactionNotification } = data;
@@ -579,6 +593,24 @@ export const Service = {
       //     },
       //   });
       // }
+      if (notifyAdmin) {
+        await sendSlackMessage({
+          body: {
+            amount: `${currency || 'UGX'}${amount / 100}`,
+            reference,
+            from,
+            schoolName: student.school,
+            // initiator: `${user.first_name} ${user.last_name}`,
+            createdAt: `${created_at}`,
+            For: `${student.name || extractedStudent}`,
+            class: `${student.class}`,
+            channel: method,
+            narration: description,
+            purpose: extractedPurpose,
+          },
+          feature: 'deposit_notification',
+        });
+      }
     } catch (error) {
       console.log({ error });
       // await t.rollbackTransaction();
@@ -683,6 +715,7 @@ export const Service = {
         type: 'Credit',
         purpose,
         username: metadata.username,
+        notifyAdmin: true,
         from: metadata.fundersPhone || metadata.paymentContact.phone_number,
       });
     } catch (error) {

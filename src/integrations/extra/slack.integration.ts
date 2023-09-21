@@ -129,36 +129,23 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
         blocks: slackBlocks,
       };
     case 'bank_transfer':
+    case 'deposit_notification':
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n A Bank Transfer has been initiated. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n 🤑 We got a new Deposit: \n\n *School name*: ${
+            body.schoolName
+          } \n *Description*: ${body.narration}  \n *Purpose*: ${body.purpose} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [
           {
             type: 'mrkdwn',
-            text: '*Bank Name*',
+            text: '*Payment Channel*',
           },
           {
             type: 'plain_text',
-            text: `${body.bankName}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: '*Reference*',
-          },
-          {
-            type: 'plain_text',
-            text: `${body.reference}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: '*Narration*',
-          },
-          {
-            type: 'plain_text',
-            text: `${body.narration}`,
+            text: `${body.channel}`,
           },
           {
             type: 'mrkdwn',
@@ -170,16 +157,32 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
           },
           {
             type: 'mrkdwn',
-            text: '*Initiator*',
+            text: '*Reference*',
           },
           {
             type: 'plain_text',
-            text: `${body.initiator}`,
+            text: `${body.reference}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*For*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.For}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Class*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.class}`,
           },
         ],
       });
       return {
-        channel: 'payout',
+        channel: 'deposits',
         blocks: slackBlocks,
       };
     default:
