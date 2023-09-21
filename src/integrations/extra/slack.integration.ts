@@ -78,7 +78,9 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n ⚠️ A Paymnet Needs your Attention Details are: \n\n *School name*: ${body.schoolName} \n *Reason*: ${body.reason}  \n *Account number*: ${body.accountNumber} \n *Initiated On*: ${body.createdAt}`,
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n ⚠️ A Paymnet Needs your Attention Details are: \n\n *School name*: ${
+            body.schoolName
+          } \n *Reason*: ${body.reason}  \n *Account number*: ${body.accountNumber} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [
@@ -100,7 +102,7 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
           },
           {
             type: 'mrkdwn',
-            text: '*Reference*',
+            text: '*School Name*',
           },
           {
             type: 'plain_text',
@@ -133,9 +135,9 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n 🤑 We got a new Deposit: \n\n *School name*: ${
-            body.schoolName
-          } \n *Description*: ${body.narration}  \n *Purpose*: ${body.purpose} \n *Initiated On*: ${body.createdAt}`,
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n 🤑 We got a new Deposit: \n\n *Reference*: ${body.reference} \n *Description*: ${
+            body.narration
+          }  \n *Purpose*: ${body.purpose} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [
@@ -157,11 +159,11 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
           },
           {
             type: 'mrkdwn',
-            text: '*Reference*',
+            text: '*School Name*',
           },
           {
             type: 'plain_text',
-            text: `${body.reference}`,
+            text: `${body.schoolName}`,
           },
           {
             type: 'mrkdwn',

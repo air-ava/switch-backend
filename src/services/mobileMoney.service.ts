@@ -596,7 +596,7 @@ export const Service = {
       if (notifyAdmin) {
         await sendSlackMessage({
           body: {
-            amount: `${currency || 'UGX'}${amount / 100}`,
+            amount: `${currency || 'UGX'}${amount}`,
             reference,
             from,
             schoolName: student.school,
