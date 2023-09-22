@@ -331,13 +331,15 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
     if (!userAlreadyExist) {
       if (!remember_token) throw Error(`User Not Found`);
 
+      const message = remember_token ? 'OTP not found' : 'User not found';
+
       // Check if the OTP belongs to the phone Number
       const phoneNumber = await getOnePhoneNumber({ queryParams: { remember_token } });
-      if (!phoneNumber) throw Error(`User Not Found`);
+      if (!phoneNumber) throw Error(message);
       // if (phoneNumber.is_verified) throw Error(`User has been verified`);
 
       userAlreadyExist = await findUser({ phone_number: phoneNumber.id }, []);
-      if (!userAlreadyExist) throw Error(`User Not Found`);
+      if (!userAlreadyExist) throw Error(message);
 
       userAlreadyExist.remember_token = remember_token;
       id = userAlreadyExist.id;
