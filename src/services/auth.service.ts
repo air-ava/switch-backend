@@ -252,7 +252,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
     // const user = await findUser({ email }, []);
     if (!user) throw Error('Account Not Found');
 
-    const remember_token = randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' });
+    const remember_token = randomstring.generate({ length: 6, charset: 'numeric' });
     updateUser({ id: user.id }, { remember_token });
 
     await sendEmail({
@@ -269,7 +269,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
       message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
-    return sendObjectResponse('Token resent successfully');
+    return sendObjectResponse('OTP resent successfully');
   } catch (e: any) {
     return BadRequestException(e.message || 'Account creation failed, kindly try again', e);
   }
@@ -331,13 +331,15 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
     if (!userAlreadyExist) {
       if (!remember_token) throw Error(`User Not Found`);
 
+      const message = remember_token ? 'OTP not found' : 'User not found';
+
       // Check if the OTP belongs to the phone Number
       const phoneNumber = await getOnePhoneNumber({ queryParams: { remember_token } });
-      if (!phoneNumber) throw Error(`User Not Found`);
+      if (!phoneNumber) throw Error(message);
       // if (phoneNumber.is_verified) throw Error(`User has been verified`);
 
       userAlreadyExist = await findUser({ phone_number: phoneNumber.id }, []);
-      if (!userAlreadyExist) throw Error(`User Not Found`);
+      if (!userAlreadyExist) throw Error(message);
 
       userAlreadyExist.remember_token = remember_token;
       id = userAlreadyExist.id;
