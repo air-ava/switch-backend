@@ -353,6 +353,11 @@ const Utils = {
     }
     return `${inputString.slice(0, maxLength - 3)}...`; // Truncate and add ellipsis
   },
+
+  removeStringWhiteSpace(string: string): string {
+    if (typeof string !== 'string') throw new ValidationError('Wrong data type passed');
+    return string.replace(/\s/g, '');
+  },
 };
 
 export default Utils;

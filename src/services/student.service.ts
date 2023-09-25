@@ -6,7 +6,7 @@ import randomstring from 'randomstring';
 // import { StudentGuardian } from './../database/models/studentGuardian.model';
 import * as bcrypt from 'bcrypt';
 import { In, IsNull, Like, Not } from 'typeorm';
-import { createObjectFromArrayWithoutValue, mapAnArray } from '../utils/utils';
+import Utils, { createObjectFromArrayWithoutValue, mapAnArray } from '../utils/utils';
 import { ISchoolProduct, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { PAYMENT_TYPE } from '../database/models/paymentType.model';
@@ -130,11 +130,11 @@ const Service = {
     const statusValue = STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'];
 
     // Check if user already exists
-    const existingUser = await findUser({ first_name, last_name, other_name, gender, status: STATUSES.UNVERIFIED }, [], []);
-    if (existingUser) throw new ExistsError('User');
+    // const existingUser = await findUser({ first_name, last_name, other_name, gender, status: STATUSES.UNVERIFIED }, [], []);
+    // if (existingUser) throw new ExistsError('User');
 
     const studentPayload: any = {
-      email: studentEmail,
+      email: Utils.removeStringWhiteSpace(studentEmail),
       remember_token,
       user_type: 'student',
       first_name,
@@ -580,7 +580,7 @@ const Service = {
       uniqueStudentId: randomstring.generate({ length: 9, charset: 'numeric' }),
       remember_token: randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' }),
       passwordHash: bcrypt.hashSync(`${first_name}${last_name}`, 8),
-      studentEmail,
+      studentEmail: Utils.removeStringWhiteSpace(studentEmail),
     };
   },
 
@@ -591,6 +591,13 @@ const Service = {
     await Promise.all(
       students.map(async (student: { class: any; last_name: any; first_name: any }, index: string | number) => {
         const { class: classId, last_name, first_name } = student;
+
+        // const studentSetup = new Service.StudentSetupBuilder({ class: payload.class, school: payload.school, session: payload.session });
+        // await studentSetup.setClassId();
+        // await studentSetup.setSession();
+        // await studentSetup.setSchoolClass();
+        // const { classId, schoolId, session, schoolClass: foundSchoolClass } = studentSetup.build();
+
         const generatedStudent = await Service.generateStudentData({ last_name, first_name });
         const { uniqueStudentId, remember_token, passwordHash, studentEmail } = generatedStudent;
         students[index].user = {
@@ -638,6 +645,9 @@ const Service = {
     );
 
     await saveStudentClassREPO(mapAnArray(students, 'class'));
+
+    // Todo: Add Guardians
+    // Todo: Add fees for new Student
 
     return sendObjectResponse('Students added successfully');
   },
