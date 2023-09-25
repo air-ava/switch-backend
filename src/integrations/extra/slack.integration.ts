@@ -131,13 +131,66 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
         blocks: slackBlocks,
       };
     case 'bank_transfer':
+      slackBlocks.push({
+        type: 'section',
+        text: {
+          text: `A Bank Transfer has been initiated. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
+          type: 'mrkdwn',
+        },
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: '*Bank Name*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.bankName}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Reference*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.reference}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Narration*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.narration}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Amount*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.amount}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Initiator*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.initiator}`,
+          },
+        ],
+      });
+      return {
+        channel: 'payout',
+        blocks: slackBlocks,
+      };
     case 'deposit_notification':
       slackBlocks.push({
         type: 'section',
         text: {
           text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n 🤑 We got a new Deposit: \n\n *Reference*: ${body.reference} \n *Description*: ${
             body.narration
-          }  \n *Purpose*: ${body.purpose} \n *Initiated On*: ${body.createdAt}`,
+          }  \n *Purpose*: ${body.purpose} \n *From*: ${body.from} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [
