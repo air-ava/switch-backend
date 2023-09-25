@@ -593,14 +593,13 @@ export const Service = {
       //     },
       //   });
       // }
-      if (notifyAdmin) {
+      if (notifyAdmin && !Utils.isStaging()) {
         await sendSlackMessage({
           body: {
             amount: `${currency || 'UGX'}${amount}`,
             reference,
             from,
             schoolName: student.school,
-            // initiator: `${user.first_name} ${user.last_name}`,
             createdAt: `${created_at}`,
             For: `${student.name || extractedStudent}`,
             class: `${student.class}`,
