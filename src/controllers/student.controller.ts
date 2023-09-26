@@ -124,9 +124,9 @@ export const searchStudentCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const addBulkStudentsToSchoolCONTROLLER: RequestHandler = async (req, res) => {
-  const { school } = req;
+  const { school, educationalSession } = req;
   const { students } = req.body;
-  const response = await StudentService.addBulkStudentsToSchool({ schoolId: school.id, students });
+  const response = await StudentService.addBulkStudentsToSchool({ schoolId: school.id, students, school, session: educationalSession });
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };

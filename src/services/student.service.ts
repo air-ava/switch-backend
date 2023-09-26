@@ -96,13 +96,56 @@ class StudentSetupBuilder {
   }
 }
 
-const Service = {
+interface ServiceInterface {
+  [key: string]: (...data: any) => Promise<any>;
+  addStudentToSchool(payload: any): Promise<theResponse>;
+  addFeesForStudent(data: any): Promise<void>;
+  runService(service: string, item: any, supportData: any): Promise<any>;
+  callService(service: string, payload: any, supportData: any): Promise<any>;
+  findExistingGuardians(student: any): Promise<theResponse>;
+  addGuardian(data: any): Promise<theResponse>;
+  listClassLevels(): Promise<theResponse>;
+  getStudent(criteria: any): Promise<theResponse>;
+  getStudentHistory(criteria: any): Promise<theResponse>;
+  getStudentFees(criteria: any): Promise<theResponse>;
+  deactivateStudentFee(criteria: any): Promise<theResponse>;
+  editStudentFee(criteria: any): Promise<theResponse>;
+  deactivateStudent(criteria: any): Promise<theResponse>;
+  listStudents(criteria: any): Promise<theResponse>;
+  addModelsToStudent(data: any): Promise<any>;
+  editStudent(criteria: any): Promise<theResponse>;
+  editGuardian(criteria: any): Promise<theResponse>;
+  addGuardians(criteria: any): Promise<theResponse>;
+  searchStudents(criteria: any): Promise<theResponse>;
+  objectExistsInArray(array: any[], obj: any): any;
+  addNonExistingGuardians(data: any): Promise<void>;
+  generateStudentData(payload: { first_name: string; last_name: string }): Promise<{
+    uniqueStudentId: string;
+    remember_token: string;
+    passwordHash: string;
+    studentEmail: string;
+  }>;
+  addBulkStudentsToSchool(payload: any): Promise<theResponse>;
+  addClassToSchoolWitFees(data: any): Promise<theResponse>;
+  listStundentsInSchoolClass(data: {
+    status: 'ACTIVE' | 'INACTIVE';
+    school: any;
+    classCode: string;
+    perPage: any;
+    page: any;
+    from: any;
+    to: any;
+  }): Promise<theResponse>;
+  classDetail(data: { status: 'ACTIVE' | 'INACTIVE'; school: any; classCode: string; perPage: any; cursor: any }): Promise<theResponse>;
+  classAnalytics(data: { status: 'ACTIVE' | 'INACTIVE'; school: any; classCode: string; groupBy: string }): Promise<theResponse>;
+}
+
+const Service: ServiceInterface = {
   // Clases to be used in the code
-  StudentSetupBuilder,
   async addStudentToSchool(payload: any): Promise<theResponse> {
     const { status = 'active', first_name, last_name, gender, other_name, school, guardians, phone_number: reqPhone, email } = payload;
 
-    const studentSetup = new Service.StudentSetupBuilder({ class: payload.class, school: payload.school, session: payload.session });
+    const studentSetup = new StudentSetupBuilder({ class: payload.class, school: payload.school, session: payload.session });
     await studentSetup.setClassId();
     await studentSetup.setSession();
     await studentSetup.setSchoolClass();
@@ -175,12 +218,14 @@ const Service = {
       session: session.id,
     });
 
-    if (guardians) {
-      const { data: incomingGuardians } = await Service.findExistingGuardians(student);
-      await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
-    }
+    await Service.addNonExistingGuardians({ school, guardians, student });
+    await Service.addFeesForStudent({ school, schoolClass: foundSchoolClass, student });
 
-    // todo: Add fees for new Student
+    return sendObjectResponse('Student created successfully');
+  },
+
+  async addFeesForStudent(data: any) {
+    const { school, schoolClass, student } = data;
     const classFees = await listSchoolProduct(
       [
         {
@@ -189,7 +234,7 @@ const Service = {
           school_id: school.id,
         },
         {
-          school_class_id: In([foundSchoolClass.id]),
+          school_class_id: In([schoolClass.id]),
           status: Not(STATUSES.DELETED),
           school_id: school.id,
         },
@@ -218,8 +263,28 @@ const Service = {
           }
         }),
       );
+  },
 
-    return sendObjectResponse('Student created successfully');
+  async addNonExistingGuardians(data: any) {
+    const { guardians, student, school } = data;
+    if (guardians) {
+      const { data: incomingGuardians } = await Service.findExistingGuardians(student);
+      await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
+    }
+  },
+
+  async runService(service: string, item: any, supportData: any) {
+    return Service[service]({
+      ...(typeof item === 'object' ? { ...Sanitizer.jsonify(item) } : { item }),
+      ...supportData,
+    });
+  },
+
+  async callService(service: string, payload: any, supportData: any): Promise<any> {
+    if (payload.length) {
+      return Promise.all(payload.map((item: any) => Service.runService(service, item, supportData)));
+    }
+    return Service.runService(service, payload, supportData);
   },
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -433,7 +498,7 @@ const Service = {
     // let { class: classId, partPayment } = criteria;
     let { partPayment } = criteria;
 
-    const studentSetup = new Service.StudentSetupBuilder({ class: criteria.class, school: criteria.school, session: criteria.session });
+    const studentSetup = new StudentSetupBuilder({ class: criteria.class, school: criteria.school, session: criteria.session });
     await studentSetup.setClassId();
     await studentSetup.setSchoolClass();
     const { schoolClass: foundSchoolClass } = studentSetup.build();
@@ -585,18 +650,18 @@ const Service = {
   },
 
   async addBulkStudentsToSchool(payload: any): Promise<theResponse> {
-    const { students, schoolId: school } = payload as any;
+    const { students, schoolId: school, school: currentSchool, session: incomingSession } = payload as any;
 
     // update students array payload
     await Promise.all(
-      students.map(async (student: { class: any; last_name: any; first_name: any }, index: string | number) => {
-        const { class: classId, last_name, first_name } = student;
+      students.map(async (student: any, index: string | number) => {
+        const { class: incomingClassId, last_name, first_name, guardians } = student;
 
-        // const studentSetup = new Service.StudentSetupBuilder({ class: payload.class, school: payload.school, session: payload.session });
-        // await studentSetup.setClassId();
-        // await studentSetup.setSession();
-        // await studentSetup.setSchoolClass();
-        // const { classId, schoolId, session, schoolClass: foundSchoolClass } = studentSetup.build();
+        const studentSetup = new StudentSetupBuilder({ class: incomingClassId, school, session: incomingSession });
+        await studentSetup.setClassId();
+        await studentSetup.setSession();
+        await studentSetup.setSchoolClass();
+        const { classId, schoolId, session, schoolClass: foundSchoolClass } = studentSetup.build();
 
         const generatedStudent = await Service.generateStudentData({ last_name, first_name });
         const { uniqueStudentId, remember_token, passwordHash, studentEmail } = generatedStudent;
@@ -615,6 +680,8 @@ const Service = {
         students[index].class = {
           classId,
         };
+        students[index].schoolClass = foundSchoolClass;
+        students[index].guardians = guardians;
 
         return { index, ...generatedStudent };
       }),
@@ -646,8 +713,8 @@ const Service = {
 
     await saveStudentClassREPO(mapAnArray(students, 'class'));
 
-    // Todo: Add Guardians
-    // Todo: Add fees for new Student
+    await Service.callService('addNonExistingGuardians', students, { school: currentSchool });
+    await Service.callService('addFeesForStudent', students, { school: currentSchool });
 
     return sendObjectResponse('Students added successfully');
   },
