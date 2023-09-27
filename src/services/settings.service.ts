@@ -120,9 +120,23 @@ const loadPaymentTypes = async () => {
   settings.PAYMENT_TYPES = paymentTypes;
 };
 
+const loadFeeTypes = async () => {
+  const paymentTypes = {};
+  const response = await getRepository(PaymentType).find({});
+  mapper(response, 'slug', 'code', paymentTypes);
+  settings.FEE_TYPES = paymentTypes;
+};
+
+const loadCurrencies = async () => {
+  const paymentTypes = {};
+  const response = await getRepository(PaymentType).find({});
+  mapper(response, 'country', 'short_code', paymentTypes);
+  settings.COUNTRY_CURRENCIES = paymentTypes;
+};
+
 const Service = {
   async init(): Promise<void> {
-    await Promise.all([loadSettings(), loadJobTitles(), loadPaymentTypes()]);
+    await Promise.all([loadSettings(), loadJobTitles(), loadPaymentTypes(), loadFeeTypes(), loadCurrencies()]);
   },
   get(key: string): any {
     loadSettings();

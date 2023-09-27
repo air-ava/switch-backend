@@ -607,6 +607,8 @@ const Service = {
         };
         students[index].class = {
           classId,
+          school_id: schoolId,
+          session: session.id,
         };
 
         return { index, ...generatedStudent };

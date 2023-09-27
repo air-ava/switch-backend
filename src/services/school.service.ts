@@ -25,6 +25,7 @@ import { getClassLevel, listClassLevel } from '../database/repositories/classLev
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
 import { getSchoolClass, listSchoolClass, listSchoolsClassAndFees, saveSchoolClass } from '../database/repositories/schoolClass.repo';
 import { Not } from 'typeorm';
+import FeesService from './fees.service';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
@@ -392,7 +393,7 @@ const Service = {
   },
 
   async addClassToSchool(data: any): Promise<theResponse> {
-    const { school, code: classCode } = data;
+    const { school, code: classCode, authSession } = data;
     const foundClassLevel = await getClassLevel({ code: classCode }, []);
     if (!foundClassLevel) throw new NotFoundError('Class Level');
 
@@ -404,7 +405,21 @@ const Service = {
       class_id: foundClassLevel.id,
       status: STATUSES.ACTIVE,
     });
-    return sendObjectResponse('Added Class to School Successfully');
+
+    const feesTypes = Settings.get('FEE_TYPES');
+    const currencies = Settings.get('COUNTRY_CURRENCIES');
+    FeesService.createAFee({
+      authSession,
+      school,
+      class: foundClassLevel.code,
+      name: 'Tuition Fee',
+      paymentType: 'install-mental',
+      feeType: feesTypes.tuition,
+      currency: currencies[school.country] || 'UGX',
+      amount: 0,
+      description: 'Class Default Tuition Fee',
+    });
+    return sendObjectResponse('Added Class to School Successfully', schoolClass);
   },
 
   async listClassLevelByEducationLevel(data: any): Promise<theResponse> {
