@@ -70,21 +70,17 @@ export const listSchoolsClassAndFees = async (
   const query = queryBuilder
     .leftJoinAndSelect('SchoolClass.ClassLevel', 'ClassLevel')
     .leftJoinAndSelect('SchoolClass.School', 'School')
-    .leftJoin('ClassLevel.Classes', 'Classes')
     .leftJoinAndSelect('SchoolClass.Fees', 'Fees')
     .leftJoinAndSelect('Fees.ProductType', 'ProductType')
     .leftJoinAndSelect('Fees.PaymentType', 'PaymentType')
     .leftJoinAndSelect('Fees.Period', 'Period')
     .leftJoinAndSelect('Fees.Session', 'Session')
-    .where(
-      'SchoolClass.status NOT LIKE :status AND Classes.school_id = :schoolId AND Classes.status NOT LIKE :status AND Fees.school_id = :schoolId',
-      {
-        status: STATUSES.DELETED,
-        schoolId: school_id,
-      },
-    );
+    .where('SchoolClass.status <> :status AND SchoolClass.school_id = :schoolId AND Fees.school_id = :schoolId AND Fees.status <> :status', {
+      status: STATUSES.DELETED,
+      schoolId: school_id,
+    });
   const classes = await query.getMany();
-  
+
   // GET THE STUDENT COUNT per class
   const secondQueryBuilder = getRepository(ClassLevel).createQueryBuilder('ClassLevel');
   const secondQuery = secondQueryBuilder
@@ -132,7 +128,7 @@ export const listSchoolsClassAndFees = async (
     const { currency } = studentFees ? studentFees[0] : { currency: 'UGX' };
     classRoom.totalFee = studentFeesObject ? studentFeesObject[`${classRoom.class_id}`] : 0;
     classRoom.currency = currency;
-    classRoom.studentCount = studentCountObject ? studentCountObject[`${classRoom.class_id}`] : 0;
+    classRoom.studentCount = (studentCountObject ? studentCountObject[`${classRoom.class_id}`] : '0') || '0';
   });
 
   return classes;

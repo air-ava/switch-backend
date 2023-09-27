@@ -186,9 +186,9 @@ export const addClassToSchoolWithFeesCONTROLLER: RequestHandler = async (req, re
 };
 
 export const addClassToSchoolCONTROLLER: RequestHandler = async (req, res) => {
-  const { school } = req;
+  const { school, educationalSession } = req;
   const { code } = req.params;
-  const payload = { code, school };
+  const payload = { code, school, authSession: educationalSession };
 
   const validation = addClass.validate({ code });
   if (validation.error) throw new ValidationError(validation.error.message);

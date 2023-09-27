@@ -679,6 +679,8 @@ const Service: ServiceInterface = {
         };
         students[index].class = {
           classId,
+          school_id: schoolId,
+          session: session.id,
         };
         students[index].schoolClass = foundSchoolClass;
         students[index].guardians = guardians;
