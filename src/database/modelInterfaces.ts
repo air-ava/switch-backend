@@ -1053,3 +1053,39 @@ export interface IAuditLog {
   created_at: Date;
   updated_at?: Date;
 }
+
+export interface ICashDeposit {
+  id?: number;
+  code: string;
+  student_id: number;
+  recorded_by: number;
+  completed_by?: number;
+  payer_id: number;
+  longitude?: string;
+  latitude?: string;
+  school_id: number;
+  currency: string; // Default: 'UGX'
+  amount: number; // Default: 0
+  class_id: number;
+  period_id?: number;
+  session_id: number;
+  beneficiary_product_id: number;
+  status: number;
+  notes?: string;
+  description?: string;
+  reciept_reference?: string;
+  transaction_reference?: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface ICashDepositLog {
+  id?: number;
+  code: string;
+  cash_deposits_id: number;
+  initiator_id: number;
+  action: 'CREATED' | 'UPDATED' | 'DELETED';
+  action_target?: string;
+  created_at: Date;
+  updated_at?: Date;
+}
