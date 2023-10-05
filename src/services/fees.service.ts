@@ -58,8 +58,8 @@ const Service: any = {
     const { school, item } = data;
     let { code } = data;
     if (!code && item) code = item;
-    const fee = await getSchoolProduct({ code }, [], ['FeesPaymentRecords', 'FeesPaymentRecords.FeesHistory']);
-    if (!fee || fee.status === STATUSES.DELETED) throw new NotFoundError('Fee');
+    const fee = await getSchoolProduct({ code, status: Not(STATUSES.DELETED) }, [], ['FeesPaymentRecords', 'FeesPaymentRecords.FeesHistory']);
+    if (!fee) throw new NotFoundError('Fee');
     if (fee.school_id !== school.id) throw new ValidationError('You do not have access to this fee');
 
     return sendObjectResponse('Fee belongs to school', fee);

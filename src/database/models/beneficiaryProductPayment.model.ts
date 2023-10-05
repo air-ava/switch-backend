@@ -21,6 +21,12 @@ export class BeneficiaryProductPayment {
 
   @Column()
   status: number;
+  
+  @Column()
+  is_default_amount: boolean;
+  
+  @Column({ type: 'decimal', precision: 20, scale: 4 })
+  custom_amount: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount_paid: number;

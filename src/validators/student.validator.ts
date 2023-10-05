@@ -43,7 +43,11 @@ export const editStudentsValidator = joi.object().keys({
 });
 
 export const editStudentFeeValidator = joi.object().keys({
-  status: joi.string().valid('active', 'inactive').required(),
+  status: joi.string().valid('active', 'inactive').optional(),
+  isDefaultAmount: joi.boolean().optional(),
+  amount: joi.number().positive().optional().min(10000).messages({
+    'number.min': 'Minimum amount for a fee is 100',
+  }),
   feeCode: joi.string().pattern(new RegExp('bpy_.{17}$')).required().messages({
     'string.pattern.base': 'Invalid student fee code',
   }),

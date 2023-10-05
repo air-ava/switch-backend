@@ -968,6 +968,8 @@ export interface IBeneficiaryProductPayment {
   beneficiary_id: number;
   product_id: number;
   status: number;
+  is_default_amount: boolean;
+  custom_amount: number;
   amount_paid: number;
   amount_outstanding: number;
   code: string;

@@ -37,6 +37,7 @@ import {
 } from '../database/repositories/schoolClass.repo';
 import {
   getBeneficiaryProductPayment,
+  increaseOutstandingAmount,
   listBeneficiaryProductPayments,
   saveBeneficiaryProductPayment,
   updateBeneficiaryProductPayment,
@@ -420,16 +421,25 @@ const Service: ServiceInterface = {
   },
 
   async editStudentFee(criteria: any): Promise<theResponse> {
-    const { studentId, feeCode, status } = criteria;
+    const { studentId, feeCode, status, amount, isDefaultAmount } = criteria;
     const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
     if (!student || student.status === STATUSES.DELETED) throw new NotFoundError('Student');
 
-    const studentPaymentFee = await getBeneficiaryProductPayment({ code: feeCode }, []);
+    const studentPaymentFee = await getBeneficiaryProductPayment({ code: feeCode }, [], ['Fee']);
     if (!studentPaymentFee || studentPaymentFee.status === STATUSES.DELETED) throw new NotFoundError('Fee');
     if (!(studentPaymentFee.beneficiary_id === student.id && studentPaymentFee.beneficiary_type === 'student'))
       throw new ValidationError('Fee does not belong to Student');
+    const updatePayload: any = {
+      status: STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'],
+    };
+    if (amount) {
+      updatePayload.is_default_amount = false;
+      updatePayload.custom_amount = amount;
+    }
+    if (isDefaultAmount) updatePayload.is_default_amount = isDefaultAmount;
 
-    await updateBeneficiaryProductPayment({ code: feeCode }, { status: STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'] });
+    await updateBeneficiaryProductPayment({ code: feeCode }, updatePayload);
+    if (amount) await increaseOutstandingAmount({ code: feeCode }, amount - studentPaymentFee.Fee.amount);
     return sendObjectResponse('Student Fee updated successfully');
   },
 

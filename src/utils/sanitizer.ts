@@ -408,18 +408,20 @@ export const Sanitizer = {
 
   sanitizeBeneficiaryFee(payload: any): any {
     if (!payload) return null;
-    const { id, Fee, FeesHistory, status, Student, product_id, ...rest } = Sanitizer.jsonify(payload);
+    const { id, Fee, FeesHistory, status, Student, product_id, is_default_amount, custom_amount, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
+      is_default_amount,
+      custom_amount,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       feeHistory: FeesHistory && Sanitizer.sanitizeAllArray(FeesHistory, Sanitizer.sanitizeFee),
-      fee: Fee && Sanitizer.sanitizeFee(Fee),
+      fee: Fee && Sanitizer.sanitizeFee(Fee, !is_default_amount && custom_amount),
       student: Student && Sanitizer.sanitizeStudent(Student),
     };
     return sanitized;
   },
 
-  sanitizeFee(payload: any): any {
+  sanitizeFee(payload: any, customAmount?: any): any {
     if (!payload) return null;
     const {
       id,
@@ -435,10 +437,12 @@ export const Sanitizer = {
       payment_type_id,
       product_type_id,
       Transactions,
+      amount,
       ...rest
     } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
+      amount: customAmount || amount,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       feeType: ProductType && Sanitizer.sanitizeFeeType(ProductType),
       paymentType: PaymentType && Sanitizer.sanitizePaymentType(PaymentType),
