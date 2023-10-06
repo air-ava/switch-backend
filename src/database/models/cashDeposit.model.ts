@@ -20,12 +20,6 @@ export class CashDeposit {
   @Column()
   payer_id: number;
 
-  @Column({ nullable: true })
-  longitude: string;
-
-  @Column({ nullable: true })
-  latitude: string;
-
   @Column()
   school_id: number;
 
@@ -49,6 +43,9 @@ export class CashDeposit {
 
   @Column()
   status: number;
+
+  @Column()
+  approval_status: number;
 
   @Column({ nullable: true })
   notes: string;

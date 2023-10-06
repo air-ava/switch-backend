@@ -14,14 +14,29 @@ export class CashDepositLog {
   @Column()
   initiator_id: number;
 
+  @Column()
+  device_id: number;
+
   @Column({
     type: 'enum',
     enum: ['CREATED', 'UPDATED', 'DELETED'],
   })
   action: 'CREATED' | 'UPDATED' | 'DELETED';
 
+  @Column({ type: 'text', nullable: true })
+  state_before: string;
+
+  @Column({ type: 'text', nullable: true })
+  state_after: string;
+
   @Column({ nullable: true })
-  action_target: string;
+  longitude: string;
+
+  @Column({ nullable: true })
+  latitude: string;
+
+  @Column()
+  ip_address: string;
 
   @CreateDateColumn()
   created_at: Date;

@@ -42,6 +42,7 @@ export const createMobileMoneyPaymentREPO = async (
   return repository.save(payload);
 };
 
+
 export const updateMobileMoneyPaymentREPO = async (
   queryParams: Partial<MobileMoneyPayment>,
   updateFields: Partial<MobileMoneyPayment> | any,

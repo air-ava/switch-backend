@@ -952,7 +952,7 @@ export interface IPaymentContacts {
   id: number;
   name?: string;
   school: number;
-  phone_number?: number;
+  phone_number?: string;
   address_id?: number;
   email?: string;
   status: number;
@@ -1061,8 +1061,6 @@ export interface ICashDeposit {
   recorded_by: number;
   completed_by?: number;
   payer_id: number;
-  longitude?: string;
-  latitude?: string;
   school_id: number;
   currency: string; // Default: 'UGX'
   amount: number; // Default: 0
@@ -1071,6 +1069,7 @@ export interface ICashDeposit {
   session_id: number;
   beneficiary_product_id: number;
   status: number;
+  approval_status: number;
   notes?: string;
   description?: string;
   reciept_reference?: string;
@@ -1084,8 +1083,27 @@ export interface ICashDepositLog {
   code: string;
   cash_deposits_id: number;
   initiator_id: number;
+  device_id: number;
   action: 'CREATED' | 'UPDATED' | 'DELETED';
-  action_target?: string;
+  state_before: string;
+  state_after: string;
+  longitude?: string;
+  latitude?: string;
+  ip_address?: string;
   created_at: Date;
   updated_at?: Date;
 }
+
+export interface IDevice {
+  id: number;
+  code: string;
+  isMobile: boolean;
+  OS: string;
+  name: string;
+  model: string;
+  deviceType: string;
+  status: number;
+  schoolId: number;
+  ownerId: number;
+}
+
