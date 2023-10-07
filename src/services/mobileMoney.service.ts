@@ -283,7 +283,7 @@ export const Service = {
     if (transaction_type === 'school-fees') {
       purpose = 'Payment:School-Fees';
       student = await getStudent({ uniqueStudentId: username }, [], ['User', 'School', 'Classes', 'Classes.ClassLevel']);
-      const { Classes, School, User, ...rest } = student;
+      const { Classes = [], School, User, ...rest } = student;
       const studentCurrentClass = Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
       returnData = { student: { ...rest }, school: School, user: User, classes: studentCurrentClass };
     }
