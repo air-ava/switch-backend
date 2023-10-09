@@ -10,8 +10,6 @@ export const cashDepositCONTROLLER: RequestHandler = async (req, res) => {
   const { user, school, educationalSession, deviceInfo, ipAddress } = req;
   const { code: studentId, feeCode: StudentFeeCode } = req.query;
 
-  console.log({ school });
-
   const formatedDeviceDetails = DeviceService.formatDeviceInfo(deviceInfo);
   const { data: deviceDetails } = await DeviceService.findOrCreateDevice({ loggedInUser: user, school, ...formatedDeviceDetails });
 
@@ -25,7 +23,6 @@ export const cashDepositCONTROLLER: RequestHandler = async (req, res) => {
   const validation = CashDepositsValidator.depositCash.validate(payload);
   if (validation.error) throw new ValidationError(validation.error.message);
 
-  console.log({ deviceDetails });
   const response = await CashDepositService.createCashDeposit({ deviceDetails, school, session: educationalSession, loggedInUser: user, ...payload });
 
   const { data, message, error } = response;

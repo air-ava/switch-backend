@@ -1,4 +1,5 @@
 import randomstring from 'randomstring';
+import { Not } from 'typeorm';
 import { theResponse } from '../utils/interface';
 import { NotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
 import { STATUSES } from '../database/models/status.model';
@@ -12,7 +13,6 @@ import CashDepositRepo from '../database/repositories/cashDeposit.repo';
 import CashDepositLogRepo from '../database/repositories/cashDepositLog.repo';
 import { createAsset } from './assets.service';
 import { IStudentClass } from '../database/modelInterfaces';
-import { Not } from 'typeorm';
 
 const Service = {
   async createCashDeposit(data: any): Promise<theResponse> {
@@ -127,6 +127,12 @@ const Service = {
     }
     return sendObjectResponse('Cash Deposited successfully');
   },
+  // submitRecieptForCashDeposits
+  // reviewCashDeposits
+  // updateCashDepositRecord
+  // listCashDeposit
+  // getCashDeposit
+  // getCashDepositLog
 };
 
 export default Service;
