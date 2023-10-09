@@ -125,10 +125,59 @@ const Service = {
         ),
       );
     }
+
+    // Send Slack Message of Recorded Cash Deposits
     return sendObjectResponse('Cash Deposited successfully');
   },
+
   // submitRecieptForCashDeposits
+  // [ addListOfLogs, recipts, recordTransactions(processing), status(Unresolved), approvalStatus(Pending) ]
+  async submitRecieptForCashDeposits(data: any): Promise<theResponse> {
+    const { ipAddress, cashDeposits, recipts, clientCordinate, deviceDetails, loggedInUser } = data;
+    const { longitude, latitude } = clientCordinate;
+
+    // confirm all submitted cashDeposit Codes
+    // Initiate Transaction
+
+    // Record Transaction Reciepts
+    if (recipts) {
+      const process = 'cashDeposits';
+      await Promise.all(
+        recipts.map((document: string) =>
+          createAsset({
+            imagePath: document,
+            user: loggedInUser.id,
+            trigger: `${process}:submit_deposit_reciepts`,
+            reference: 'cashPayload.reference',
+            organisation: loggedInUser.organisation,
+            entity: process,
+            entity_id: String('cashDeposit.id'),
+            customName: `ref:${'cashPayload.reference'}|process:${process}-add_reciepts`,
+          }),
+        ),
+      );
+    }
+    // Update all submitted cashDeposit's aproval_status, status, and transaction_reference
+
+    await CashDepositLogRepo.createCashDepositLog({
+      cash_deposits_id: 'cashDeposit.id',
+      initiator_id: loggedInUser.id,
+      device_id: deviceDetails.id,
+      action: 'SUBMITTED',
+      state_after: JSON.stringify({ cashDeposit: '' }),
+      longitude,
+      latitude,
+      ipAddress,
+    });
+
+    // Send Slack Message of Transaction Requiring Review
+
+    return sendObjectResponse('Deposit Reciept Submitted successfully');
+  },
+
   // reviewCashDeposits
+  // [ recordBeneficiaryPaymentHistory, creditWallet, debitFees, recordTransactions(succeess || failed), status(Resolved || Cancelled), approvalStatus(Approved || Rejected) ]
+
   // updateCashDepositRecord
   // listCashDeposit
   // getCashDeposit
