@@ -12,10 +12,7 @@ export class CashDeposit {
   student_id: number;
 
   @Column()
-  recorded_by: number;
-
-  @Column({ nullable: true })
-  completed_by: number;
+  recorded_by: string;
 
   @Column()
   payer_id: number;

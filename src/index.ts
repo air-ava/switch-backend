@@ -8,6 +8,7 @@ import { createConnection } from 'typeorm';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
+import useragent from 'express-useragent';
 
 import Settings from './services/settings.service';
 // import { jsonify } from './utils/sanitizer';
@@ -33,6 +34,8 @@ async function startServer(): Promise<void> {
 
   app.use(cors());
   app.use(helmet());
+
+  app.use(useragent.express());
 
   app.use('/api', router);
   app.use('/office', office);

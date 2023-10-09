@@ -12,6 +12,7 @@ import CashDepositRepo from '../database/repositories/cashDeposit.repo';
 import CashDepositLogRepo from '../database/repositories/cashDepositLog.repo';
 import { createAsset } from './assets.service';
 import { IStudentClass } from '../database/modelInterfaces';
+import { Not } from 'typeorm';
 
 const Service = {
   async createCashDeposit(data: any): Promise<theResponse> {
@@ -35,13 +36,11 @@ const Service = {
       notes,
     } = data;
     const { longitude, latitude } = clientCordinate;
-    const { deviceName, deviceModel, deviceType, isMobile } = deviceDetails;
     const { name: payerName, phoneNumber: payerPhone, email: payerEmail } = payerDetails;
 
     const cashPayload: any = {};
-    const cashLogPayload: any = {};
     // confirm stundent
-    const student = await getStudent({ uniqueStudentId: studentId, status: STATUSES.DELETED }, [], ['Classes', 'Classes.ClassLevel']);
+    const student = await getStudent({ uniqueStudentId: studentId, status: Not(STATUSES.DELETED) }, [], ['Classes', 'Classes.ClassLevel']);
     if (!student) throw new NotFoundError('Student');
     const { Classes, ...rest } = student;
 
@@ -56,7 +55,7 @@ const Service = {
     }
 
     // confirm stundentFee
-    const studentPaymentFee = await getBeneficiaryProductPayment({ code: StudentFeeCode, status: STATUSES.DELETED }, [], ['Fee']);
+    const studentPaymentFee = await getBeneficiaryProductPayment({ code: StudentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
     if (!studentPaymentFee) throw new NotFoundError('Fee');
     if (!(studentPaymentFee.beneficiary_id === student.id && studentPaymentFee.beneficiary_type === 'student'))
       throw new ValidationError('Fee does not belong to Student');

@@ -6,7 +6,7 @@ export class createDevice1696588964418 implements MigrationInterface {
       new Table({
         name: 'device',
         columns: [
-          { name: 'id', type: 'int', isPrimary: true, isGenerated: true },
+          { name: 'id', type: 'int', isPrimary: true, isGenerated: true, generationStrategy: 'increment' },
           { name: 'code', type: 'varchar', isUnique: true },
           { name: 'isMobile', type: 'boolean' },
           { name: 'OS', type: 'varchar', isNullable: true },
@@ -15,9 +15,9 @@ export class createDevice1696588964418 implements MigrationInterface {
           { name: 'device_type', type: 'varchar' },
           { name: 'status', type: 'int', default: 1 },
           { name: 'school_id', type: 'int' },
-          { name: 'owner_id', type: 'int' },
-          { name: 'created_at', type: 'date' },
-          { name: 'updated_at', type: 'date', isNullable: true },
+          { name: 'owner_id', type: 'varchar' },
+          { name: 'created_at', type: 'datetime', default: 'CURRENT_TIMESTAMP' },
+          { name: 'updated_at', type: 'datetime', isNullable: true },
         ],
       }),
     );

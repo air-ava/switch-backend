@@ -358,6 +358,10 @@ const Utils = {
     if (typeof string !== 'string') throw new ValidationError('Wrong data type passed');
     return string.replace(/\s/g, '');
   },
+
+  isFalsyOrUnknown(value: any) {
+    return !value || value === 'unknown';
+  },
 };
 
 export default Utils;

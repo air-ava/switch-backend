@@ -1059,7 +1059,6 @@ export interface ICashDeposit {
   code: string;
   student_id: number;
   recorded_by: number;
-  completed_by?: number;
   payer_id: number;
   school_id: number;
   currency: string; // Default: 'UGX'
@@ -1098,7 +1097,7 @@ export interface IDevice {
   id: number;
   code: string;
   isMobile: boolean;
-  OS: string;
+  os: string;
   name: string;
   model: string;
   deviceType: string;
@@ -1106,4 +1105,3 @@ export interface IDevice {
   schoolId: number;
   ownerId: number;
 }
-

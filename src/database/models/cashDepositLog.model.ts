@@ -12,7 +12,7 @@ export class CashDepositLog {
   cash_deposits_id: number;
 
   @Column()
-  initiator_id: number;
+  initiator_id: string;
 
   @Column()
   device_id: number;

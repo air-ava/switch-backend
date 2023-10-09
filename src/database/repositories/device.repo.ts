@@ -4,6 +4,7 @@ import { EntityRepository, QueryRunner, getRepository, UpdateResult, FindConditi
 import randomstring from 'randomstring';
 import { Device } from '../models/device.model';
 import { IDevice } from '../modelInterfaces';
+import { STATUSES } from '../models/status.model';
 
 type QueryParam = Partial<IDevice> | any;
 type SelectOptions = Array<keyof IDevice>;
@@ -51,9 +52,9 @@ const DeviceRepository = {
   async findOrCreateDevice(queryParams: Partial<Device> | Partial<Device>[] | any, t?: Transaction): Promise<Device> {
     const repository = t ? t.manager.getRepository(Device) : getRepository(Device);
 
-    const { deviceType, name, school, ownerId } = queryParams;
+    const { deviceType, name, schoolId, ownerId } = queryParams;
 
-    const findConditions: FindConditions<IDevice> = { schoolId: school, ownerId };
+    const findConditions: FindConditions<IDevice> = { schoolId, ownerId, status: STATUSES.ACTIVE };
     if (name) findConditions.name = name;
     if (deviceType) findConditions.deviceType = deviceType;
 

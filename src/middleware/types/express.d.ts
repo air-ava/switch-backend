@@ -63,6 +63,8 @@ declare namespace Express {
       email_verified_at?: Date;
       updated_at?: Date;
     };
+    deviceInfo: any;
+    ipAddress: any;
     educationalSession?: Partial<{
       id: number;
       code: string;

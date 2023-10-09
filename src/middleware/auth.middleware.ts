@@ -42,18 +42,6 @@ const sessionData = {
     const { id, originalUrl } = data;
     if (!originalUrl.includes('/api/')) throw Error(`Invalid token provided`);
 
-    // const user = await findUser({ id }, []);
-    // if (!user) throw Error(`User doesn't exists`);
-    // const organisation = await getOneOrganisationREPO({ id: (user as IUser).organisation }, []);
-    // let school;
-    // if (organisation) {
-    //   if (organisation) {
-    //     school = await getSchool({ organisation_id: organisation.id }, [], ['Logo']);
-    //     if (school) school = school as any;
-    //   }
-    // }
-
-    // return { user, organisation, school };
     return sessionData.getDashboardData({ id });
   },
 
@@ -93,6 +81,8 @@ export const validateSession: RequestHandler = async (req, res, next) => {
     const extractedData = data as jwtDecodedDTO;
 
     req.userId = String(extractedData.id);
+    req.deviceInfo = req.useragent;
+    req.ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
 
     const sessionDataPayload = { ...extractedData, originalUrl: req.originalUrl };
     if (extractedData.type === 'backOffice') {

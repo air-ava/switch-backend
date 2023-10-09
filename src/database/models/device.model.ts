@@ -15,7 +15,7 @@ export class Device {
   isMobile: boolean;
 
   @Column()
-  OS: string;
+  os: string;
 
   @Column()
   name: string;
@@ -33,5 +33,5 @@ export class Device {
   schoolId: number;
 
   @Column({ name: 'owner_id' })
-  ownerId: number;
+  ownerId: string;
 }
