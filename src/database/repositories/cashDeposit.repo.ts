@@ -50,6 +50,29 @@ const CashDepositRepository = {
     const repository = t ? t.manager.getRepository(CashDeposit) : getRepository(CashDeposit);
     return repository.update(queryParams, updateFields);
   },
+
+  async getSummedAmountsByCurrency(
+    codes: string[],
+    currency: string,
+  ): Promise<
+    {
+      currency: string;
+      total_amount: number;
+    }[]
+  > {
+    const repository = getRepository(CashDeposit);
+
+    const sums = await repository
+      .createQueryBuilder('cash_deposit')
+      .select('cash_deposit.currency')
+      .addSelect('SUM(cash_deposit.amount)', 'total_amount')
+      .where('cash_deposit.code IN (:...codes)', { codes })
+      .andWhere('cash_deposit.currency = :currency', { currency })
+      .groupBy('cash_deposit.currency')
+      .getRawMany();
+
+    return sums;
+  },
 };
 
 export default CashDepositRepository;
