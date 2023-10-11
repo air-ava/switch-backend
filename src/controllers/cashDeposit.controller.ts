@@ -29,7 +29,7 @@ export const cashDepositCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, data);
 };
 
-export const submitReciepCONTROLLER: RequestHandler = async (req, res) => {
+export const submitRecieptCONTROLLER: RequestHandler = async (req, res) => {
   const { user, school, deviceInfo, ipAddress } = req;
 
   const formatedDeviceDetails = DeviceService.formatDeviceInfo(deviceInfo);
@@ -44,6 +44,60 @@ export const submitReciepCONTROLLER: RequestHandler = async (req, res) => {
   if (validation.error) throw new ValidationError(validation.error.message);
 
   const response = await CashDepositService.submitRecieptForCashDeposits({
+    deviceDetails,
+    school,
+    loggedInUser: user,
+    ...payload,
+  });
+
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const reviewCashDepositsCONTROLLER: RequestHandler = async (req, res) => {
+  const { user, school, deviceInfo, ipAddress } = req;
+  const { reference } = req.params;
+
+  const formatedDeviceDetails = DeviceService.formatDeviceInfo(deviceInfo);
+  const { data: deviceDetails } = await DeviceService.findOrCreateDevice({ loggedInUser: user, school, ...formatedDeviceDetails });
+
+  const payload = {
+    ...req.body,
+    transactionReference: reference,
+    ipAddress,
+  };
+
+  const validation = CashDepositsValidator.reviewCashDeposit.validate(payload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await CashDepositService.reviewCashDeposits({
+    deviceDetails,
+    school,
+    loggedInUser: user,
+    ...payload,
+  });
+
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const updateCashDepositRecordCONTROLLER: RequestHandler = async (req, res) => {
+  const { user, school, deviceInfo, ipAddress } = req;
+  const { code } = req.params;
+
+  const formatedDeviceDetails = DeviceService.formatDeviceInfo(deviceInfo);
+  const { data: deviceDetails } = await DeviceService.findOrCreateDevice({ loggedInUser: user, school, ...formatedDeviceDetails });
+
+  const payload = {
+    ...req.body,
+    code,
+    ipAddress,
+  };
+
+  const validation = CashDepositsValidator.reviewCashDeposit.validate(payload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await CashDepositService.reviewCashDeposits({
     deviceDetails,
     school,
     loggedInUser: user,

@@ -28,17 +28,17 @@ const Validator = {
           .string()
           .pattern(/^[0-9]+$/)
           .required(), // Assuming only numbers are allowed
-        email: joi.string().email().required(),
+        email: joi.string().email().optional(),
       })
       .required(),
     clientCordinate: joi
       .object({
-        longitude: joi.string().required(), // This is a simple regex for latitude and longitude. You can modify it to better suit your needs.
+        longitude: joi.string().required(),
         latitude: joi.string().required(),
       })
       .required(),
     recieptUrls: joi.array().items(joi.string().uri()).optional(),
-    currency: joi.string().valid('UGX').required(), // Only allows 'UGX'
+    currency: joi.string().valid('UGX').required(),
     amount: joi.number().greater(10000).positive().required().messages({
       'number.positive': '"amount" should be a positive value.',
       'number.greater': '"amount" should be greater than 100.',
@@ -48,18 +48,57 @@ const Validator = {
     description: joi.string().optional(),
     notes: joi.string().optional(), // assuming notes is optional
   }),
-  
+
   recieptSubmission: joi.object({
     clientCordinate: joi
       .object({
-        longitude: joi.string().required(), // This is a simple regex for latitude and longitude. You can modify it to better suit your needs.
+        longitude: joi.string().required(),
         latitude: joi.string().required(),
       })
       .required(),
     recipts: joi.array().items(joi.string().uri()).optional(),
     cashDeposits: joi.array().items(cashDepositCode).required(),
-    currency: joi.string().valid('UGX').optional(), // Only allows 'UGX'
+    currency: joi.string().valid('UGX').optional(),
     ipAddress: joi.string().required(),
+  }),
+
+  reviewCashDeposit: joi.object({
+    clientCordinate: joi
+      .object({
+        longitude: joi.string().required(),
+        latitude: joi.string().required(),
+      })
+      .required(),
+    status: joi.string().valid('approved', 'rejected').required(),
+    ipAddress: joi.string().required(),
+    transactionReference: joi.string().required(),
+  }),
+
+  updateCashDeposit: joi.object({
+    clientCordinate: joi
+      .object({
+        longitude: joi.string().required(),
+        latitude: joi.string().required(),
+      })
+      .required(),
+    status: joi.string().valid('delete').optional(),
+    ipAddress: joi.string().required(),
+    code: cashDepositCode.required(),
+    studentId: joi.string().min(9).optional(),
+    StudentFeeCode: studentFeeCode.optional(),
+    payerDetails: joi
+      .object({
+        name: joi.string().optional(),
+        phoneNumber: joi
+          .string()
+          .pattern(/^[0-9]+$/)
+          .optional(), // Assuming only numbers are allowed
+        email: joi.string().email().optional(),
+      })
+      .optional(),
+    periodCode: periodCode.optional(),
+    classCode: classCode.optional(),
+    recieptUrls: joi.array().items(joi.string().uri()).optional(),
   }),
 };
 

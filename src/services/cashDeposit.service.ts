@@ -8,7 +8,7 @@ import { getStudent } from '../database/repositories/student.repo';
 import { getBeneficiaryProductPayment } from '../database/repositories/beneficiaryProductPayment.repo';
 import { getSchoolClass } from '../database/repositories/schoolClass.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
-import { findOrCreatePaymentContacts } from '../database/repositories/paymentContact.repo';
+import { findOrCreatePaymentContacts, getPaymentContact, updatePaymentContacts } from '../database/repositories/paymentContact.repo';
 import { getClassLevel } from '../database/repositories/classLevel.repo';
 import CashDepositRepo from '../database/repositories/cashDeposit.repo';
 import CashDepositLogRepo from '../database/repositories/cashDepositLog.repo';
@@ -68,6 +68,7 @@ const Service = {
     if (!studentPaymentFee) throw new NotFoundError('Fee');
     if (!(studentPaymentFee.beneficiary_id === student.id && studentPaymentFee.beneficiary_type === 'student'))
       throw new ValidationError('Fee does not belong to Student');
+    if (studentPaymentFee.amount_outstanding <= 0) throw new ValidationError('Fee has been fully paid');
 
     // confirm session period
     if (periodCode) {
@@ -195,6 +196,7 @@ const Service = {
       amount: Number(txAmount),
       user,
       walletId: wallet.id,
+      type: 'cash-deposit-logging',
       reference,
       description,
       metadata,
@@ -255,8 +257,23 @@ const Service = {
 
   // reviewCashDeposits
   // [ recordBeneficiaryPaymentHistory, creditWallet, debitFees, recordTransactions(succeess || failed), status(Resolved || Cancelled), approvalStatus(Approved || Rejected) ]
-  async reviewCashDeposits(data: any): Promise<theResponse> {
+  async reviewCashDeposits(data: {
+    status: 'approved' | 'rejected';
+    transactionReference: string;
+    ipAddress: string;
+    clientCordinate: {
+      longitude: number;
+      latitude: number;
+    };
+    deviceDetails: any;
+    loggedInUser: {
+      id: string;
+      organisation: string;
+    };
+  }): Promise<theResponse> {
     const { status: incomingStatus = 'approved', transactionReference } = data;
+    const { ipAddress, clientCordinate, deviceDetails, loggedInUser } = data;
+    const { longitude, latitude } = clientCordinate;
     // get cash deposits using transaction_reference
     const cashDeposits = await CashDepositRepo.listCashDeposits(
       { transaction_reference: transactionReference, status: STATUSES.UNRESOLVED },
@@ -277,14 +294,14 @@ const Service = {
         CashDepositRepo.updateCashDeposit({ id: deposit.id }, updatePayload);
         CashDepositLogRepo.createCashDepositLog({
           cash_deposits_id: deposit.id,
-          initiator_id: deposit.recorded_by,
-          device_id: deposit.device_id,
+          initiator_id: loggedInUser.id,
+          device_id: deviceDetails.id,
           action: 'COMPLETED',
           state_before: JSON.stringify(deposit),
           state_after: JSON.stringify({ ...deposit, ...updatePayload }),
-          longitude: deposit.longitude,
-          latitude: deposit.latitude,
-          ip_address: deposit.ip_address,
+          longitude,
+          latitude,
+          ip_address: ipAddress,
         });
       }),
     );
@@ -294,6 +311,14 @@ const Service = {
     const { Wallet: wallet, amount, metadata, purpose, reference, description } = transaction;
 
     if (status === STATUSES.REJECTED) {
+      await debitLedgerWallet({
+        amount,
+        user: wallet.User,
+        walletId: wallet.id,
+        reference,
+        metadata,
+        type: 'cash-deposit-logging',
+      });
       await updateTransactionREPO({ id: transaction.id }, { status: STATUSES.FAILED });
       return sendObjectResponse(`Submitted Cash Deposits rejected`);
     }
@@ -304,7 +329,7 @@ const Service = {
       walletId: wallet.id,
       reference,
       metadata,
-      // t,
+      type: 'cash-deposit-logging',
     });
     await WalletService.creditWallet({
       amount,
@@ -318,7 +343,6 @@ const Service = {
       // t,
     });
     await updateTransactionREPO({ id: transaction.id }, { status: STATUSES.SUCCESS });
-    await updateStatusOfALienTransaction({ reference, status: STATUSES.COMPLETED });
 
     const feesConfig = Settings.get('TRANSACTION_FEES');
     const {
@@ -361,6 +385,103 @@ const Service = {
     return sendObjectResponse(`Submitted Cash Deposits approved`);
   },
   // updateCashDepositRecord
+  async updateCashDepositRecord(data: any): Promise<theResponse> {
+    const { code, amount, status, notes, description, studentId, StudentFeeCode, payerDetails, periodCode, classCode, recieptUrls } = data;
+    const { ipAddress, clientCordinate, deviceDetails, loggedInUser } = data;
+    const { longitude, latitude } = clientCordinate;
+
+    const updatePayload: any = {};
+    if (status) updatePayload.status = STATUSES[status.toUpperCase() as keyof typeof STATUSES];
+    if (amount) updatePayload.amount = amount;
+    if (notes) updatePayload.notes = notes;
+    if (description) updatePayload.description = description;
+
+    const action = status === STATUSES.DELETED ? 'DELETED' : 'UPDATED';
+
+    const deposit = await CashDepositRepo.getCashDeposit({ code }, []);
+    if (!deposit) throw new NotFoundError('Cash Deposit');
+
+    if (studentId) {
+      const student = await getStudent({ uniqueStudentId: studentId, status: Not(STATUSES.DELETED) }, [], ['Classes', 'Classes.ClassLevel']);
+      if (!student) throw new NotFoundError('Student');
+      const { Classes, ...rest } = student;
+
+      // get current class from Student
+      const [studentCurrentClass] = Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+      updatePayload.student_id = student.id;
+      updatePayload.class_id = studentCurrentClass.ClassLevel.id;
+    }
+
+    if (StudentFeeCode) {
+      const studentPaymentFee = await getBeneficiaryProductPayment({ code: StudentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
+      if (!studentPaymentFee) throw new NotFoundError('Fee');
+      if (!(studentPaymentFee.beneficiary_id === deposit.student_id && studentPaymentFee.beneficiary_type === 'student'))
+        throw new ValidationError('Fee does not belong to Student');
+      updatePayload.beneficiary_product_id = studentPaymentFee.id;
+    }
+
+    let message: any;
+    if (payerDetails) {
+      const { name: payerName, phoneNumber: payerPhone, email: payerEmail } = payerDetails;
+      const updatePayerPayload = {
+        phone_number: payerPhone && payerPhone,
+        email: payerEmail && payerEmail,
+        name: payerName && payerName,
+      };
+      const before = await getPaymentContact({ id: deposit.payer_id }, []);
+      if (!before) throw new NotFoundError('Payer');
+
+      message = { action: 'update payment contact', before, after: updatePayerPayload };
+      await updatePaymentContacts({ id: deposit.payer_id }, updatePayerPayload);
+    }
+
+    if (periodCode) {
+      const eduPeriod: any = await getEducationPeriod({ code: periodCode }, []);
+      updatePayload.period = eduPeriod.id;
+    }
+
+    if (classCode) {
+      const foundClassLevel = await getClassLevel({ code: classCode }, []);
+      if (!foundClassLevel) throw new NotFoundError('Class For School');
+      updatePayload.class_id = foundClassLevel.id;
+    }
+
+    if (recieptUrls) {
+      const process = 'cashDeposits';
+      updatePayload.reciept_reference = deposit.reciept_reference
+        ? deposit.reciept_reference
+        : `cashD_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+      await Promise.all(
+        recieptUrls.map((document: string) =>
+          createAsset({
+            imagePath: document,
+            user: loggedInUser.id,
+            trigger: `${process}:add_reciepts`,
+            reference: updatePayload.reference,
+            organisation: loggedInUser.organisation,
+            entity: process,
+            entity_id: String(deposit.id),
+            customName: `ref:${updatePayload.reference}|process:${process}-add_reciepts`,
+          }),
+        ),
+      );
+    }
+
+    // check if updatePayload is not an empty object
+    if (Object.keys(updatePayload).length !== 0) await CashDepositRepo.updateCashDeposit({ code }, updatePayload);
+    await CashDepositLogRepo.createCashDepositLog({
+      cash_deposits_id: deposit.id,
+      initiator_id: loggedInUser.id,
+      device_id: deviceDetails.id,
+      action,
+      state_before: JSON.stringify(deposit),
+      state_after: JSON.stringify({ ...deposit, ...updatePayload, message }),
+      longitude,
+      latitude,
+      ip_address: ipAddress,
+    });
+    return sendObjectResponse(`Cash Deposit updated successfully`);
+  },
   // listCashDeposit
   // getCashDeposit
   // getCashDepositLog

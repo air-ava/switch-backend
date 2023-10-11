@@ -3,7 +3,7 @@ import { QueryRunner, getRepository, UpdateResult, FindConditions } from 'typeor
 import { PaymentContacts } from '../models/paymentContacts.model';
 import { IPaymentContacts } from '../modelInterfaces';
 
-export const getPreference = async (
+export const getPaymentContact = async (
   queryParam: Partial<PaymentContacts> | any,
   selectOptions: Array<keyof PaymentContacts>,
   relationOptions?: any[],
