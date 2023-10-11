@@ -14,10 +14,14 @@ import CashDepositRepo from '../database/repositories/cashDeposit.repo';
 import CashDepositLogRepo from '../database/repositories/cashDepositLog.repo';
 import { createAsset } from './assets.service';
 import { IStudentClass } from '../database/modelInterfaces';
-import { getOneTransactionREPO, saveTransaction } from '../database/repositories/transaction.repo';
+import { getOneTransactionREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import Settings from './settings.service';
-import { creditLedgerWallet } from './lien.service';
+import { creditLedgerWallet, debitLedgerWallet } from './lien.service';
+import { getTransactionReference } from './transaction.service';
+import { Service as WalletService } from './wallet.service';
+import FeesService from './fees.service';
+import { updateStatusOfALienTransaction } from '../database/repositories/lienTransaction.repo';
 
 const Service = {
   async createCashDeposit(data: any): Promise<theResponse> {
@@ -144,9 +148,12 @@ const Service = {
     // confirm all submitted cashDeposit Codes
     const foundCashDeposit = await CashDepositRepo.listCashDeposits({ code: In(cashDeposits) }, []);
     if (foundCashDeposit.length !== cashDeposits.length) throw new NotFoundError(`${cashDeposits.length - foundCashDeposit.length} Cash Deposits`);
+    // check if all cashDeposits are in LOGGED status
+    const allCashDepositsAreLogged = foundCashDeposit.every((cashDeposit: any) => cashDeposit.status === STATUSES.UNRESOLVED);
+    if (!allCashDepositsAreLogged) throw new ValidationError('Some Cash Deposits have already been submitted');
 
     // Get Wallet
-    const wallet = await WalletREPO.findWallet({ entity: 'school', entity_id: school.id, type: 'permanent' }, [], ['User']);
+    const wallet = await WalletREPO.findWallet({ entity: 'school', entity_id: school.id, type: 'permanent' }, [], undefined, ['User']);
     if (!wallet) throw new NotFoundError(`Wallet`);
     const user = wallet.User;
 
@@ -165,7 +172,7 @@ const Service = {
       charges: txAmount,
       tx_reference: reference,
       transaction_type: txPurpose['school-fees'].purpose,
-      deposits: cashDeposits
+      deposits: cashDeposits,
     };
 
     await saveTransaction({
@@ -198,15 +205,15 @@ const Service = {
     let transaction_reference: string;
     if (recipts) {
       const process = 'transactions';
-      transaction_reference = `trx_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
       const transaction = await getOneTransactionREPO({ reference, txn_type: txPurpose['school-fees'].type, channel: 'cash-deposit' }, []);
+      transaction_reference = await getTransactionReference(transaction);
       await Promise.all(
         recipts.map((document: string) =>
           createAsset({
             imagePath: document,
             user: loggedInUser.id,
             trigger: `${process}:submit_deposit_reciepts`,
-            reference: transaction_reference,
+            reference: transaction_reference || reference,
             organisation: loggedInUser.organisation,
             entity: process,
             entity_id: String(transaction.id),
@@ -214,6 +221,7 @@ const Service = {
           }),
         ),
       );
+      await updateTransactionREPO({ id: transaction.id }, { document_reference: transaction_reference });
     }
     // Update all submitted cashDeposit's aproval_status, status, and transaction_reference
 
@@ -247,7 +255,111 @@ const Service = {
 
   // reviewCashDeposits
   // [ recordBeneficiaryPaymentHistory, creditWallet, debitFees, recordTransactions(succeess || failed), status(Resolved || Cancelled), approvalStatus(Approved || Rejected) ]
+  async reviewCashDeposits(data: any): Promise<theResponse> {
+    const { status: incomingStatus = 'approved', transactionReference } = data;
+    // get cash deposits using transaction_reference
+    const cashDeposits = await CashDepositRepo.listCashDeposits(
+      { transaction_reference: transactionReference, status: STATUSES.UNRESOLVED },
+      [],
+      ['StudentFee', 'Payer'],
+    );
+    if (!cashDeposits.length) throw new NotFoundError('Cash Deposits');
 
+    const status = STATUSES[incomingStatus.toUpperCase() as keyof typeof STATUSES];
+    // if incomingStatus is rejected, confirm all cashDeposits status as Cancelled and approval_status as Rejected
+    await Promise.all(
+      // eslint-disable-next-line array-callback-return
+      cashDeposits.map((deposit: any) => {
+        const updatePayload = {
+          status: status === STATUSES.REJECTED ? STATUSES.CANCELLED : STATUSES.RESOLVED,
+          approval_status: status === STATUSES.REJECTED ? STATUSES.REJECTED : STATUSES.APPROVED,
+        };
+        CashDepositRepo.updateCashDeposit({ id: deposit.id }, updatePayload);
+        CashDepositLogRepo.createCashDepositLog({
+          cash_deposits_id: deposit.id,
+          initiator_id: deposit.recorded_by,
+          device_id: deposit.device_id,
+          action: 'COMPLETED',
+          state_before: JSON.stringify(deposit),
+          state_after: JSON.stringify({ ...deposit, ...updatePayload }),
+          longitude: deposit.longitude,
+          latitude: deposit.latitude,
+          ip_address: deposit.ip_address,
+        });
+      }),
+    );
+    // if incomingStatus is rejected, fail the transaction of transaction_reference
+    const transaction = await getOneTransactionREPO({ reference: transactionReference }, [], ['Wallet', 'Wallet.User']);
+    if (!transaction) throw new NotFoundError('Transaction');
+    const { Wallet: wallet, amount, metadata, purpose, reference, description } = transaction;
+
+    if (status === STATUSES.REJECTED) {
+      await updateTransactionREPO({ id: transaction.id }, { status: STATUSES.FAILED });
+      return sendObjectResponse(`Submitted Cash Deposits rejected`);
+    }
+    // if incomingStatus is approved, credit wallet the sum of all cashDeposits after debiting the ledger wallet
+    await debitLedgerWallet({
+      amount,
+      user: wallet.User,
+      walletId: wallet.id,
+      reference,
+      metadata,
+      // t,
+    });
+    await WalletService.creditWallet({
+      amount,
+      user: wallet.User,
+      wallet_id: wallet.id,
+      purpose,
+      description: 'Completing Mobile Money Funding',
+      metadata,
+      reference,
+      noTransaction: true,
+      // t,
+    });
+    await updateTransactionREPO({ id: transaction.id }, { status: STATUSES.SUCCESS });
+    await updateStatusOfALienTransaction({ reference, status: STATUSES.COMPLETED });
+
+    const feesConfig = Settings.get('TRANSACTION_FEES');
+    const {
+      success: debitSuccess,
+      data: transactionFees,
+      error: debitError,
+    } = await WalletService.debitTransactionFees({
+      wallet_id: wallet.id,
+      reference,
+      user: wallet.User,
+      description,
+      feesNames: ['credit-fees'],
+      transactionAmount: amount,
+    });
+    const feesPurposeNames: string[] = [feesConfig['credit-fees'].purpose];
+    await updateTransactionREPO(
+      { reference, purpose: Not(In(purpose)) },
+      {
+        metadata: {
+          ...metadata,
+          transactionFees,
+          fees: feesPurposeNames,
+        },
+      },
+    );
+
+    await Promise.all(
+      // eslint-disable-next-line array-callback-return
+      cashDeposits.map((deposit: any) => {
+        const { id: beneficiaryId } = deposit.StudentFee;
+        FeesService.recordInstallment({
+          amount,
+          reference,
+          paymentContact: deposit.Payer,
+          metadata,
+          beneficiaryId,
+        });
+      }),
+    );
+    return sendObjectResponse(`Submitted Cash Deposits approved`);
+  },
   // updateCashDepositRecord
   // listCashDeposit
   // getCashDeposit

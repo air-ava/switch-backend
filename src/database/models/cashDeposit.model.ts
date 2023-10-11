@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
+import { IBeneficiaryProductPayment, IPaymentContacts, IUser } from '../modelInterfaces';
 
 @Entity('cash_deposits')
 export class CashDeposit {
@@ -61,4 +62,12 @@ export class CashDeposit {
 
   @UpdateDateColumn({ nullable: true })
   updated_at: Date;
+
+  @OneToOne('BeneficiaryProductPayment', 'cash_deposits')
+  @JoinColumn({ name: 'beneficiary_product_id', referencedColumnName: 'id' })
+  StudentFee: IBeneficiaryProductPayment;
+
+  @OneToOne('PaymentContacts', 'cash_deposits')
+  @JoinColumn({ name: 'payer_id' })
+  Payer: IPaymentContacts;
 }

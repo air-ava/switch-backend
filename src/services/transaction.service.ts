@@ -1,3 +1,4 @@
+import { Like, Not } from 'typeorm';
 import { STATUSES } from './../database/models/status.model';
 /* eslint-disable no-restricted-syntax */
 import { log } from 'winston';
@@ -15,10 +16,9 @@ import {
 import { sendObjectResponse, BadRequestException } from '../utils/errors';
 import { Log } from '../utils/logs';
 import { createAsset } from './assets.service';
-import { Like, Not } from 'typeorm';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 
-const getTransactionReference = async (existingTransaction: any): Promise<string> => {
+export const getTransactionReference = async (existingTransaction: any): Promise<string> => {
   const reference = existingTransaction.document_reference
     ? existingTransaction.document_reference
     : `trx_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
