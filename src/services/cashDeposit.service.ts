@@ -384,6 +384,7 @@ const Service = {
     );
     return sendObjectResponse(`Submitted Cash Deposits approved`);
   },
+
   // updateCashDepositRecord
   async updateCashDepositRecord(data: any): Promise<theResponse> {
     const { code, amount, status, notes, description, studentId, StudentFeeCode, payerDetails, periodCode, classCode, recieptUrls } = data;
@@ -391,14 +392,17 @@ const Service = {
     const { longitude, latitude } = clientCordinate;
 
     const updatePayload: any = {};
-    if (status) updatePayload.status = STATUSES[status.toUpperCase() as keyof typeof STATUSES];
+    if (status) {
+      updatePayload.status = STATUSES[status.toUpperCase() as keyof typeof STATUSES];
+      if (updatePayload.status === STATUSES.DELETED) updatePayload.approval_status = STATUSES.INACTIVE;
+    }
     if (amount) updatePayload.amount = amount;
     if (notes) updatePayload.notes = notes;
     if (description) updatePayload.description = description;
 
     const action = status === STATUSES.DELETED ? 'DELETED' : 'UPDATED';
 
-    const deposit = await CashDepositRepo.getCashDeposit({ code }, []);
+    const deposit = await CashDepositRepo.getCashDeposit({ code, status: STATUSES.DELETED }, []);
     if (!deposit) throw new NotFoundError('Cash Deposit');
 
     if (studentId) {
@@ -465,6 +469,8 @@ const Service = {
           }),
         ),
       );
+
+      message = { action: 'added reciepts/documents', added: recieptUrls };
     }
 
     // check if updatePayload is not an empty object
@@ -482,7 +488,49 @@ const Service = {
     });
     return sendObjectResponse(`Cash Deposit updated successfully`);
   },
+
   // listCashDeposit
+  async listCashDeposit(data: any): Promise<theResponse> {
+    const { code, studentId, StudentFeeCode, periodCode, classCode, status, approvalStatus, amount, currency, from, to } = data;
+    const { perPage, page } = data;
+    const { school, session } = data;
+
+    const where: any = {};
+    if (code) where.code = code;
+    if (studentId) {
+      const student = await getStudent({ uniqueStudentId: studentId, status: Not(STATUSES.DELETED) }, [], ['Classes', 'Classes.ClassLevel']);
+      if (!student) throw new NotFoundError('Student');
+      where.student_id = student.id;
+    }
+    if (StudentFeeCode) {
+      const studentPaymentFee = await getBeneficiaryProductPayment({ code: StudentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
+      if (!studentPaymentFee) throw new NotFoundError('Fee');
+      where.beneficiary_product_id = studentPaymentFee.id;
+    }
+    if (periodCode) {
+      const eduPeriod: any = await getEducationPeriod({ code: periodCode }, []);
+      where.period = eduPeriod.id;
+    }
+    if (classCode) {
+      const foundClassLevel = await getClassLevel({ code: classCode }, []);
+      if (!foundClassLevel) throw new NotFoundError('Class For School');
+      where.class_id = foundClassLevel.id;
+    }
+    if (status) where.status = STATUSES[status.toUpperCase() as keyof typeof STATUSES];
+    if (approvalStatus) where.approval_status = STATUSES[approvalStatus.toUpperCase() as keyof typeof STATUSES];
+    if (amount) where.amount = amount;
+    if (currency) where.currency = currency;
+    if (from) where.from = from;
+    if (to) where.to = to;
+    if (perPage) where.perPage = perPage;
+    if (page) where.page = page;
+    where.school_id = school.id;
+    where.session_id = session.id;
+
+    const cashDeposits = await CashDepositRepo.getAllCashDeposits(where, [], ['StudentFee', 'Payer']);
+
+    return sendObjectResponse('Cash Deposits retrieved successfully', cashDeposits);
+  },
   // getCashDeposit
   // getCashDepositLog
 };

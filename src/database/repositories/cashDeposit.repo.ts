@@ -2,6 +2,7 @@ import { EntityRepository, QueryRunner, getRepository, UpdateResult } from 'type
 import randomstring from 'randomstring';
 import { CashDeposit } from '../models/cashDeposit.model';
 import { ICashDeposit } from '../modelInterfaces';
+import Utils, { isValidDate, singleDayStartAndEnd } from '../../utils/utils';
 
 type QueryParam = Partial<ICashDeposit> | any;
 type SelectOptions = Array<keyof ICashDeposit>;
@@ -35,6 +36,46 @@ const CashDepositRepository = {
       ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
       ...(relationOptions && { relations: relationOptions }),
     });
+  },
+
+  async getAllCashDeposits(
+    queryParam: QueryParam,
+    selectOptions: SelectOptions,
+    relationOptions?: RelationOptions,
+    t?: Transaction,
+  ): Promise<CashDeposit[] | any> {
+    const { page = 1, perPage = 20, from, to, ...rest } = queryParam;
+
+    const { offset, query } = Utils.paginationRangeAndOffset({ page, from, to, perPage, query: rest });
+    const order: any = { created_at: 'DESC' };
+
+    const repository = t ? t.manager.getRepository(CashDeposit) : getRepository(CashDeposit);
+    const [cashDeposits, total] = await Promise.all([
+      repository.find({
+        where: query,
+        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+        ...(relationOptions && { relations: relationOptions }),
+        order,
+        take: parseInt(perPage, 10),
+        skip: offset,
+      }),
+      repository.count({ where: rest }),
+    ]);
+
+    const { nextPage, totalPages, hasNextPage, hasPreviousPage } = Utils.paginationMetaOffset({ total, perPage, page });
+
+    return {
+      cashDeposits,
+      meta: {
+        total,
+        perPage,
+        currentPage: page,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+        nextPage,
+      },
+    };
   },
 
   async createCashDeposit(queryParams: Partial<CashDeposit> | Partial<CashDeposit>[] | any, t?: Transaction): Promise<CashDeposit> {

@@ -16,6 +16,12 @@ const cashDepositCode = joi.string().pattern(new RegExp('csd_.{17}$')).messages(
   'string.pattern.base': 'Invalid cash deposit code',
 });
 
+const customDateValidator = (value: any, helpers: any) => {
+  if (value.from && value.to && value.from >= value.to) {
+    return helpers.message({ custom: '"from" date must be before the "to" date' });
+  }
+  return value;
+};
 const Validator = {
   depositCash: joi.object({
     periodCode: periodCode.optional(),
@@ -81,7 +87,7 @@ const Validator = {
         latitude: joi.string().required(),
       })
       .required(),
-    status: joi.string().valid('delete').optional(),
+    status: joi.string().valid('deleted').optional(),
     ipAddress: joi.string().required(),
     code: cashDepositCode.required(),
     studentId: joi.string().min(9).optional(),
@@ -98,8 +104,41 @@ const Validator = {
       .optional(),
     periodCode: periodCode.optional(),
     classCode: classCode.optional(),
+    description: joi.string().optional(),
+    notes: joi.string().optional(),
     recieptUrls: joi.array().items(joi.string().uri()).optional(),
   }),
+
+  listCashDeposit: joi
+    .object({
+      status: joi.string().valid('deleted', 'logged', 'unresolved', 'resolved', 'cancelled').optional(),
+      approvalStatus: joi.string().valid('initiated', 'inactive', 'pending', 'approved', 'rejected').optional(),
+      code: cashDepositCode.optional(),
+      studentId: joi.string().min(9).optional(),
+      StudentFeeCode: studentFeeCode.optional(),
+      periodCode: periodCode.optional(),
+      classCode: classCode.optional(),
+      from: joi.date().iso().optional().messages({
+        'date.base': 'Invalid date format for "from". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
+        'date.format': 'Invalid date format for "from". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
+      }),
+      to: joi.date().iso().optional().messages({
+        'date.base': 'Invalid date format for "to". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
+        'date.format': 'Invalid date format for "to". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
+      }),
+      page: joi.number().integer().min(1).optional().messages({
+        'number.base': 'Invalid type for "page". Should be an integer.',
+        'number.integer': 'Invalid type for "page". Should be an integer.',
+        'number.min': 'The "page" number must be greater than or equal to 1.',
+      }),
+      perPage: joi.number().integer().min(1).max(100).optional().messages({
+        'number.base': 'Invalid type for "perPage". Should be an integer.',
+        'number.integer': 'Invalid type for "perPage". Should be an integer.',
+        'number.min': 'The "perPage" value must be greater than or equal to 1.',
+        'number.max': 'The "perPage" value must be less than or equal to 100.',
+      }),
+    })
+    .custom(customDateValidator, 'Date validation'),
 };
 
 export default Validator;
