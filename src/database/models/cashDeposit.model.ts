@@ -1,5 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
-import { IBeneficiaryProductPayment, IPaymentContacts, IUser } from '../modelInterfaces';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
+import {
+  IAssets,
+  IBeneficiaryProductPayment,
+  ICashDepositLog,
+  IClassLevel,
+  IPaymentContacts,
+  IStudent,
+  ITransactions,
+  IUser,
+} from '../modelInterfaces';
+import { Assets } from './assets.model';
+import { Transactions } from './transaction.model';
+import { CashDepositLog } from './cashDepositLog.model';
 
 @Entity('cash_deposits')
 export class CashDeposit {
@@ -70,4 +82,25 @@ export class CashDeposit {
   @OneToOne('PaymentContacts', 'cash_deposits')
   @JoinColumn({ name: 'payer_id' })
   Payer: IPaymentContacts;
+
+  @OneToOne('Student', 'cash_deposits')
+  @JoinColumn({ name: 'student_id' })
+  Student: IStudent;
+
+  @OneToOne('Users', 'cash_deposits')
+  @JoinColumn({ name: 'recorded_by', referencedColumnName: 'id' })
+  User: IUser;
+
+  @OneToOne('ClassLevel', 'cash_deposits')
+  @JoinColumn({ name: 'class_id', referencedColumnName: 'id' })
+  ClassLevel: IClassLevel;
+
+  @OneToMany(() => Assets, (asset) => asset.CashDeposit)
+  Reciepts: IAssets[];
+
+  @OneToMany(() => Transactions, (transaction) => transaction.CashDeposit)
+  Transactions: ITransactions[];
+
+  @OneToMany(() => CashDepositLog, (cash) => cash.CashDeposit)
+  CashDepositLogs: ICashDepositLog[];
 }

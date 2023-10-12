@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import { ICashDeposit, IDevice, IUser } from '../modelInterfaces';
 
 @Entity('cash_deposits_logs')
 export class CashDepositLog {
@@ -43,4 +44,16 @@ export class CashDepositLog {
 
   @UpdateDateColumn({ nullable: true })
   updated_at: Date;
+
+  @ManyToOne('CashDeposit', 'cash_deposits_logs')
+  @JoinColumn({ name: 'cash_deposits_id', referencedColumnName: 'id' })
+  CashDeposit: ICashDeposit;
+
+  @OneToOne('Users', 'cash_deposits_logs')
+  @JoinColumn({ name: 'initiator_id', referencedColumnName: 'id' })
+  User: IUser;
+
+  @OneToOne('Device', 'cash_deposits_logs')
+  @JoinColumn({ name: 'device_id', referencedColumnName: 'id' })
+  Device: IDevice;
 }

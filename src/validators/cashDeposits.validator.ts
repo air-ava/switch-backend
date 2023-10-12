@@ -139,6 +139,10 @@ const Validator = {
       }),
     })
     .custom(customDateValidator, 'Date validation'),
+
+  getCashDeposit: joi.object({
+    code: cashDepositCode.required(),
+  }),
 };
 
 export default Validator;

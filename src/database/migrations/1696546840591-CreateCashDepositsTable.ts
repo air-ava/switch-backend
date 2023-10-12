@@ -9,7 +9,7 @@ export class CreateCashDepositsTable1696546840591 implements MigrationInterface 
           { name: 'id', type: 'int', isPrimary: true, isGenerated: true, generationStrategy: 'increment' },
           { name: 'code', type: 'varchar', isUnique: true },
           { name: 'student_id', type: 'int' },
-          { name: 'recorded_by', type: 'varchar' },
+          { name: 'recorded_by', type: 'varchar', collation: 'utf8mb4_unicode_ci' },
           { name: 'payer_id', type: 'int' },
           { name: 'school_id', type: 'int' },
           { name: 'currency', type: 'varchar', default: "'UGX'" },

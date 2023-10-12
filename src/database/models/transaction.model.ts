@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany, ManyToOne } from 'typeorm';
-import { IAssets, ICurrency, ISettlementTransactions, IStatus, IUser, IWallets } from '../modelInterfaces';
+import { IAssets, ICashDeposit, ICurrency, ISettlementTransactions, IStatus, IUser, IWallets } from '../modelInterfaces';
 import { Assets } from './assets.model';
 
 @Entity('transactions')
@@ -73,6 +73,10 @@ export class Transactions {
   @ManyToOne('SettlementTransactions', 'transactions')
   @JoinColumn({ name: 'reference', referencedColumnName: 'tx_reference' })
   Settlement: ISettlementTransactions;
+  
+  @ManyToOne('CashDeposit', 'transactions')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'transaction_reference' })
+  CashDeposit: ICashDeposit;
 
   @ManyToOne('BankTransfers', 'transactions')
   @JoinColumn({ name: 'reference', referencedColumnName: 'tx_reference' })

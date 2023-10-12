@@ -420,6 +420,53 @@ export const Sanitizer = {
     };
     return sanitized;
   },
+  sanitizeCashDepositLog(payload: any): any {
+    if (!payload) return null;
+    const { id, initiator_id, User, state_before, status, state_after, device_id, Device, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      initiatedBy: User && Sanitizer.sanitizeUser(User),
+      device: Device && Sanitizer.sanitizeNoId(Device),
+    };
+    return sanitized;
+  },
+  sanitizeCashDeposit(payload: any): any {
+    if (!payload) return null;
+    const {
+      id,
+      StudentFee,
+      status,
+      approval_status,
+      User,
+      Student,
+      Payer,
+      beneficiary_product_id,
+      school_id,
+      payer_id,
+      student_id,
+      class_id,
+      session_id,
+      recorded_by,
+      Reciepts,
+      Transactions,
+      CashDepositLogs,
+      ...rest
+    } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      approvalStatus: approval_status && Sanitizer.getStatusById(STATUSES, approval_status).toLowerCase(),
+      payer: Payer && Sanitizer.sanitizePaymentContact(Payer),
+      fee: StudentFee && Sanitizer.sanitizeBeneficiaryFee(StudentFee),
+      student: Student && Sanitizer.sanitizeStudent(Student),
+      recordedBy: User && Sanitizer.sanitizeUser(User),
+      reciepts: Reciepts && Sanitizer.sanitizeAllArray(Reciepts, Sanitizer.sanitizeAsset),
+      transactions: Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeTransaction),
+      logs: CashDepositLogs && Sanitizer.sanitizeAllArray(CashDepositLogs, Sanitizer.sanitizeCashDepositLog),
+    };
+    return sanitized;
+  },
 
   sanitizeFee(payload: any, customAmount?: any): any {
     if (!payload) return null;

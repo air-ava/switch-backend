@@ -1,6 +1,13 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, ManyToOne } from 'typeorm';
-import { IBankTransfers, IDocuments, IScholarshipApplication, IScholarshipEligibility, IScholarshipRequirement, ITransactions } from '../modelInterfaces';
-import { Documents } from './document.model';
+import {
+  IBankTransfers,
+  ICashDeposit,
+  IDocuments,
+  IScholarshipApplication,
+  IScholarshipEligibility,
+  IScholarshipRequirement,
+  ITransactions,
+} from '../modelInterfaces';
 
 @Entity('assets')
 export class Assets {
@@ -64,10 +71,14 @@ export class Assets {
   @JoinColumn({ name: 'reference', referencedColumnName: 'document_reference' })
   Transaction: ITransactions;
 
+  @ManyToOne('CashDeposit', 'assets')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'reciept_reference' })
+  CashDeposit: ICashDeposit;
+
   @ManyToOne('Documents', 'assets')
   @JoinColumn({ name: 'reference', referencedColumnName: 'reference' })
   Document: IDocuments;
-  
+
   @ManyToOne('BankTransfers', 'assets')
   @JoinColumn({ name: 'reference', referencedColumnName: 'document_reference' })
   BankTransfers: IBankTransfers;

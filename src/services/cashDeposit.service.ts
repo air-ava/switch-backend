@@ -493,7 +493,7 @@ const Service = {
   async listCashDeposit(data: any): Promise<theResponse> {
     const { code, studentId, StudentFeeCode, periodCode, classCode, status, approvalStatus, amount, currency, from, to } = data;
     const { perPage, page } = data;
-    const { school, session } = data;
+    const { school } = data;
 
     const where: any = {};
     if (code) where.code = code;
@@ -525,13 +525,26 @@ const Service = {
     if (perPage) where.perPage = perPage;
     if (page) where.page = page;
     where.school_id = school.id;
-    where.session_id = session.id;
 
-    const cashDeposits = await CashDepositRepo.getAllCashDeposits(where, [], ['StudentFee', 'Payer']);
+    const cashDeposits = await CashDepositRepo.getAllCashDeposits(
+      where,
+      [],
+      ['StudentFee', 'Payer', 'Student', 'User', 'ClassLevel', 'CashDepositLogs', 'CashDepositLogs.User', 'CashDepositLogs.Device'],
+    );
 
     return sendObjectResponse('Cash Deposits retrieved successfully', cashDeposits);
   },
   // getCashDeposit
+  async getCashDeposit(data: any): Promise<theResponse> {
+    const { school, code } = data;
+
+    const where: any = { code };
+    where.school_id = school.id;
+
+    const cashDeposit = await CashDepositRepo.getCashDeposit(where, [], ['StudentFee', 'Payer', 'Student', 'User', 'ClassLevel', 'CashDepositLogs']);
+
+    return sendObjectResponse('Cash Deposit retrieved successfully', cashDeposit);
+  },
   // getCashDepositLog
 };
 

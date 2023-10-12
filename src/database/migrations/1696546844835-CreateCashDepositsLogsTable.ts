@@ -9,9 +9,9 @@ export class CreateCashDepositsLogsTable1696546844835 implements MigrationInterf
           { name: 'id', type: 'int', isPrimary: true, isGenerated: true, generationStrategy: 'increment' },
           { name: 'code', type: 'varchar', isUnique: true },
           { name: 'cash_deposits_id', type: 'int' },
-          { name: 'initiator_id', type: 'varchar' },
+          { name: 'initiator_id', type: 'varchar', collation: 'utf8mb4_unicode_ci' },
           { name: 'device_id', type: 'int' },
-          { name: 'action', type: 'enum', enum: ['CREATED', 'UPDATED', 'DELETED', 'COMPLETED'] },
+          { name: 'action', type: 'varchar', default: "'CREATED'" }, // 'CREATED', 'UPDATED', 'DELETED', 'COMPLETED', 'SUBMITED'
           { name: 'state_before', type: 'text', isNullable: true },
           { name: 'state_after', type: 'text', isNullable: true },
           { name: 'longitude', type: 'varchar', isNullable: true },

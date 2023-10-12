@@ -109,16 +109,12 @@ export const updateCashDepositRecordCONTROLLER: RequestHandler = async (req, res
 };
 
 export const listCashDepositCONTROLLER: RequestHandler = async (req, res) => {
-  const { user, school, deviceInfo, ipAddress, educationalSession } = req;
-
-  const formatedDeviceDetails = DeviceService.formatDeviceInfo(deviceInfo);
-  const { data: deviceDetails } = await DeviceService.findOrCreateDevice({ loggedInUser: user, school, ...formatedDeviceDetails });
+  const { school, educationalSession } = req;
 
   const validation = CashDepositsValidator.listCashDeposit.validate(req.query);
   if (validation.error) throw new ValidationError(validation.error.message);
 
   const response = await CashDepositService.listCashDeposit({
-    deviceDetails,
     school,
     session: educationalSession,
     ...req.query,
@@ -126,5 +122,19 @@ export const listCashDepositCONTROLLER: RequestHandler = async (req, res) => {
 
   const { data, message, error } = response;
   const { cashDeposits, meta } = data;
-  return ResponseService.success(res, message || error, cashDeposits, meta);
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(cashDeposits, Sanitizer.sanitizeCashDeposit), meta);
+};
+
+export const getCashDepositCONTROLLER: RequestHandler = async (req, res) => {
+  const { school } = req;
+  const { code } = req.params;
+
+  const validation = CashDepositsValidator.getCashDeposit.validate(req.params);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await CashDepositService.getCashDeposit({ school, code });
+
+  const { data, message, error } = response;
+  // const { cashDeposits, meta } = data;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeCashDeposit(data));
 };
