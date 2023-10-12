@@ -45,7 +45,7 @@ const Service = {
       notes,
     } = data;
     const { longitude, latitude } = clientCordinate;
-    const { name: payerName, phoneNumber: payerPhone, email: payerEmail } = payerDetails;
+    const { name: payerName, phoneNumber: payerPhone, email: payerEmail, relationship, gender } = payerDetails;
 
     const cashPayload: any = {};
     // confirm stundent
@@ -84,6 +84,8 @@ const Service = {
       email: payerEmail && payerEmail,
       status: STATUSES.ACTIVE,
       name: payerName && payerName,
+      relationship: relationship && relationship,
+      gender: gender && gender,
     });
 
     // record cashDeposits

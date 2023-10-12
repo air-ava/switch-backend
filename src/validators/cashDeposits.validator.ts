@@ -35,6 +35,8 @@ const Validator = {
           .pattern(/^[0-9]+$/)
           .required(), // Assuming only numbers are allowed
         email: joi.string().email().optional(),
+        gender: joi.string().valid('female', 'male').required(),
+        relationship: joi.string().valid('parent', 'sibling', 'guardian', 'extended family', 'other').required(),
       })
       .required(),
     clientCordinate: joi

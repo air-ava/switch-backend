@@ -955,6 +955,8 @@ export interface IPaymentContacts {
   phone_number?: string;
   address_id?: number;
   email?: string;
+  relationship?: string;
+  gender?: string;
   status: number;
   code: string;
   created_at: Date;
