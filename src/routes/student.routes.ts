@@ -16,6 +16,7 @@ import {
   deactivateStudentFeeCONTROLLER,
   deactivateStudentCONTROLLER,
   editStudentFeeCONTROLLER,
+  getStudentFeesLightCONTROLLER,
 } from '../controllers/student.controller';
 import { catchErrors } from '../utils/errors';
 
@@ -28,6 +29,7 @@ router.get('/class/:code/detail', catchErrors(classDetailsCONTROLLER));
 router.get('/class/:code/analysis', catchErrors(classAnalysisCONTROLLER));
 router.get('/:code/history', catchErrors(getStudentPaymentHistoryCONTROLLER));
 router.get('/:code/fees', catchErrors(getStudentFeesCONTROLLER));
+router.get('/:code/fees-light', catchErrors(getStudentFeesLightCONTROLLER));
 router.delete('/:code/fees/:feeCode', catchErrors(deactivateStudentFeeCONTROLLER));
 router.patch('/:code/fees/:feeCode', catchErrors(editStudentFeeCONTROLLER));
 router.delete('/:code', catchErrors(deactivateStudentCONTROLLER));

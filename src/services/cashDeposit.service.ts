@@ -145,7 +145,7 @@ const Service = {
   // submitRecieptForCashDeposits
   // [ addListOfLogs, recipts, recordTransactions(processing), status(Unresolved), approvalStatus(Pending) ]
   async submitRecieptForCashDeposits(data: any): Promise<theResponse> {
-    const { ipAddress, cashDeposits, recipts, clientCordinate, deviceDetails, loggedInUser, school, currency = 'UGX' } = data;
+    const { ipAddress, cashDeposits, bankName, recipts, clientCordinate, deviceDetails, loggedInUser, school, currency = 'UGX' } = data;
     const { longitude, latitude } = clientCordinate;
 
     // confirm all submitted cashDeposit Codes
@@ -176,6 +176,7 @@ const Service = {
       tx_reference: reference,
       transaction_type: txPurpose['school-fees'].purpose,
       deposits: cashDeposits,
+      bankName,
     };
 
     await saveTransaction({

@@ -68,6 +68,7 @@ const Validator = {
     cashDeposits: joi.array().items(cashDepositCode).required(),
     currency: joi.string().valid('UGX').optional(),
     ipAddress: joi.string().required(),
+    bankName: joi.string().required(),
   }),
 
   reviewCashDeposit: joi.object({

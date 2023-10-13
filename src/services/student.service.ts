@@ -402,6 +402,22 @@ const Service: ServiceInterface = {
     return sendObjectResponse('Student Fees retrieved successfully', groupedTransactions);
   },
 
+  async getStudentFeesLight(criteria: any): Promise<theResponse> {
+    const { studentId } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
+    if (!student) throw new NotFoundError('Student');
+
+    const paymentTransactions = await listBeneficiaryProductPayments(
+      { beneficiary_id: student.id, beneficiary_type: 'student' },
+      [],
+      ['Fee', 'Student', 'Student.Classes', 'Student.Classes.Session', 'Student.Classes.ClassLevel'],
+    );
+    return sendObjectResponse(
+      'Student Fees retrieved successfully',
+      Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizeBeneficiaryFee),
+    );
+  },
+
   async deactivateStudentFee(criteria: any): Promise<theResponse> {
     const { studentId, feeCode } = criteria;
     const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
