@@ -2,18 +2,18 @@
 import joi from 'joi';
 
 const classCode = joi.string().pattern(new RegExp('cll_.{17}$')).messages({
-  'string.pattern.base': 'Invalid class code',
+  'string.pattern.base': 'Invalid class code, should start with cll_',
 });
 const periodCode = joi.string().pattern(new RegExp('edp_.{17}$')).messages({
-  'string.pattern.base': 'Invalid period code',
+  'string.pattern.base': 'Invalid period code, should start with edp_',
 });
 
 const studentFeeCode = joi.string().pattern(new RegExp('bpy_.{17}$')).messages({
-  'string.pattern.base': 'Invalid student fee code',
+  'string.pattern.base': 'Invalid student fee code, should start with bpy_',
 });
 
 const cashDepositCode = joi.string().pattern(new RegExp('csd_.{17}$')).messages({
-  'string.pattern.base': 'Invalid cash deposit code',
+  'string.pattern.base': 'Invalid cash deposit code, should start with csd_',
 });
 
 const customDateValidator = (value: any, helpers: any) => {
