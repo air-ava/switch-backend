@@ -4,7 +4,7 @@ import joi from 'joi';
 const classCode = joi.string().pattern(new RegExp('cll_.{17}$')).messages({
   'string.pattern.base': 'Invalid class code',
 });
-const periodCode = joi.string().pattern(new RegExp('shp_.{17}$')).messages({
+const periodCode = joi.string().pattern(new RegExp('edp_.{17}$')).messages({
   'string.pattern.base': 'Invalid period code',
 });
 
