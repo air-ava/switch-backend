@@ -94,7 +94,7 @@ const Validator = {
     ipAddress: joi.string().required(),
     code: cashDepositCode.required(),
     studentId: joi.string().min(9).optional(),
-    StudentFeeCode: studentFeeCode.optional(),
+    studentFeeCode: studentFeeCode.optional(),
     payerDetails: joi
       .object({
         name: joi.string().optional(),
@@ -103,6 +103,8 @@ const Validator = {
           .pattern(/^[0-9]+$/)
           .optional(), // Assuming only numbers are allowed
         email: joi.string().email().optional(),
+        gender: joi.string().valid('female', 'male').required(),
+        relationship: joi.string().valid('parent', 'sibling', 'guardian', 'extended family', 'other').required(),
       })
       .optional(),
     periodCode: periodCode.optional(),

@@ -390,7 +390,21 @@ const Service = {
 
   // updateCashDepositRecord
   async updateCashDepositRecord(data: any): Promise<theResponse> {
-    const { code, amount, status, notes, description, studentId, StudentFeeCode, payerDetails, periodCode, classCode, recieptUrls } = data;
+    const {
+      code,
+      amount,
+      status,
+      notes,
+      description,
+      studentId,
+      studentFeeCode,
+      payerDetails,
+      periodCode,
+      classCode,
+      recieptUrls,
+      relationship,
+      gender,
+    } = data;
     const { ipAddress, clientCordinate, deviceDetails, loggedInUser } = data;
     const { longitude, latitude } = clientCordinate;
 
@@ -402,6 +416,8 @@ const Service = {
     if (amount) updatePayload.amount = amount;
     if (notes) updatePayload.notes = notes;
     if (description) updatePayload.description = description;
+    if (relationship) updatePayload.relationship = relationship;
+    if (gender) updatePayload.gender = gender;
 
     const action = status === STATUSES.DELETED ? 'DELETED' : 'UPDATED';
 
@@ -419,8 +435,8 @@ const Service = {
       updatePayload.class_id = studentCurrentClass.ClassLevel.id;
     }
 
-    if (StudentFeeCode) {
-      const studentPaymentFee = await getBeneficiaryProductPayment({ code: StudentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
+    if (studentFeeCode) {
+      const studentPaymentFee = await getBeneficiaryProductPayment({ code: studentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
       if (!studentPaymentFee) throw new NotFoundError('Fee');
       if (!(studentPaymentFee.beneficiary_id === deposit.student_id && studentPaymentFee.beneficiary_type === 'student'))
         throw new ValidationError('Fee does not belong to Student');
