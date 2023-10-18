@@ -4,6 +4,7 @@ import {
   IBeneficiaryProductPayment,
   ICashDepositLog,
   IClassLevel,
+  IEducationPeriod,
   IPaymentContacts,
   IStudent,
   ITransactions,
@@ -103,4 +104,8 @@ export class CashDeposit {
 
   @OneToMany(() => CashDepositLog, (cash) => cash.CashDeposit)
   CashDepositLogs: ICashDepositLog[];
+
+  @OneToOne('EducationPeriod', 'cash_deposits')
+  @JoinColumn({ name: 'period_id' })
+  Period: IEducationPeriod;
 }

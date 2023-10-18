@@ -451,12 +451,17 @@ export const Sanitizer = {
       Reciepts,
       Transactions,
       CashDepositLogs,
+      Period,
+      ClassLevel,
+      period_id,
       ...rest
     } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       approvalStatus: approval_status && Sanitizer.getStatusById(STATUSES, approval_status).toLowerCase(),
+      classLevel: ClassLevel && Sanitizer.sanitizeClassLevel(ClassLevel),
+      period: Period && Sanitizer.sanitizePeriod(Period),
       payer: Payer && Sanitizer.sanitizePaymentContact(Payer),
       fee: StudentFee && Sanitizer.sanitizeBeneficiaryFee(StudentFee),
       student: Student && Sanitizer.sanitizeStudent(Student),

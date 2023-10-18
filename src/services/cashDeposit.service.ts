@@ -548,7 +548,7 @@ const Service = {
     const cashDeposits = await CashDepositRepo.getAllCashDeposits(
       where,
       [],
-      ['StudentFee', 'Payer', 'Student', 'User', 'ClassLevel', 'CashDepositLogs', 'CashDepositLogs.User', 'CashDepositLogs.Device'],
+      ['StudentFee', 'Payer', 'Student', 'User', 'ClassLevel', 'CashDepositLogs', 'CashDepositLogs.User', 'CashDepositLogs.Device', 'Period'],
     );
 
     return sendObjectResponse('Cash Deposits retrieved successfully', cashDeposits);
