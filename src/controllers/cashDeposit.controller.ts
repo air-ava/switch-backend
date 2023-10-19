@@ -8,14 +8,14 @@ import ResponseService from '../utils/response';
 
 export const cashDepositCONTROLLER: RequestHandler = async (req, res) => {
   const { user, school, educationalSession, deviceInfo, ipAddress } = req;
-  const { code: studentId, feeCode: StudentFeeCode } = req.query;
+  const { code: studentId, feeCode: studentFeeCode } = req.query;
 
   const formatedDeviceDetails = DeviceService.formatDeviceInfo(deviceInfo);
   const { data: deviceDetails } = await DeviceService.findOrCreateDevice({ loggedInUser: user, school, ...formatedDeviceDetails });
 
   const payload = {
     ...req.body,
-    StudentFeeCode,
+    studentFeeCode,
     studentId,
     ipAddress,
   };

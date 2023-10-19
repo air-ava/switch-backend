@@ -31,7 +31,7 @@ const Service = {
       session,
       periodCode,
       classCode,
-      StudentFeeCode,
+      studentFeeCode,
       studentId,
       loggedInUser,
       payerDetails,
@@ -64,7 +64,7 @@ const Service = {
     }
 
     // confirm stundentFee
-    const studentPaymentFee = await getBeneficiaryProductPayment({ code: StudentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
+    const studentPaymentFee = await getBeneficiaryProductPayment({ code: studentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
     if (!studentPaymentFee) throw new NotFoundError('Fee');
     if (!(studentPaymentFee.beneficiary_id === student.id && studentPaymentFee.beneficiary_type === 'student'))
       throw new ValidationError('Fee does not belong to Student');
@@ -153,7 +153,7 @@ const Service = {
     if (foundCashDeposit.length !== cashDeposits.length) throw new NotFoundError(`${cashDeposits.length - foundCashDeposit.length} Cash Deposits`);
     // check if all cashDeposits are in LOGGED status
     const allCashDepositsAreLogged = foundCashDeposit.every((cashDeposit: any) => cashDeposit.status === STATUSES.UNRESOLVED);
-    if (!allCashDepositsAreLogged) throw new ValidationError('Some Cash Deposits have already been submitted');
+    if (allCashDepositsAreLogged) throw new ValidationError('Some Cash Deposits have already been submitted');
 
     // Get Wallet
     const wallet = await WalletREPO.findWallet({ entity: 'school', entity_id: school.id, type: 'permanent' }, [], undefined, ['User']);
@@ -510,7 +510,7 @@ const Service = {
 
   // listCashDeposit
   async listCashDeposit(data: any): Promise<theResponse> {
-    const { code, studentId, StudentFeeCode, periodCode, classCode, status, approvalStatus, amount, currency, from, to } = data;
+    const { code, studentId, studentFeeCode, periodCode, classCode, status, approvalStatus, amount, currency, from, to } = data;
     const { perPage, page } = data;
     const { school } = data;
 
@@ -521,8 +521,8 @@ const Service = {
       if (!student) throw new NotFoundError('Student');
       where.student_id = student.id;
     }
-    if (StudentFeeCode) {
-      const studentPaymentFee = await getBeneficiaryProductPayment({ code: StudentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
+    if (studentFeeCode) {
+      const studentPaymentFee = await getBeneficiaryProductPayment({ code: studentFeeCode, status: Not(STATUSES.DELETED) }, [], ['Fee']);
       if (!studentPaymentFee) throw new NotFoundError('Fee');
       where.beneficiary_product_id = studentPaymentFee.id;
     }

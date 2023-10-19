@@ -26,7 +26,7 @@ const Validator = {
   depositCash: joi.object({
     periodCode: periodCode.optional(),
     classCode: classCode.optional(),
-    StudentFeeCode: studentFeeCode.required(),
+    studentFeeCode: studentFeeCode.required(),
     payerDetails: joi
       .object({
         name: joi.string().required(),
@@ -120,7 +120,7 @@ const Validator = {
       approvalStatus: joi.string().valid('initiated', 'inactive', 'pending', 'approved', 'rejected').optional(),
       code: cashDepositCode.optional(),
       studentId: joi.string().min(9).optional(),
-      StudentFeeCode: studentFeeCode.optional(),
+      studentFeeCode: studentFeeCode.optional(),
       periodCode: periodCode.optional(),
       classCode: classCode.optional(),
       from: joi.date().iso().optional().messages({
