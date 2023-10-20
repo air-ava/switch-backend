@@ -113,6 +113,10 @@ const Validator = {
     notes: joi.string().optional(),
     recieptUrls: joi.array().items(joi.string().uri()).optional(),
     currency: joi.string().valid('UGX').optional(),
+    amount: joi.number().greater(10000).positive().optional().messages({
+      'number.positive': '"amount" should be a positive value.',
+      'number.greater': '"amount" should be greater than 100.',
+    }),
   }),
 
   listCashDeposit: joi
