@@ -421,7 +421,7 @@ const Service = {
 
     const action = status === STATUSES.DELETED ? 'DELETED' : 'UPDATED';
 
-    const deposit = await CashDepositRepo.getCashDeposit({ code, status: STATUSES.DELETED }, []);
+    const deposit = await CashDepositRepo.getCashDeposit({ code, status: Not(STATUSES.DELETED) }, []);
     if (!deposit) throw new NotFoundError('Cash Deposit');
 
     if (studentId) {
