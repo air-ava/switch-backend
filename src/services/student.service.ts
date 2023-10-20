@@ -528,7 +528,7 @@ const Service: ServiceInterface = {
     await studentSetup.setClassId();
     await studentSetup.setSchoolClass();
     const { schoolClass: foundSchoolClass } = studentSetup.build();
-    const { id: classId } = foundSchoolClass.id;
+    const { id: classId } = foundSchoolClass;
 
     if (addGuardians && addGuardians.length > 2) throw new ValidationError('You can not have more than two(2) Guardians');
     const student = await getStudent(
@@ -550,9 +550,10 @@ const Service: ServiceInterface = {
     }
     if (status || partPayment) await updateStudent({ id: student.id }, updateStudentPayload);
     if (classId) {
-      const existingClass = await getSchoolClass({ code: classId }, []);
+      const existingClass = await getSchoolClass({ id: classId }, []);
       if (!existingClass) throw new NotFoundError('class');
-      await updateStudentClass({ id: student.id }, { classId: existingClass.class_id });
+      const [studentCurrentClass] = student.Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+      await updateStudentClass({ id: studentCurrentClass.id }, { classId: existingClass.class_id });
     }
     const studentPayload: any = {};
     if (criteria.first_name) studentPayload.first_name = criteria.first_name;
