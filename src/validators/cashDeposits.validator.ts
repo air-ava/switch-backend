@@ -112,6 +112,7 @@ const Validator = {
     description: joi.string().optional(),
     notes: joi.string().optional(),
     recieptUrls: joi.array().items(joi.string().uri()).optional(),
+    currency: joi.string().valid('UGX').optional(),
   }),
 
   listCashDeposit: joi
