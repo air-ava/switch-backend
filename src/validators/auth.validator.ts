@@ -10,7 +10,11 @@ export const registerValidator = joi.object().keys({
     })
     .required(),
   email: joi.string().email().optional(),
-  password: joi.string().pattern(passwordRegex).required(),
+  password: joi
+    .string()
+    .pattern(passwordRegex)
+    .message('Password must be at least 8 characters long, and contain an uppercase letter, a lowercase letter, a digit, and a special character.')
+    .required(),
   country: joi.string().valid('UG').required(),
   user_type: joi.string().valid('school', 'vendor').required(),
   // is_business: joi.boolean().allow(null),
