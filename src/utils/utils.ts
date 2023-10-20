@@ -30,8 +30,7 @@ export const findObjectValue = (object: any, path: string) => {
   let sanitizedObject = jsonify(object);
   // eslint-disable-next-line no-plusplus
   for (let index = 0; index < args.length; index++) {
-    // eslint-disable-next-line no-prototype-builtins
-    if (!sanitizedObject.hasOwnProperty(args[index])) return;
+    if (!Object.prototype.hasOwnProperty.call(sanitizedObject, args[index])) return;
     sanitizedObject = sanitizedObject[args[index]];
   }
   // eslint-disable-next-line consistent-return
