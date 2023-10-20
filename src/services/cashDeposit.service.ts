@@ -460,7 +460,7 @@ const Service = {
 
     if (periodCode) {
       const eduPeriod: any = await getEducationPeriod({ code: periodCode }, []);
-      updatePayload.period = eduPeriod.id;
+      updatePayload.period_id = eduPeriod.id;
     }
 
     if (classCode) {
@@ -480,11 +480,11 @@ const Service = {
             imagePath: document,
             user: loggedInUser.id,
             trigger: `${process}:add_reciepts`,
-            reference: updatePayload.reference,
+            reference: updatePayload.reciept_reference,
             organisation: loggedInUser.organisation,
             entity: process,
             entity_id: String(deposit.id),
-            customName: `ref:${updatePayload.reference}|process:${process}-add_reciepts`,
+            customName: `ref:${updatePayload.reciept_reference}|process:${process}-add_reciepts`,
           }),
         ),
       );
