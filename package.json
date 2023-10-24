@@ -6,9 +6,9 @@
   "private": true,
   "scripts": {
     "start:dev": "nodemon",
-    "start:dev2": "nodemon --inspect -r npm run build && node build/index.js",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js",
+    "serve": "NODE_OPTIONS=--enable-source-maps node build/index.js",
     "lint": "eslint . --ext .ts",
     "migrate": "ts-node --transpile-only ./node_modules/typeorm/cli.js migration:run"
   },
