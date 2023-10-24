@@ -240,6 +240,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
   try {
     let phoneNumber;
     let internationalFormat;
+
     if (phone_number) {
       const { countryCode, localFormat } = phone_number;
       internationalFormat = formatPhoneNumber(localFormat);
@@ -248,10 +249,9 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
     }
 
     if (phoneNumber) phoneNumber = (phoneNumber as PhoneNumbers).id;
-    const user: any = await findUser([{ email }, { phone_number: phoneNumber }], []);
+    const user: any = await findUser([{ email }, { phone_number: phoneNumber }], [], ['phoneNumber']);
     // const user = await findUser({ email }, []);
     if (!user) throw Error('Account Not Found');
-
     const remember_token = randomstring.generate({ length: 6, charset: 'numeric' });
     updateUser({ id: user.id }, { remember_token });
 
@@ -265,7 +265,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
     });
 
     await sendSms({
-      phoneNumber: internationalFormat,
+      phoneNumber: internationalFormat || user.phoneNumber.internationalFormat,
       message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
