@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import express, { Application, NextFunction, Request, Response } from 'express';
 import { createConnection } from 'typeorm';
-
-
+import * as Sentry from "@sentry/node";
+import { ProfilingIntegration } from "@sentry/profiling-node";
 
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -37,11 +37,34 @@ async function startServer(): Promise<void> {
 
   app.use(useragent.express());
 
+  Sentry.init({
+    dsn: 'https://d7b765cb23d0096fae82850121ae4e55@o4506099415580672.ingest.sentry.io/4506099419971584',
+    integrations: [
+      // enable HTTP calls tracing
+      new Sentry.Integrations.Http({ tracing: true }),
+      // enable Express.js middleware tracing
+      new Sentry.Integrations.Express({ app }),
+      new ProfilingIntegration(),
+    ],
+    // Performance Monitoring
+    tracesSampleRate: 1.0,
+    // Set sampling rate for profiling - this is relative to tracesSampleRate
+    profilesSampleRate: 1.0,
+  });
+  // The request handler must be the first middleware on the app
+  app.use(Sentry.Handlers.requestHandler());
+
+  // TracingHandler creates a trace for every incoming request
+  app.use(Sentry.Handlers.tracingHandler());
+
   app.use('/api', router);
   app.use('/office', office);
   app.use('/webhook', webhook);
   app.use('/ussd', ussd);
   app.use('/jobs', jobs);
+
+  app.use(Sentry.Handlers.errorHandler());
+
 
   app.use((req, res, _next): void => {
     res.status(404).send({
