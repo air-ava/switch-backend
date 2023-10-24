@@ -10,7 +10,8 @@
     "start": "npm run build && node build/index.js",
     "serve": "NODE_OPTIONS=--enable-source-maps node build/index.js",
     "lint": "eslint . --ext .ts",
-    "migrate": "ts-node --transpile-only ./node_modules/typeorm/cli.js migration:run"
+    "migrate": "ts-node --transpile-only ./node_modules/typeorm/cli.js migration:run",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org steward-st --project node ./build && sentry-cli sourcemaps upload --org steward-st --project node ./build"
   },
   "author": "",
   "license": "ISC",

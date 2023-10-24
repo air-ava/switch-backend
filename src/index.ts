@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import express, { Application, NextFunction, Request, Response } from 'express';
-import { createConnection } from 'typeorm';
 import * as Sentry from "@sentry/node";
 import { ProfilingIntegration } from "@sentry/profiling-node";
+import express, { Application, NextFunction, Request, Response } from 'express';
+import { createConnection } from 'typeorm';
 
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -62,6 +62,11 @@ async function startServer(): Promise<void> {
   app.use('/webhook', webhook);
   app.use('/ussd', ussd);
   app.use('/jobs', jobs);
+
+  app.get("/debug-sentry", function mainHandler(req, res) {
+    throw new Error("My first Sentry error!");
+  });
+  
 
   app.use(Sentry.Handlers.errorHandler());
 

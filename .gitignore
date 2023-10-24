@@ -108,3 +108,5 @@ dist
 .idea
 
 .DS_Store
+# Sentry Config File
+.sentryclirc
