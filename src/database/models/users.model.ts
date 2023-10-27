@@ -116,4 +116,5 @@ export class Users {
 
 export const countryMapping: { [key: string]: string } = {
   UG: 'UGANDA',
+  NG: 'NIGERIA',
 };

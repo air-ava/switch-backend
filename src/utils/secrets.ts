@@ -40,3 +40,10 @@ export const SLACK_TOKEN = throwIfUndefined('SLACK_TOKEN');
 
 export const REDIS_URL = throwIfUndefined('REDIS_URL');
 export const AMQP_CLIENT = throwIfUndefined('AMQP_CLIENT');
+export const WEMA_ACCOUNT_PREFIX = throwIfUndefined('WEMA_ACCOUNT_PREFIX');
+
+export const SMILEID_API_KEY = throwIfUndefined('SMILEID_API_KEY');
+export const SMILEID_PARTNER_ID = throwIfUndefined('SMILEID_PARTNER_ID');
+export const SMILEID_URL = throwIfUndefined('SMILEID_URL');
+export const SMILEID_CALLBACK_URL = throwIfUndefined('SMILEID_CALLBACK_URL');
+export const SMILEID_ENV = throwIfUndefined('SMILEID_ENV');

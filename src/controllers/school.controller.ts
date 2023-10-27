@@ -16,7 +16,7 @@ import StudentService from '../services/student.service';
 import AuditLogsService from '../services/auditLogs.service';
 import ResponseService from '../utils/response';
 import { Sanitizer } from '../utils/sanitizer';
-import { addClass, addClassAdmin, getClassLevel } from '../validators/schools.validator';
+import { addClass, addClassAdmin, getClassLevel, schoolContact, schoolInfo } from '../validators/schools.validator';
 import ValidationError from '../utils/validationError';
 
 const errorMessages = {
@@ -28,26 +28,36 @@ const errorMessages = {
   verifySchool: 'Could not verify school',
 };
 
+// export const schoolInfoCONTROLLER: RequestHandler = async (req, res) => {
+//   try {
+//     const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
+//     const response = await updateSchoolInfo(payload);
+//     const responseCode = response.success === true ? 200 : 400;
+//     return res.status(responseCode).json(response);
+//   } catch (error: any) {
+//     return res.status(500).json({ success: false, error: error.message || errorMessages.schoolInfo, data: error });
+//   }
+// };
 export const schoolInfoCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
-    const response = await updateSchoolInfo(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return res.status(500).json({ success: false, error: error.message || errorMessages.schoolInfo, data: error });
-  }
+  const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
+
+  const validation = schoolInfo.validate({ ...req.body, country: payload.user.country });
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await updateSchoolInfo(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const schoolContactCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const payload = { ...req.body, user: req.user };
-    const response = await updateSchoolContact(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error) {
-    return res.status(500).json({ success: false, error: errorMessages.schoolContact, data: error });
-  }
+  const payload = { ...req.body, user: req.user };
+
+  const validation = schoolContact.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await updateSchoolContact(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const schoolOwnerCONTROLLER: RequestHandler = async (req, res) => {

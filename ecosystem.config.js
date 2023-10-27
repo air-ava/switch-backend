@@ -7,5 +7,9 @@ module.exports = {
       exec_mode: 'cluster',
       watch: true,
     },
+    {
+      script: 'build/consumer/reviewCustomer.consumer.js',
+      name: 'review-customer-consumer',
+    },
   ],
 };

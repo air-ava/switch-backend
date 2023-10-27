@@ -10,6 +10,7 @@ const africastalking = new Client({
 
 export const sendSms = async (payload: any): Promise<any> => {
   const { phoneNumber, message } = payload;
+  console.log({ sendSms: payload });
   try {
     const to = Array.isArray(phoneNumber) ? phoneNumber.map(Utils.formatAndUpdatePhoneNumber) : [`${Utils.formatAndUpdatePhoneNumber(phoneNumber)}`];
     const response = await africastalking.sendSms({
@@ -17,6 +18,7 @@ export const sendSms = async (payload: any): Promise<any> => {
       message,
       // from: 'STEWARD',
     });
+    console.log({ sendSms: payload, SMSMessageData: response.SMSMessageData, Recipients: response.SMSMessageData.Recipients });
     return {
       success: true,
       data: response,

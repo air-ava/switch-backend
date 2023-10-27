@@ -1,5 +1,13 @@
 import joi from 'joi';
 
+const schoolType = joi
+  .string()
+  .valid('Nursery', 'Primary', 'Secondary', 'Tertiary', 'Vocational')
+  .messages({ 'string.valid.base': 'A wrong school type was selected' });
+
+const orgType = joi.string().valid('sole proprietorship', 'limited liability');
+const country = joi.string().valid('UGANDA', 'NIGERIA');
+
 export const getQuestionnaire = joi.object().keys({
   process: joi.string().valid('onboarding').required(),
   country: joi
@@ -23,6 +31,30 @@ export const schoolContact = joi.object().keys({
     localFormat: joi.string().required(),
   }),
 });
+
+export const schoolInfo = joi
+  .object()
+  .keys({
+    schoolType: joi.array().items(schoolType).required(),
+    schoolWebsite: joi.string().optional(),
+    schoolDescription: joi.string().required(),
+    schoolName: joi.string().required(),
+    organisationName: joi.string().required(),
+    organisationType: orgType.required(),
+    country: country.required(),
+  })
+  .when('.country', {
+    is: 'UGANDA',
+    then: joi.object({
+      schoolEmail: joi.string().email().optional(),
+    }),
+  })
+  .when('.country', {
+    is: 'NIGERIA',
+    then: joi.object({
+      schoolEmail: joi.string().email().required(),
+    }),
+  });
 
 export const addClass = joi.object().keys({
   code: joi.string().pattern(new RegExp('cll_.{17}$')).messages({

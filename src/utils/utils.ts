@@ -37,8 +37,15 @@ export const findObjectValue = (object: any, path: string) => {
   return sanitizedObject;
 };
 
-export const formatPhoneNumber = (localFormat: string): string => {
-  const { number: newInternationalFormat } = parsePhoneNumber(localFormat, 'UG');
+export const ensurePlusPrefix = (countryCode: string): string => {
+  // Remove all occurrences of '+'
+  const sanitizedCode = countryCode.replace(/\+/g, '');
+  // Prepend a single '+'
+  return `+${sanitizedCode}`;
+};
+
+export const formatPhoneNumber = (localFormat: string, countryCode: string): string => {
+  const { number: newInternationalFormat } = parsePhoneNumber(`${ensurePlusPrefix(countryCode || '256')}${localFormat}`);
   return newInternationalFormat;
 };
 

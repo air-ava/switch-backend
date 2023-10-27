@@ -22,9 +22,9 @@ const router = express.Router();
 
 router.get('/', getSchoolCONTROLLER);
 router.patch('/', updateSchoolCONTROLLER);
-router.post('/info', schoolInfoCONTROLLER);
-router.post('/contact', schoolContactCONTROLLER);
-router.post('/owner', schoolOwnerCONTROLLER);
+router.post('/info', catchErrors(schoolInfoCONTROLLER));
+router.post('/contact', catchErrors(schoolContactCONTROLLER));
+router.post('/owner', catchErrors(schoolOwnerCONTROLLER));
 router.get('/documents', getDocumentRequirementCONTROLLER);
 router.post('/documents', addOnboardingDocumentsCONTROLLER);
 router.get('/questionnaire', accountUseCaseQuestionnaireCONTROLLER);

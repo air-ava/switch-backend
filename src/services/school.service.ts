@@ -1,3 +1,4 @@
+import { Not } from 'typeorm';
 import { STATUSES } from '../database/models/status.model';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable array-callback-return */
@@ -11,7 +12,7 @@ import Settings from './settings.service';
 import { findOrCreateAddress, findOrCreatePhoneNumber, findSchoolWithOrganization } from './helper.service';
 import { answerQuestionnaire, findQuestionnaire } from '../database/repositories/questionnaire.repo';
 import { listQuestionnaire } from '../database/repositories/questionTitle.repo';
-import { getQuestionnaire, schoolContact } from '../validators/schools.validator';
+import { getQuestionnaire, schoolContact, schoolInfo } from '../validators/schools.validator';
 import { toTitle } from '../utils/utils';
 import { answerBooleanQuestionsDTO, answerQuestionServiceDTO, answerTextQuestionsDTO } from '../dto/school.dto';
 import { getQuestion } from '../database/repositories/question.repo';
@@ -24,52 +25,43 @@ import { getSchoolPeriod } from '../database/repositories/schoolPeriod.repo';
 import { getClassLevel, listClassLevel } from '../database/repositories/classLevel.repo';
 import { getEducationPeriod } from '../database/repositories/education_period.repo';
 import { getSchoolClass, listSchoolClass, listSchoolsClassAndFees, saveSchoolClass } from '../database/repositories/schoolClass.repo';
-import { Not } from 'typeorm';
 import FeesService from './fees.service';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
-  //   const validation = createBusinessValidator.validate(data);
-  //   if (validation.error) return ResourceNotFoundError(validation.error);
-
   const { user, schoolName, organisationName, schoolEmail, schoolDescription, schoolWebsite } = data;
   let { schoolType } = data;
 
-  try {
-    const organisationWithSameName = await getOneOrganisationREPO({ name: organisationName }, ['id', 'name']);
-    const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, status: STATUSES.ACTIVE, type: 'school' }, []);
-    if (!existingOrganisation) return BadRequestException('Organization not found');
-    if (organisationWithSameName && organisationWithSameName.id !== existingOrganisation.id)
-      return BadRequestException('Organization name already Exists');
+  const organisationWithSameName = await getOneOrganisationREPO({ name: organisationName }, ['id', 'name']);
+  const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, status: STATUSES.ACTIVE, type: 'school' }, []);
+  if (!existingOrganisation) throw new NotFoundError('Organization');
+  if (organisationWithSameName && organisationWithSameName.id !== existingOrganisation.id) throw new ExistsError('Organization name');
 
-    let foundSchool: any;
-    const schools = await listSchools({ organisation_id: existingOrganisation.id }, []);
-    if (!schools.length) return BadRequestException('School not found');
+  let foundSchool: any;
+  const schools = await listSchools({ organisation_id: existingOrganisation.id }, []);
+  if (!schools.length) throw new NotFoundError('School');
 
-    schools.map((school) => {
-      if (schoolName === school.name) foundSchool = school;
-    });
-    if (!foundSchool) foundSchool = schools[schools.length - 1];
+  schools.map((school) => {
+    if (schoolName === school.name) foundSchool = school;
+  });
+  if (!foundSchool) foundSchool = schools[schools.length - 1];
 
-    if (Array.isArray(schoolType)) schoolType = schoolType.join(',');
+  if (Array.isArray(schoolType)) schoolType = schoolType.join(',');
 
-    await updateSchool(
-      { id: foundSchool.id },
-      {
-        name: schoolName,
-        email: schoolEmail,
-        description: schoolDescription,
-        education_level: schoolType,
-        website: schoolWebsite,
-      },
-    );
+  await updateSchool(
+    { id: foundSchool.id },
+    {
+      name: schoolName,
+      email: schoolEmail,
+      description: schoolDescription,
+      education_level: schoolType,
+      website: schoolWebsite,
+    },
+  );
 
-    await updateOrganisationREPO({ id: existingOrganisation.id }, { name: organisationName });
+  await updateOrganisationREPO({ id: existingOrganisation.id }, { name: organisationName });
 
-    return sendObjectResponse('School Information successfully updated');
-  } catch (e: any) {
-    throw new Error(e.message || 'Updating School Info failed, kindly try again');
-  }
+  return sendObjectResponse('School Information successfully updated');
 };
 
 export const updateSchoolContact = async (data: {
@@ -87,30 +79,22 @@ export const updateSchoolContact = async (data: {
 }): Promise<theResponse> => {
   const { user, ...rest } = data;
 
-  const validation = schoolContact.validate(rest);
-  if (validation.error) return ResourceNotFoundError(validation.error);
-
   const { phone_number: reqPhone, address } = data;
   const { state } = address;
 
-  try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
-    if (!gottenSchool.success) return gottenSchool;
-    const { school: foundSchool } = gottenSchool.data;
+  const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
+  // if (!gottenSchool.success) return gottenSchool;
+  const { school: foundSchool } = gottenSchool.data;
 
-    const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
-    if (!phoneNumber.success) return phoneNumber;
-    const { id: phone_number } = phoneNumber.data;
+  const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
+  // if (!phoneNumber.success) return phoneNumber;
+  const { id: phone_number } = phoneNumber.data;
 
-    const gottenAddress = await findOrCreateAddress({ ...address, country: foundSchool.country });
+  const gottenAddress = await findOrCreateAddress({ ...address, country: foundSchool.country });
 
-    await updateSchool({ id: foundSchool.id }, { state, phone_number, address_id: gottenAddress.data.id });
+  await updateSchool({ id: foundSchool.id }, { state, phone_number, address_id: gottenAddress.data.id });
 
-    return sendObjectResponse('School Contact Information successfully updated');
-  } catch (e: any) {
-    // await queryRunner.rollbackTransaction();
-    return BadRequestException(e || 'Updating School Contact Information failed, kindly try again');
-  }
+  return sendObjectResponse('School Contact Information successfully updated');
 };
 
 export const updateOrganisationOwner = async (data: {
@@ -359,7 +343,6 @@ export const backOfficeVerifiesSchool = async (data: any): Promise<theResponse> 
     return BadRequestException(e.message);
   }
 };
-
 
 const Service = {
   async listClassInSchool(data: any): Promise<theResponse> {

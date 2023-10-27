@@ -16,7 +16,7 @@ import {
   userAuthValidator,
   verifyUserValidator,
 } from '../validators/auth.validator';
-import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import { BadRequestException, ResourceNotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
 import {
   businessLoginDTO,
   changePasswordDTO,
@@ -80,7 +80,7 @@ export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
 
 export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   const validation = registerValidator.validate(data);
-  if (validation.error) return ResourceNotFoundError(validation.error);
+  if (validation.error) throw new ValidationError(validation.error.message);
 
   const {
     // is_business = false,
@@ -205,7 +205,7 @@ export const userAuth = async (data: any): Promise<theResponse> => {
     let phoneNumber;
     if (phone_number) {
       const { countryCode, localFormat } = phone_number;
-      const internationalFormat = formatPhoneNumber(localFormat);
+      const internationalFormat = formatPhoneNumber(localFormat, countryCode);
       phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
       if (!phoneNumber) throw Error('Your credentials are incorrect');
     }
@@ -243,7 +243,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
     
     if (phone_number) {
       const { countryCode, localFormat } = phone_number;
-      internationalFormat = formatPhoneNumber(localFormat);
+      internationalFormat = formatPhoneNumber(localFormat, countryCode);
       phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
       if (!phoneNumber) throw Error('Your credentials are incorrect');
     }
