@@ -25,7 +25,7 @@ router.patch('/', updateSchoolCONTROLLER);
 router.post('/info', catchErrors(schoolInfoCONTROLLER));
 router.post('/contact', catchErrors(schoolContactCONTROLLER));
 router.post('/owner', catchErrors(schoolOwnerCONTROLLER));
-router.get('/documents', getDocumentRequirementCONTROLLER);
+router.get('/documents', catchErrors(getDocumentRequirementCONTROLLER));
 router.post('/documents', addOnboardingDocumentsCONTROLLER);
 router.get('/questionnaire', accountUseCaseQuestionnaireCONTROLLER);
 router.post('/questionnaire', answerUseCaseQuestionnaireCONTROLLER);

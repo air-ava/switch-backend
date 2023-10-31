@@ -230,6 +230,7 @@ export interface IDocuments {
   asset_id: string;
   link_id: number;
   processor: string;
+  tag: string;
   response: string;
   country: string;
   trigger: string;
@@ -313,6 +314,7 @@ export interface IThirdPartyLogs {
 export interface IOrganisation {
   id: number;
   name: string;
+  business_type: string;
   email: string;
   bio: string;
   status: number;

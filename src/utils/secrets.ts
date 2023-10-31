@@ -40,7 +40,16 @@ export const SLACK_TOKEN = throwIfUndefined('SLACK_TOKEN');
 
 export const REDIS_URL = throwIfUndefined('REDIS_URL');
 export const AMQP_CLIENT = throwIfUndefined('AMQP_CLIENT');
+
 export const WEMA_ACCOUNT_PREFIX = throwIfUndefined('WEMA_ACCOUNT_PREFIX');
+export const WEMA_BANK_BASE_URL = throwIfUndefined('WEMA_BANK_BASE_URL');
+export const WEMA_VENDOR_ID = throwIfUndefined('WEMA_VENDOR_ID');
+export const WEMA_ENCRYPTION_KEY = throwIfUndefined('WEMA_ENCRYPTION_KEY');
+export const WEMA_ENCRYPTION_IV = throwIfUndefined('WEMA_ENCRYPTION_IV');
+export const WEMA_USERNAME = throwIfUndefined('WEMA_USERNAME');
+export const WEMA_PASSWORD = throwIfUndefined('WEMA_PASSWORD');
+export const STEWARD_WEMA_ACCOUNT_NAME = throwIfUndefined('STEWARD_WEMA_ACCOUNT_NAME');
+export const STEWARD_WEMA_ACCOUNT_NUMBER = throwIfUndefined('STEWARD_WEMA_ACCOUNT_NUMBER');
 
 export const SMILEID_API_KEY = throwIfUndefined('SMILEID_API_KEY');
 export const SMILEID_PARTNER_ID = throwIfUndefined('SMILEID_PARTNER_ID');

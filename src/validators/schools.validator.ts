@@ -10,13 +10,14 @@ const country = joi.string().valid('UGANDA', 'NIGERIA');
 
 export const getQuestionnaire = joi.object().keys({
   process: joi.string().valid('onboarding').required(),
+  tag: joi.string().valid('ADDRESS', 'SOLE_PROPITOR', 'LIMITED_LIABILITY', 'DIRECTOR').optional(),
   country: joi
     .string()
-    .valid('UGANDA')
+    .valid('UGANDA', 'NIGERIA')
     .messages({
       'string.valid.base': 'Steward is not availaible in your country yet',
     })
-    .optional(),
+    .required(),
 });
 
 export const schoolContact = joi.object().keys({

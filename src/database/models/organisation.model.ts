@@ -11,6 +11,9 @@ export class Organisation {
 
   @Column()
   name: string;
+  
+  @Column()
+  business_type: string;
 
   @Column()
   email: string;

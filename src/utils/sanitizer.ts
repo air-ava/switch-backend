@@ -692,7 +692,7 @@ export const Sanitizer = {
 
   sanitizePhoneNumber(payload: IPhoneNumber): any {
     if (!payload) return null;
-    const { id, is_verified, verified_at, ...rest } = Sanitizer.jsonify(payload);
+    const { id, is_verified, verified_at, remember_token, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
       id,
@@ -830,7 +830,7 @@ export const jsonify = (payload: any): { [key: string]: any } => {
 
 export const sanitizePhoneNumber = (payload: IPhoneNumber): any => {
   if (!payload) return null;
-  const { id, ...rest } = jsonify(payload);
+  const { id, remember_token, ...rest } = jsonify(payload);
   return rest;
 };
 

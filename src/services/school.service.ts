@@ -29,7 +29,7 @@ import FeesService from './fees.service';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
-  const { user, schoolName, organisationName, schoolEmail, schoolDescription, schoolWebsite } = data;
+  const { user, schoolName, organisationName, organisationType, schoolEmail, schoolDescription, schoolWebsite } = data;
   let { schoolType } = data;
 
   const organisationWithSameName = await getOneOrganisationREPO({ name: organisationName }, ['id', 'name']);
@@ -59,7 +59,7 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
     },
   );
 
-  await updateOrganisationREPO({ id: existingOrganisation.id }, { name: organisationName });
+  await updateOrganisationREPO({ id: existingOrganisation.id }, { name: organisationName, business_type: organisationType });
 
   return sendObjectResponse('School Information successfully updated');
 };

@@ -2,7 +2,7 @@ import randomstring from 'randomstring';
 import { STATUSES } from '../database/models/status.model';
 import { Repo as DocumentRequirementREPO } from '../database/repositories/documentRequirement.repo';
 import { Repo as DocumentREPO } from '../database/repositories/documents.repo';
-import { sendObjectResponse, BadRequestException, ResourceNotFoundError } from '../utils/errors';
+import { sendObjectResponse, BadRequestException, ResourceNotFoundError, NotFoundError } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { Sanitizer } from '../utils/sanitizer';
 import { createObjectFromArray, toTitle } from '../utils/utils';
@@ -11,14 +11,28 @@ import { findSchoolWithOrganization } from './helper.service';
 import { saveLinkREPO } from '../database/repositories/link.repo';
 import { getSchool, updateSchool } from '../database/repositories/schools.repo';
 import { listDocuments, verifyDocument } from '../validators/document.validator';
+import { FindOperator, Raw } from 'typeorm';
 
 const Service: any = {
-  async listDocumentRequirements({ process, country = 'UGANDA' }: { process: string; country: 'UGANDA' }): Promise<theResponse> {
-    // const validation = getQuestionnaire.validate({ process, country });
-    // if (validation.error) return ResourceNotFoundError(validation.error);
+  async listDocumentRequirements({
+    process,
+    country = 'UGANDA',
+    tag,
+  }: {
+    process: string;
+    country: 'UGANDA' | 'NIGERIA';
+    tag: string;
+  }): Promise<theResponse> {
+    const query: {
+      process: string;
+      country: 'UGANDA' | 'NIGERIA';
+      tag?: FindOperator<any>;
+    } = { process, country };
+    if (tag) query.tag = Raw((columnAlias) => `FIND_IN_SET('${tag}', ${columnAlias})`);
 
-    const response = await DocumentRequirementREPO.listDocumentRequirements({ process, country }, [], ['Status']);
-    if (!response.length) return BadRequestException('Document Requirement not found');
+    const response = await DocumentRequirementREPO.listDocumentRequirements(query, [], ['Status']);
+    if (!response.length) throw new NotFoundError('Document Requirement');
+
     return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`, response);
   },
 
@@ -75,11 +89,6 @@ const Service: any = {
     return sendObjectResponse(`Documents ${status} successfully`);
   },
 
-  // same `reference` and `trigger` across all documents
-  // `entity` and `entity_id` for the document requirement
-  // `asset_id`, `link_id` and `number` as the data collected
-  // `country` to reperesent where the document is collected
-  // `processor` to verify the document
   async addOnboardingDocument(data: any): Promise<any> {
     const { documents, user, process = 'onboarding' } = data;
     const {

@@ -24,6 +24,9 @@ export class DocumentRequirement {
 
   @Column()
   process: string;
+  
+  @Column()
+  tag: string;
 
   @Column('varchar', { default: 'UGANDA', nullable: false })
   country: string;
