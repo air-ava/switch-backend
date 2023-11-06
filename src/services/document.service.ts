@@ -1,4 +1,5 @@
 import randomstring from 'randomstring';
+import { FindOperator, Not, Raw } from 'typeorm';
 import { STATUSES } from '../database/models/status.model';
 import { Repo as DocumentRequirementREPO } from '../database/repositories/documentRequirement.repo';
 import { Repo as DocumentREPO } from '../database/repositories/documents.repo';
@@ -11,7 +12,7 @@ import { findSchoolWithOrganization } from './helper.service';
 import { saveLinkREPO } from '../database/repositories/link.repo';
 import { getSchool, updateSchool } from '../database/repositories/schools.repo';
 import { listDocuments, verifyDocument } from '../validators/document.validator';
-import { FindOperator, Raw } from 'typeorm';
+import { publishMessage } from '../utils/amqpProducer';
 
 const Service: any = {
   async listDocumentRequirements({
@@ -30,10 +31,13 @@ const Service: any = {
     } = { process, country };
     if (tag) query.tag = Raw((columnAlias) => `FIND_IN_SET('${tag}', ${columnAlias})`);
 
-    const response = await DocumentRequirementREPO.listDocumentRequirements(query, [], ['Status']);
+    const response = await DocumentRequirementREPO.listDocumentRequirements(query, []);
     if (!response.length) throw new NotFoundError('Document Requirement');
 
-    return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`, response);
+    return sendObjectResponse(
+      `${toTitle(process)} Document Requirement retrieved successfully'`,
+      Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeDocumentRequirement),
+    );
   },
 
   async listDocuments({
@@ -90,14 +94,14 @@ const Service: any = {
   },
 
   async addOnboardingDocument(data: any): Promise<any> {
-    const { documents, user, process = 'onboarding' } = data;
+    const { documents, user, process = 'onboarding', tag, incoming_reference } = data;
     const {
       data: { school, organisation },
     } = await findSchoolWithOrganization({ owner: user.id });
 
-    const reference = `onb_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+    const reference = incoming_reference || `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
 
-    const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements({ process }, [], []);
+    const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements({ process, ...(tag && { tag }) }, [], []);
     const requirementDocs = await createObjectFromArray(documentRequirement, 'id', 'requirement_type');
 
     // if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
@@ -114,6 +118,35 @@ const Service: any = {
     return sendObjectResponse(`${toTitle(process)} Document submitted successfully'`);
   },
 
+  async addMultipleDocuments(data: any): Promise<any> {
+    const { documents, user, process = 'onboarding', incoming_reference, tag, country = 'UGANDA', verificationData } = data;
+    const {
+      data: { school, organisation },
+    } = await findSchoolWithOrganization({ owner: user.id });
+
+    const reference = incoming_reference || `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+
+    const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements(
+      { process, ...(tag && { tag }), ...(country && { country }) },
+      [],
+      [],
+    );
+    const requirementDocs = await createObjectFromArray(documentRequirement, 'id', 'requirement_type');
+
+    await Service.callService('addDocument', documents, {
+      reference,
+      user,
+      process,
+      entity: 'document_requirements',
+      organisation,
+      requirementDocs,
+      school,
+      country,
+      verificationData,
+    });
+    return sendObjectResponse(`${toTitle(process)} Document submitted successfully'`);
+  },
+
   async addDocumentAdmin(data: any): Promise<any> {
     const { documents, schoolId, process = 'onboarding' } = data;
 
@@ -127,12 +160,11 @@ const Service: any = {
     const user = (organisation as any).Owner;
 
     const reference =
-      school.document_reference || `onb_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+      school.document_reference || `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
 
     const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements({ process }, [], []);
     const requirementDocs = await createObjectFromArray(documentRequirement, 'id', 'requirement_type');
 
-    // if (school.status === STATUSES.UNVERIFIED) throw Error('School not verified');
     await Service.callService('addDocument', documents, {
       reference,
       user,
@@ -163,6 +195,7 @@ const Service: any = {
     school,
     user,
     requirementDocs,
+    verificationData,
   }: any): Promise<theResponse> {
     const payload = {
       reference,
@@ -179,6 +212,7 @@ const Service: any = {
       organisation,
       school,
       user,
+      verificationData,
     };
     if (requirementDocs[entity_id] !== requirement_type) throw new Error('Wrong file type submitted');
 
@@ -195,6 +229,7 @@ const Service: any = {
         entity,
         entity_id,
         customName: `process:${process}-add_documents|doc:${type}-${country}|ref:${reference}|org:${organisation.name}|submittedBy:${user.first_name}${user.last_name}`,
+        name: `process:${process}-add_documents|doc:${type}-${country}|ref:${reference}|org:${organisation.name}|submittedBy:${user.first_name}${user.last_name}`,
       });
       payload.asset_id = createdAsset.data.id;
     }
@@ -211,7 +246,13 @@ const Service: any = {
       payload.link_id = createdAsset.id;
     }
 
+    // if document with same reference, entity, type and entity_id exists delete
+    const existingDocumentQuery = { reference, entity, type, entity_id, trigger: process, status: Not(STATUSES.DELETED) };
+    const existingDocument = await DocumentREPO.findDocument(existingDocumentQuery, [], []);
+    if (existingDocument) await DocumentREPO.updateDocuments(existingDocumentQuery, { status: STATUSES.DELETED });
+
     const response = await DocumentREPO.saveDocuments(payload);
+    if (verificationData) await publishMessage(verificationData.queue, { ...verificationData.message, documentId: response.id });
     return sendObjectResponse(`${toTitle(process)} Document Requirement retrieved successfully'`, response);
   },
 

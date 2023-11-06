@@ -82,7 +82,7 @@ export class SchoolProduct {
   @ManyToOne('SchoolClass', 'school_product')
   @JoinColumn({ name: 'school_class_id' })
   SchoolClasses: ISchoolClass;
-  
+
   @ManyToOne('Schools', 'school_product')
   @JoinColumn({ name: 'school_id' })
   FeeRecords: ISchools;

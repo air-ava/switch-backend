@@ -31,6 +31,9 @@ export class Schools {
 
   @Column()
   document_reference: string;
+  
+  @Column()
+  onboarding_reference: string;
 
   @Column()
   website: string;

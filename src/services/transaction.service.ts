@@ -1,8 +1,8 @@
 import { Like, Not } from 'typeorm';
-import { STATUSES } from './../database/models/status.model';
 /* eslint-disable no-restricted-syntax */
 import { log } from 'winston';
 import randomstring from 'randomstring';
+import { STATUSES } from '../database/models/status.model';
 import {
   getOneTransactionREPO,
   getTotalChargesDebited,

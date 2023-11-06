@@ -64,7 +64,7 @@ export const Repo = {
     return t ? t.manager.save(Documents, rest) : getRepository(Documents).save(rest);
   },
 
-  async updateDocuments(queryParams: Partial<IDocuments>, updateFields: Partial<IDocuments>, t?: QueryRunner): Promise<UpdateResult> {
+  async updateDocuments(queryParams: Partial<IDocuments | any>, updateFields: Partial<IDocuments>, t?: QueryRunner): Promise<UpdateResult> {
     return t ? t.manager.update(Documents, queryParams, updateFields) : getRepository(Documents).update(queryParams, updateFields);
   },
 

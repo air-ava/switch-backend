@@ -7,6 +7,20 @@ const schoolType = joi
 
 const orgType = joi.string().valid('sole proprietorship', 'limited liability');
 const country = joi.string().valid('UGANDA', 'NIGERIA');
+const document = joi.object({
+  requirementType: joi.string().valid('text', 'file', 'number', 'link').required(),
+  requirementId: joi.number().required(),
+  expiryDate: joi.date().iso().optional().messages({
+    'date.base': 'Invalid date format for "expiryDate". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
+    'date.format': 'Invalid date format for "expiryDate". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
+  }),
+  issuingDate: joi.date().iso().optional().messages({
+    'date.base': 'Invalid date format for "expiryDate". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
+    'date.format': 'Invalid date format for "expiryDate". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
+  }),
+  document: joi.string().required(),
+  type: joi.string().required(),
+});
 
 export const getQuestionnaire = joi.object().keys({
   process: joi.string().valid('onboarding').required(),
@@ -19,6 +33,40 @@ export const getQuestionnaire = joi.object().keys({
     })
     .required(),
 });
+
+export const schoolOwnerValidator = joi
+  .object()
+  .keys({
+    phone_number: joi
+      .object({
+        countryCode: joi.string().required(),
+        localFormat: joi.string().required(),
+      })
+      .required(),
+    firstName: joi.string().required(),
+    lastName: joi.string().required(),
+    country: joi
+      .string()
+      .valid('UGANDA', 'NIGERIA')
+      .messages({
+        'string.valid.base': 'Steward is not availaible in your country yet',
+      })
+      .required(),
+    email: joi.string().email().required(),
+  })
+  .when('.country', {
+    is: 'UGANDA',
+    then: joi.object({
+      job_title: joi.string().valid('Director', 'Head Teacher', 'Administrator', 'Teacher', 'Business Person', 'Others').required(),
+    }),
+  })
+  .when('.country', {
+    is: 'NIGERIA',
+    then: joi.object({
+      type: joi.string().valid('Director', 'Shareholder').required(),
+      documents: joi.array().items(document).required(),
+    }),
+  });
 
 export const schoolContact = joi.object().keys({
   address: joi.object().keys({

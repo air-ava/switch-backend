@@ -10,6 +10,9 @@ export const Repo = {
 
     t?: QueryRunner,
   ): Promise<DocumentRequirement[]> {
+    console.log({
+      queryParam,
+    });
     return t
       ? t.manager.find(DocumentRequirement, {
           where: queryParam,

@@ -245,4 +245,4 @@ const Service: any = {
   },
 };
 
-module.exports = Service;
+export default Service;

@@ -126,6 +126,9 @@ export interface IIndividual {
   avatar: number;
   job_title: number;
   status: number;
+  verification_status: number;
+  document_reference: string;
+  onboarding_reference: string;
   metadata: string;
   school_id: number;
   phone_number: number;
@@ -196,6 +199,7 @@ export interface ISchools {
   email: string;
   description: string;
   document_reference: string;
+  onboarding_reference: string;
   website: string;
   status: number;
   logo: number;
@@ -318,6 +322,9 @@ export interface IOrganisation {
   email: string;
   bio: string;
   status: number;
+  onboarding_status: number;
+  onboarding_reference: string;
+  document_reference: string;
   logo: string;
   type: string;
   phone_number: string;

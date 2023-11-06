@@ -1,9 +1,10 @@
 import { Not } from 'typeorm';
+import randomstring from 'randomstring';
 import { STATUSES } from '../database/models/status.model';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable array-callback-return */
 import { IUser } from '../database/modelInterfaces';
-import { updateIndividual } from '../database/repositories/individual.repo';
+import { findIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool, listSchools, updateSchool } from '../database/repositories/schools.repo';
 import { sendObjectResponse, BadRequestException, ResourceNotFoundError, NotFoundError, ValidationError, ExistsError } from '../utils/errors';
@@ -27,6 +28,8 @@ import { getEducationPeriod } from '../database/repositories/education_period.re
 import { getSchoolClass, listSchoolClass, listSchoolsClassAndFees, saveSchoolClass } from '../database/repositories/schoolClass.repo';
 import FeesService from './fees.service';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
+import DocumentService from './document.service';
+import { publishMessage } from '../utils/amqpProducer';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   const { user, schoolName, organisationName, organisationType, schoolEmail, schoolDescription, schoolWebsite } = data;
@@ -36,6 +39,9 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   const existingOrganisation = await getOneOrganisationREPO({ owner: user.id, status: STATUSES.ACTIVE, type: 'school' }, []);
   if (!existingOrganisation) throw new NotFoundError('Organization');
   if (organisationWithSameName && organisationWithSameName.id !== existingOrganisation.id) throw new ExistsError('Organization name');
+
+  const onboarding_reference =
+    existingOrganisation.onboarding_reference || `onb_${randomstring.generate({ length: 20, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
 
   let foundSchool: any;
   const schools = await listSchools({ organisation_id: existingOrganisation.id }, []);
@@ -56,10 +62,11 @@ export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
       description: schoolDescription,
       education_level: schoolType,
       website: schoolWebsite,
+      onboarding_reference,
     },
   );
 
-  await updateOrganisationREPO({ id: existingOrganisation.id }, { name: organisationName, business_type: organisationType });
+  await updateOrganisationREPO({ id: existingOrganisation.id }, { name: organisationName, business_type: organisationType, onboarding_reference });
 
   return sendObjectResponse('School Information successfully updated');
 };
@@ -100,51 +107,69 @@ export const updateSchoolContact = async (data: {
 export const updateOrganisationOwner = async (data: {
   firstName: string;
   lastName: string;
-  job_title: string;
+  job_title?: string;
   email: string;
+  type?: string;
   phone_number: {
     localFormat: string;
     countryCode: string;
   };
   user: IUser;
+  documents?: any;
+  country: 'UGANDA' | 'NIGERIA';
 }): Promise<theResponse> => {
-  //   const validation = createBusinessValidator.validate(data);
-  //   if (validation.error) return ResourceNotFoundError(validation.error);
+  const { documents, country = 'UGANDA', type, job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
 
-  const { job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
+  const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
+  const { school: foundSchool, organisation } = gottenSchool.data;
 
-  try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
-    if (!gottenSchool.success) return gottenSchool;
-    const { school: foundSchool } = gottenSchool.data;
+  const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
+  const { id: phone_number } = phoneNumber.data;
 
-    const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
-    if (!phoneNumber.success) return phoneNumber;
-    const { id: phone_number } = phoneNumber.data;
+  const organisationOwner = await findIndividual({ school_id: foundSchool.id }, []);
+  if (!organisationOwner) throw new NotFoundError('Director');
 
-    await updateIndividual(
-      {
-        school_id: foundSchool.id,
-        email: user.email,
+  const document_reference =
+    organisationOwner.document_reference || `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+  const onboarding_reference =
+    organisation.onboarding_reference || `onb_${randomstring.generate({ length: 20, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+
+  await updateIndividual(
+    { id: organisationOwner.id },
+    {
+      email,
+      firstName,
+      lastName,
+      phone_number,
+      job_title: job_title && Settings.get('JOB_TITLES')[job_title],
+      type: type && type.toLowerCase(),
+      onboarding_reference,
+      document_reference,
+    },
+  );
+
+  updateUser({ id: user.id }, { phone_number, job_title: job_title && Settings.get('JOB_TITLES')[job_title] });
+  if (country === 'NIGERIA') {
+    const tag = 'DIRECTOR';
+    const process = 'onboarding';
+    await DocumentService.addMultipleDocuments({
+      documents,
+      user,
+      process,
+      incoming_reference: document_reference,
+      tag,
+      country,
+      verificationData: {
+        queue: 'review:customer:submission',
+        message: { onboarding_reference, document_reference, tag, process, tableId: organisationOwner.id },
       },
-      {
-        email,
-        firstName,
-        lastName,
-        phone_number,
-        job_title: Settings.get('JOB_TITLES')[job_title] || undefined,
-      },
-    );
-
-    updateUser({ id: user.id }, { phone_number, job_title: Settings.get('JOB_TITLES')[job_title] ? job_title : undefined });
-
-    return sendObjectResponse('School Owner Information successfully updated');
-  } catch (e: any) {
-    // await queryRunner.rollbackTransaction();
-    return BadRequestException('Updating School Owner Information failed, kindly try again');
-  } finally {
-    // await queryRunner.release();
+    });
+    await publishMessage('review:customer:submission', { onboarding_reference, document_reference, tag, process, tableId: organisationOwner.id });
   }
+  if (!foundSchool.onboarding_reference) await updateSchool({ id: foundSchool.id }, { onboarding_reference });
+  if (!organisation.onboarding_reference) await updateOrganisationREPO({ id: organisation.id }, { onboarding_reference });
+
+  return sendObjectResponse('School Owner Information successfully updated');
 };
 
 export const getQuestions = async ({ process }: { process: string }): Promise<theResponse> => {

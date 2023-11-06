@@ -305,6 +305,11 @@ const Service = {
       2. For Schools
     `;
     const paths = text?.split('*');
+    console.log({
+      paths,
+      serviceCode,
+      USSD: Settings.get('USSD')
+    })
     if (serviceCode !== Settings.get('USSD').serviceCode) return BadRequestException('END Invalid ussd code');
 
     const choices = ['1', '2'];

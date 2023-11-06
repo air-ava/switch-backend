@@ -36,6 +36,15 @@ export class Organisation {
   @Column()
   owner: string;
 
+  @Column('int')
+  onboarding_status: number;
+  
+  @Column()
+  onboarding_reference: string;
+  
+  @Column()
+  document_reference: string;
+
   @Column('text')
   slug: string;
 

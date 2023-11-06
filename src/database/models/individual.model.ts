@@ -33,6 +33,15 @@ export class Individual {
   @Column('int')
   status: number;
 
+  @Column('int')
+  verification_status: number;
+
+  @Column()
+  document_reference: string;
+
+  @Column()
+  onboarding_reference: string;
+
   @Column()
   metadata: string;
 

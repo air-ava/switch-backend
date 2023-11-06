@@ -3,11 +3,11 @@ import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 export class AddBusinessTypeToOrganisations1698711678090 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.addColumns('organisations', [
-    //   new TableColumn({
-    //     name: 'business_type',
-    //     type: 'varchar',
-    //     isNullable: true,
-    //   }),
+      new TableColumn({
+        name: 'business_type',
+        type: 'varchar',
+        isNullable: true,
+      }),
       new TableColumn({
         name: 'onboarding_reference',
         type: 'varchar',

@@ -804,6 +804,15 @@ export const Sanitizer = {
     };
   },
 
+  sanitizeDocumentRequirement(payload: any): any {
+    if (!payload) return null;
+    const { Asset, status, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
+
   sanitizeSettlement(payload: any): any {
     if (!payload) return null;
     const { bankId, status, processor_transaction_id, Transactions, creditTransactions, Bank, ...rest } = Sanitizer.jsonify(payload);

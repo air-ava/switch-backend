@@ -1,11 +1,10 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable no-param-reassign */
 import { QueryRunner, InsertResult, getRepository, UpdateResult, MoreThan, LessThan } from 'typeorm';
+import dateFns from 'date-fns';
 import Utils, { isValidDate, singleDayStartAndEnd } from '../../utils/utils';
 import { ITransactions } from '../modelInterfaces';
 import { Transactions } from '../models/transaction.model';
-
-const dateFns = require("date-fns");
 
 export const saveTransaction = (
   transaction_details: Omit<ITransactions, 'id' | 'note' | 'document_reference' | 'created_at' | 'updated_at'> & { t?: QueryRunner },
@@ -295,7 +294,7 @@ export const getTransactionsByGroup = async (
 ): Promise<any> => {
   let groupBy: string;
   let select: string;
-  let where = ''; // Initialize to null
+  const where = ''; // Initialize to null
   const today = new Date();
   from = dateFns.subDays(today, 100).toISOString();
   to = today.toISOString();
