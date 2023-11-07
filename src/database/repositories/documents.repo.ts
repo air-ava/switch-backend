@@ -72,3 +72,5 @@ export const Repo = {
   //   return t ? t.manager.update(Documents, queryParams, updateFields) : getRepository(Documents).update(queryParams, updateFields);
   // },
 };
+
+export default Repo;

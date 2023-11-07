@@ -1,15 +1,18 @@
-const { IndividualRepo, DocumentRepo, CompanyRepo, UserRepo } = require('../repositories/index.repo');
-const { STATUSES } = require('../models/status');
-const responseUtils = require('../utils/response.utils');
-const { ValidationError, HttpException, HttpStatus } = require('../utils/error.utils');
-const { log, Log } = require('../utils/logger.utils');
-const API = require('../services/api');
-const { Company } = require('../services/index');
-const ThirdPartyLogService = require('../services/thirdPartyLog');
+import { type } from 'os';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+import { updateIndividual } from '../database/repositories/individual.repo';
+import DocumentRepo from '../database/repositories/documents.repo';
+import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
+import { updateUser } from '../database/repositories/user.repo';
+import { STATUSES } from '../database/models/status.model';
+import { Company } from '../services/index';
+import ThirdPartyLogService from '../services/thirdPartyLog';
+import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
+import { sendObjectResponse } from '../utils/errors';
+import { SMILEID_CALLBACK_URL } from '../utils/secrets';
 
-require('dotenv').config();
-let crypto = require('crypto');
-const { type } = require('os');
+dotenv.config();
 
 const Service: any = {
   error: '0001' || '2405' || '2213' || '2204' || '2205' || '2220' || '2212' || '1013' || '1014' || '1015' || '1016' || '1022' || '0811' || '0812',
@@ -71,9 +74,9 @@ const Service: any = {
     };
 
     // Actual Logic
-    await DocumentRepo.updateADocument({
-      queryParams: { code: job_id, table_type, id: user_id },
-      updateFields: {
+    await DocumentRepo.updateDocuments(
+      { code: job_id, table_type, id: user_id },
+      {
         metadata: {
           ResultText,
           ResultCode,
@@ -98,34 +101,21 @@ const Service: any = {
         status: statusAndResponse.status.status,
         response: statusAndResponse.response.response,
       },
-      selectOptions: ['table_id'],
-    });
+    );
 
-    const document = await DocumentRepo.getOneDocument({
-      queryParams: { code: job_id, table_type, id: user_id },
-      selectOptions: ['table_id', 'reference'],
-    });
+    const document = await DocumentRepo.findDocument({ code: job_id, table_type, id: user_id }, ['entity_id', 'reference']);
 
-    const foundCompany = await CompanyRepo.getOneCompany({
-      queryParams: {
+    const foundCompany = await getOneOrganisationREPO(
+      {
         document_reference: document.reference,
         id: document.table_id,
       },
-      selectOptions: ['document_reference', 'status'],
-    });
+      ['document_reference', 'status'],
+    );
 
-    if (table_type === 'individual')
-      await IndividualRepo.updateAIndividual({
-        queryParams: { id: document.table_id },
-        updateFields: {
-          status: statusAndResponse.status.status,
-        },
-      });
+    if (table_type === 'individual') await updateIndividual({ id: document.table_id }, { status: statusAndResponse.status.status });
     if (table_type === 'business') {
-      const allDocs = await DocumentRepo.getAllDocuments({
-        queryParams: { reference: document.reference },
-        selectOptions: ['table_id', 'reference', 'status', 'type'],
-      });
+      const allDocs = await DocumentRepo.listDocuments({ reference: document.reference }, ['entity_id', 'reference', 'status', 'type']);
 
       const theDocs = allDocs.map((e: any) => e.status);
       const isAllDocsVerified = theDocs.includes(7);
@@ -138,28 +128,21 @@ const Service: any = {
       }
     }
 
-    if (table_type === 'user')
-      await UserRepo.updateUser({
-        queryParams: { id: document.table_id },
-        updateFields: {
-          status: statusAndResponse.status.status,
-        },
-      });
+    if (table_type === 'user') await updateUser({ id: document.table_id }, { status: statusAndResponse.status.status });
 
-    ThirdPartyLogService.createLog({
+    saveThirdPartyLogsREPO({
       message: Source,
-      company: foundCompany.id,
-      event: `smileId_webhook_response`,
+      school: foundCompany.id, // org id
+      event: `smileId.webhook.response`,
       payload: JSON.stringify(payload),
-      provider: 1,
-      providerType: 'verifier',
-      response: (payload && JSON.stringify(payload)) || '',
-      statusCode: 200,
-      method: 'POST',
-      url: process.env.SMILEID_CALLBACK_URL,
+      provider: 'SMILEID',
+      provider_type: 'verifier',
+      status_code: '200',
+      endpoint_verb: 'POST',
+      endpoint: SMILEID_CALLBACK_URL,
     });
-    // `${table_type}.update`
-    return responseUtils.sendObjectResponse('smileID response');
+
+    return sendObjectResponse('smileID response');
   },
 };
 
