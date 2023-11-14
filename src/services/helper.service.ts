@@ -1,9 +1,12 @@
 /* eslint-disable lines-between-class-members */
+import axios from 'axios';
+import sharp from 'sharp';
 import { Not } from 'typeorm';
 import { theResponse } from '../utils/interface';
 import { getOnePhoneNumber, createAPhoneNumber } from '../database/repositories/phoneNumber.repo';
 import { ImageValidator, phoneNumberValidator } from '../validators/phoneNumber.validator';
-import { NotFoundError, ResourceNotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
+import { CustomError, NotFoundError, ResourceNotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
+import HTTP from '../utils/httpStatus';
 import {
   businessCheckerDTO,
   findAndCreateAddressDTO,
@@ -378,3 +381,17 @@ export class NotificationHandler {
     return sendSlackMessage({ feature, body });
   }
 }
+
+export const imageUrlToResizedBlob = async (imageUrl: string, width: number, height: number): Promise<Buffer> => {
+  try {
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+
+    const imageBuffer = Buffer.from(response.data, 'binary');
+    const resizedImageBuffer = await sharp(imageBuffer).resize(width, height).toBuffer();
+
+    return resizedImageBuffer;
+  } catch (error) {
+    if (axios.isAxiosError(error) && !error.response) throw new NotFoundError('Image URL');
+    throw new CustomError('Error processing the image', HTTP.BAD_REQUEST, error);
+  }
+};

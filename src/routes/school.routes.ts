@@ -26,7 +26,7 @@ router.post('/info', catchErrors(schoolInfoCONTROLLER));
 router.post('/contact', catchErrors(schoolContactCONTROLLER));
 router.post('/owner', catchErrors(schoolOwnerCONTROLLER));
 router.get('/documents', catchErrors(getDocumentRequirementCONTROLLER));
-router.post('/documents', addOnboardingDocumentsCONTROLLER);
+router.post('/documents', catchErrors(addOnboardingDocumentsCONTROLLER));
 router.get('/questionnaire', accountUseCaseQuestionnaireCONTROLLER);
 router.post('/questionnaire', answerUseCaseQuestionnaireCONTROLLER);
 router.post('/class', catchErrors(addClassToSchoolWithFeesCONTROLLER));

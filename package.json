@@ -50,6 +50,7 @@
     "pug": "^3.0.2",
     "randomstring": "^1.2.1",
     "redis": "^3.1.2",
+    "sharp": "^0.32.6",
     "smile-identity-core": "^3.0.2",
     "typeorm": "^0.2.45",
     "winston": "^3.3.3"

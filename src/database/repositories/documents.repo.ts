@@ -9,22 +9,15 @@ export const Repo = {
     queryParam: Partial<IDocuments> | any,
     selectOptions: Array<keyof Documents>,
     relationOptions?: any[],
-
     t?: QueryRunner,
   ): Promise<Documents[]> {
-    return t
-      ? t.manager.find(Documents, {
-          where: queryParam,
-          ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-          ...(relationOptions && { relations: relationOptions }),
-          order: { created_at: 'DESC' },
-        })
-      : getRepository(Documents).find({
-          where: queryParam,
-          ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-          ...(relationOptions && { relations: relationOptions }),
-          order: { created_at: 'DESC' },
-        });
+    const repository = t ? t.manager.getRepository(Documents) : getRepository(Documents);
+    return repository.find({
+      where: queryParam,
+      ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+      ...(relationOptions && { relations: relationOptions }),
+      order: { created_at: 'DESC' },
+    });
   },
 
   async getDocumentLogs(
@@ -46,26 +39,26 @@ export const Repo = {
     relationOptions?: any[],
     t?: QueryRunner,
   ): Promise<Documents | undefined | any> {
-    return t
-      ? t.manager.findOne(Documents, {
-          where: queryParam,
-          ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-          ...(relationOptions && { relations: relationOptions }),
-        })
-      : getRepository(Documents).findOne({
-          where: queryParam,
-          ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-          ...(relationOptions && { relations: relationOptions }),
-        });
+    const repository = t ? t.manager.getRepository(Documents) : getRepository(Documents);
+    return repository.findOne({
+      where: queryParam,
+      ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+      ...(relationOptions && { relations: relationOptions }),
+    });
   },
 
   async saveDocuments(payload: Partial<IDocuments>, t?: QueryRunner): Promise<Documents> {
     const { ...rest } = payload;
-    return t ? t.manager.save(Documents, rest) : getRepository(Documents).save(rest);
+    // return t ? t.manager.save(Documents, rest) : getRepository(Documents).save(rest);
+    // code: `doc_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    const repository = t ? t.manager.getRepository(Documents) : getRepository(Documents);
+    const body = { ...rest };
+    return repository.save(body);
   },
 
   async updateDocuments(queryParams: Partial<IDocuments | any>, updateFields: Partial<IDocuments>, t?: QueryRunner): Promise<UpdateResult> {
-    return t ? t.manager.update(Documents, queryParams, updateFields) : getRepository(Documents).update(queryParams, updateFields);
+    const repository = t ? t.manager.getRepository(Documents) : getRepository(Documents);
+    return repository.update(queryParams, updateFields);
   },
 
   // verifyDocuments(queryParams: Partial<IDocuments>, updateFields: Partial<IDocuments>, t?: QueryRunner): Promise<UpdateResult> {

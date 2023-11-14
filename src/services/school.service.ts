@@ -161,10 +161,18 @@ export const updateOrganisationOwner = async (data: {
       country,
       verificationData: {
         queue: 'review:customer:submission',
-        message: { onboarding_reference, document_reference, tag, process, tableId: organisationOwner.id },
+        message: {
+          onboarding_reference,
+          document_reference,
+          tag,
+          process,
+          school_id: foundSchool.code,
+          org_id: organisation.code,
+          user_id: organisationOwner.code,
+          table_type: 'individual',
+        },
       },
     });
-    await publishMessage('review:customer:submission', { onboarding_reference, document_reference, tag, process, tableId: organisationOwner.id });
   }
   if (!foundSchool.onboarding_reference) await updateSchool({ id: foundSchool.id }, { onboarding_reference });
   if (!organisation.onboarding_reference) await updateOrganisationREPO({ id: organisation.id }, { onboarding_reference });

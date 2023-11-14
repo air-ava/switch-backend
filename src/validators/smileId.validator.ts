@@ -1,5 +1,12 @@
 import joi from 'joi';
 
+const image = joi.object({
+  is_image_base64: joi.boolean().optional().default(false),
+  image_type: joi.string().valid('ID', 'LIVE', 'SELFIE').optional().default('ID'),
+  image_face: joi.string().valid('FRONT', 'BACK').optional().default('FRONT'),
+  image: joi.string().uri().required(),
+});
+
 const Validator = {
   basicKyc: joi
     .object({
@@ -66,14 +73,14 @@ const Validator = {
         then: joi.string(),
       })
       .required(),
-    company: joi.string().when('id_type', {
-      is: 'CAC',
-      then: joi.string().required(),
-      otherwise: joi.string().optional(),
-    }),
+    // company: joi.string().when('id_type', {
+    //   is: 'CAC',
+    //   then: joi.string().required(),
+    //   otherwise: joi.string().optional(),
+    // }),
     partner_params: joi
       .object({
-        table_code: joi.string().required(),
+        // table_code: joi.string().required(),
         table_id: joi.string().required(),
         table_type: joi.string().valid('business', 'user', 'individual').required(),
       })
@@ -82,9 +89,8 @@ const Validator = {
 
   documentVerification: joi.object({
     id_type: joi.string().valid('PASSPORT', 'DRIVERS_LICENSE', 'NATIONAL_ID', 'VOTER_ID').required(),
-    is_image_base64: joi.boolean().optional(),
-    image: joi.string().uri().required(),
-    image_selfie: joi.string().uri().optional(),
+    // image_selfie: joi.string().uri().optional(),
+    image_details: joi.array().items(image).required(),
     partner_params: joi
       .object({
         table_code: joi.string().required(),

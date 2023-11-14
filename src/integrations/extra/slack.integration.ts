@@ -240,6 +240,64 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
         channel: 'deposits',
         blocks: slackBlocks,
       };
+    case 'manual_document_review':
+      slackBlocks.push({
+        type: 'section',
+        text: {
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n 📝 New Document for Review: \n\n *Reference*: ${
+            body.document_reference
+          } \n *Document Name*: ${body.name}  \n *School Name*: ${body.schoolName}  \n *Country*: ${
+            body.country
+          } \n 🙏 Please can you quickly review this Document on the Back-Office`,
+          type: 'mrkdwn',
+        },
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: '*Onboarding Reference*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.onboarding_reference}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Document Tag*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.tag}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Type*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.type}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*For*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.For}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Process*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.process}`,
+          },
+        ],
+      });
+      return {
+        channel: 'document-review',
+        blocks: slackBlocks,
+      };
     default:
       throw new Error('slack channel not available');
   }

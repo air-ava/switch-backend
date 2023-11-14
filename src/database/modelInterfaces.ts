@@ -317,6 +317,7 @@ export interface IThirdPartyLogs {
 
 export interface IOrganisation {
   id: number;
+  code: string;
   name: string;
   business_type: string;
   email: string;

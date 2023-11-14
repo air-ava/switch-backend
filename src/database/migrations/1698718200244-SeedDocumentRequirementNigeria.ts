@@ -4,6 +4,7 @@ const seedData = [
   {
     name: 'document_requirements',
     column: '`requirement_type`, `required`, `type`, `name`, `process`, `status`, `country`, `description`, `tag`',
+    codePrefix: 'dcr_',
     rows: [
       `'text', 0, 'BN-NUMBER', 'BN Number', 'onboarding', 1, 'NIGERIA', 'Business Number', 'SOLE_PROPITOR'`,
       `'text', 0, 'RC-NUMBER', 'RC Number', 'onboarding', 1, 'NIGERIA', 'Registered Company Number (CAC)', 'LIMITED_LIABILITY'`,
@@ -24,6 +25,7 @@ export class SeedDocumentRequirementNigeria1698718200244 implements MigrationInt
     await Promise.all(
       seedData.map((seed) => seed.rows.map((value) => queryRunner.query(`INSERT INTO ${seed.name} (${seed.column}) VALUES (${value})`))),
     );
+    await queryRunner.query(`UPDATE ${seedData[0].name} SET code = CONCAT('${seedData[0].codePrefix}', SUBSTRING(REPLACE(UUID(), '-', ''), 1, 17))`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

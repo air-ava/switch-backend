@@ -1,3 +1,4 @@
+/* eslint-disable no-lonely-if */
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { parsePhoneNumber } from 'libphonenumber-js';
@@ -104,16 +105,19 @@ export const mapAnArray = (arr: any[], key: string) => {
   });
 };
 
-export const createObjectFromArray = (payload: any, key: string, value: any, path?: string) => {
+export const createObjectFromArray = (payload: any, key: string, value?: any, path?: string) => {
   if (!Array.isArray(payload)) return null;
   const response: { [key: string]: any } = {};
   payload.forEach((item) => {
     const data = path ? findObjectValue(item, path) : jsonify(item);
-    if (Array.isArray(value)) {
-      value.forEach((element) => {
-        response[data[key]][element] = data[element];
-      });
-    } else response[data[key]] = data[value];
+    if (!value) response[data[key]] = data;
+    else {
+      if (Array.isArray(value)) {
+        value.forEach((element) => {
+          response[data[key]][element] = data[element];
+        });
+      } else response[data[key]] = data[value];
+    }
   });
   return response;
 };

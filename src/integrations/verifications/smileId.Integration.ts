@@ -1,17 +1,19 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable consistent-return */
 /* eslint-disable no-param-reassign */
 import axios from 'axios';
 import dotenv from 'dotenv';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import smileIdentityCore from 'smile-identity-core';
 import crypto from 'crypto';
-import { sendObjectResponse, ValidationError } from '../../utils/errors';
+import { BadRequestException, sendObjectResponse, ValidationError } from '../../utils/errors';
 import { log, Log } from '../../utils/logs';
 import SmileIdValidator from '../../validators/smileId.validator';
 import { theResponse } from '../../utils/interface';
 import { SMILEID_API_KEY, SMILEID_CALLBACK_URL, SMILEID_ENV, SMILEID_PARTNER_ID } from '../../utils/secrets';
 
-const { WebApi } = smileIdentityCore;
+const smileIdentityCore = require('smile-identity-core');
+
+// eslint-disable-next-line prefer-destructuring
+const WebApi = smileIdentityCore.WebApi;
 
 dotenv.config();
 
@@ -68,6 +70,16 @@ const Service: any = {
     BANK: 'BANK_ACCOUNT',
   },
 
+  smileIDJobType: {
+    ENHANCED_KYC: '5',
+    // BASIC_KYC: '5', // does not have a job_type
+    BUSINESS_VERIFICATION: '7',
+    DOCUMENT_VERIFICATION: '6',
+    ENHANCED_DOCUMENT_VERIFICATION: '11',
+    BIOMETRIC_KYC: '1',
+    SMART_SELFIE_AUTH: '4',
+  },
+
   smileIDTypeData: {
     BVN: '00000000000',
     NIN: '00000000000',
@@ -79,9 +91,21 @@ const Service: any = {
     CAC: '0000000',
   },
 
-  smileBusinessIDType: {
+  smileBusinessType: {
+    SOLE_PROPITOR: 'bn',
+    ENTERPRISE: 'co',
+    LIMITED_LIABILITY: 'it',
+  },
+
+  smileBusinessIDTypeOld: {
     TIN: 'TIN',
     CAC: 'CAC',
+  },
+
+  smileBusinessIDType: {
+    TIN: 'TAX_INFORMATION',
+    CAC: 'BASIC_BUSINESS_REGISTRATION',
+    'BN-NUMBER': 'BUSINESS_REGISTRATION',
   },
 
   smileDocumentIDType: {
@@ -115,10 +139,29 @@ const Service: any = {
     'Zenith Bank': Number('057'),
   },
 
+  determineImageTypeId(data: {
+    image: string;
+    is_image_base64?: boolean;
+    image_type?: 'ID' | 'LIVE' | 'SELFIE';
+    image_face?: 'FRONT' | 'BACK';
+  }): void {
+    console.log({ data });
+    const { image, is_image_base64 = false, image_type, image_face } = data;
+    const payload: any = { image };
+    if (image_type === 'SELFIE') payload.image_type_id = is_image_base64 ? 2 : 0;
+    else if (image_type === 'LIVE') payload.image_type_id = is_image_base64 ? 6 : 4;
+    else if (image_type === 'ID') {
+      if (!image_face) throw new ValidationError('Image face (FRONT or BACK) is required for ID type');
+      if (image_face === 'FRONT') payload.image_type_id = is_image_base64 ? 3 : 1;
+      if (image_face === 'BACK') payload.image_type_id = is_image_base64 ? 7 : 5;
+    } else throw new ValidationError('Invalid or missing image type');
+  },
+
   async basicKyc(payload: any) {
     log(Log.fg.cyan, `smile-Id basicKyc`);
-    const { error } = SmileIdValidator.basicKyc.validate(payload);
-    if (error) throw new ValidationError(error.message);
+
+    // const { error } = SmileIdValidator.basicKyc.validate(payload);
+    // if (error) throw new ValidationError(error.message);
 
     const { first_name, last_name, phone_number, dob, bank_code, id_type, id_number, gender, partner_params } = payload;
     const { table_id, table_type, table_code } = partner_params;
@@ -151,11 +194,12 @@ const Service: any = {
 
   async businessKyb(payload: any) {
     log(Log.fg.cyan, `smile-Id businessKyb`);
-    const { error } = SmileIdValidator.businessKyc.validate(payload);
-    if (error) throw new ValidationError(error.message);
+    // const { error } = SmileIdValidator.businessKyc.validate(payload);
+    // if (error) throw new ValidationError(error.message);
 
-    const { id_type, id_number, company, partner_params } = payload;
-    const { table_id, table_type, table_code } = partner_params;
+    const { id_type, id_number, company, partner_params, business_type } = payload;
+    const { table_id, table_type, user_id, table_code } = partner_params;
+    const { BUSINESS_VERIFICATION } = Service.smileIDJobType;
     const { signature, timestamp } = await Service.smmileIdSignature();
     try {
       const body = {
@@ -164,23 +208,27 @@ const Service: any = {
         source_sdk_version: '1.0.0',
         timestamp,
         smile_client_id: process.env.SMILEID_PARTNER_ID,
-        ...(id_type === Service.smileBusinessIDType.CAC && { company }),
+        // ...(id_type === 'CAC' && { company }),
         ...(process.env.SMILEID_ENV === 'SANDBOX' && {
           id_number: Service.smileIDTypeData[id_type],
         }),
         ...(process.env.SMILEID_ENV === 'PRODUCTION' && { id_number }),
-        id_type,
+        id_type: Service.smileBusinessIDType[id_type],
+        business_type: Service.smileBusinessType[business_type],
         partner_params: {
-          job_type: 5,
-          job_id: table_code,
-          user_id: table_id,
+          job_type: BUSINESS_VERIFICATION,
+          job_id: table_id,
+          // table_code,
+          user_id,
           table_type,
         },
       };
       const data = await Service.axiosInstance.post('/v1/async_id_verification', body);
       return sendObjectResponse('smileID response', data);
     } catch (err: any) {
-      log(Log.fg.red, err.response.data);
+      log(Log.fg.red, `smile-Id businessKyb: ${err.response.data}`);
+      console.log({ err });
+      return BadRequestException('smileID did not complete businessKyb', err);
       // throw new HttpException(error.response.data.message, HttpStatus.NOT_ACCEPTABLE);
     }
   },
@@ -196,11 +244,14 @@ const Service: any = {
 
     payload.id_type = idTypeChange[payload.id_type];
 
-    const { error } = SmileIdValidator.documentVerification.validate(payload);
-    if (error) throw new ValidationError(error.message);
+    const { DOCUMENT_VERIFICATION, ENHANCED_DOCUMENT_VERIFICATION } = Service.smileIDJobType;
 
-    const { id_type, is_image_base64 = false, image, image_selfie, partner_params: partner } = payload;
-    const { table_id, table_type, table_code } = partner;
+    // const { error } = SmileIdValidator.documentVerification.validate(payload);
+    // if (error) throw new ValidationError(error.message);
+
+    const { id_type, images: unFormattedImages, partner_params: partner } = payload;
+    const { table_id, table_type, table_code, user_id } = partner;
+    const formattedImages = await Promise.all(unFormattedImages.map(Service.determineImageTypeId));
 
     try {
       const connection = await Service.smmileIdWebApiConnection();
@@ -212,34 +263,30 @@ const Service: any = {
           return_image_links: false,
           signature: true,
         },
-        image_details: [
-          {
-            image_type_id: 0,
-            image: image_selfie || '/Users/danieladegoke/Desktop/Bujeti/api/public/images/Copenhagen.jpg',
-          },
-          {
-            image_type_id: is_image_base64 ? 3 : 1,
-            image: '/Users/danieladegoke/Desktop/Bujeti/api/public/images/Copenhagen.jpg',
-          },
-        ],
+        image_details: formattedImages,
         id_info: {
           country: 'NG',
           id_type,
         },
         partner_params: {
-          job_type: 6,
-          job_id: table_code,
-          user_id: table_id,
+          job_type: DOCUMENT_VERIFICATION,
+          job_id: table_id,
+          // table_code,
+          user_id,
           table_type,
         },
       };
 
       const { partner_params, image_details, id_info, options } = createdPayload;
+      console.log({ partner_params, image_details, id_info, options });
 
       const response = await connection.submit_job(partner_params, image_details, id_info, options);
       return sendObjectResponse('smileID response', response);
     } catch (err: any) {
+      console.log({ err });
       log(Log.fg.red, err.message);
+      log(Log.fg.red, `smile-Id documentVerification: ${err.response.data}`);
+      return BadRequestException('smileID did not complete documentVerification', err);
       // throw new HttpException(error.message, HttpStatus.NOT_ACCEPTABLE);
     }
   },
