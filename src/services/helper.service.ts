@@ -382,14 +382,29 @@ export class NotificationHandler {
   }
 }
 
-export const imageUrlToResizedBlob = async (imageUrl: string, width: number, height: number): Promise<Buffer> => {
+const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+};
+
+export const imageUrlToResizedBlob = async (imageUrl: string, size?: { width: number; height: number }): Promise<string> => {
   try {
-    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    // Fetch the image as a stream to optimize memory usage
+    const response = await axios.get(imageUrl, { responseType: 'stream' });
+    const imageStream = response.data;
 
-    const imageBuffer = Buffer.from(response.data, 'binary');
-    const resizedImageBuffer = await sharp(imageBuffer).resize(width, height).toBuffer();
+    // Use a Sharp stream to handle resizing
+    let transform = sharp();
 
-    return resizedImageBuffer;
+    if (size) transform = transform.resize(size.width, size.height);
+
+    // Stream the image through Sharp, convert to Base64 string
+    const buffer = await streamToBuffer(imageStream.pipe(transform));
+    return `data:image/jpeg;base64,${buffer.toString('base64')}`;
   } catch (error) {
     if (axios.isAxiosError(error) && !error.response) throw new NotFoundError('Image URL');
     throw new CustomError('Error processing the image', HTTP.BAD_REQUEST, error);

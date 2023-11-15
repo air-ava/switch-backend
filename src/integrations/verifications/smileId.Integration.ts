@@ -8,7 +8,8 @@ import { BadRequestException, sendObjectResponse, ValidationError } from '../../
 import { log, Log } from '../../utils/logs';
 import SmileIdValidator from '../../validators/smileId.validator';
 import { theResponse } from '../../utils/interface';
-import { SMILEID_API_KEY, SMILEID_CALLBACK_URL, SMILEID_ENV, SMILEID_PARTNER_ID } from '../../utils/secrets';
+import randomstring from 'randomstring';
+import { SMILEID_API_KEY, SMILEID_CALLBACK_URL, SMILEID_ENV, SMILEID_PARTNER_ID, SMILEID_URL } from '../../utils/secrets';
 
 const smileIdentityCore = require('smile-identity-core');
 
@@ -20,8 +21,8 @@ dotenv.config();
 const Service: any = {
   async smmileIdSignature() {
     const timestamp = new Date().toISOString();
-    const api_key = String(process.env.SMILEID_API_KEY);
-    const partner_id = String(process.env.SMILEID_PARTNER_ID);
+    const api_key = String(SMILEID_API_KEY);
+    const partner_id = String(SMILEID_PARTNER_ID);
     const hmac = crypto.createHmac('sha256', api_key);
 
     hmac.update(timestamp, 'utf8');
@@ -47,7 +48,7 @@ const Service: any = {
   },
 
   axiosInstance: axios.create({
-    baseURL: process.env.SMILEID_URL,
+    baseURL: SMILEID_URL,
     // headers: {
     //   Authorization: `Bearer ${FLUTTERWAVE_SECRET_KEY}`,
     // },
@@ -55,9 +56,9 @@ const Service: any = {
 
   smileIDEnv: {
     source_sdk: 'rest_api',
-    partner_id: process.env.SMILEID_PARTNER_ID,
+    partner_id: SMILEID_PARTNER_ID,
     country: 'NG',
-    callback_url: process.env.SMILEID_CALLBACK_URL,
+    callback_url: 'https://webhook.site/59b03feb-b009-465f-b85e-fb39c4a0aaf5', // SMILEID_CALLBACK_URL,
   },
 
   smileIDType: {
@@ -88,6 +89,7 @@ const Service: any = {
     PHONE: '00000000000',
     VOTER: '0000000000000000000',
     TIN: '00000000-0000',
+    CAC: '0000000',
     CAC: '0000000',
   },
 
@@ -145,7 +147,6 @@ const Service: any = {
     image_type?: 'ID' | 'LIVE' | 'SELFIE';
     image_face?: 'FRONT' | 'BACK';
   }): void {
-    console.log({ data });
     const { image, is_image_base64 = false, image_type, image_face } = data;
     const payload: any = { image };
     if (image_type === 'SELFIE') payload.image_type_id = is_image_base64 ? 2 : 0;
@@ -155,6 +156,7 @@ const Service: any = {
       if (image_face === 'FRONT') payload.image_type_id = is_image_base64 ? 3 : 1;
       if (image_face === 'BACK') payload.image_type_id = is_image_base64 ? 7 : 5;
     } else throw new ValidationError('Invalid or missing image type');
+    return payload;
   },
 
   async basicKyc(payload: any) {
@@ -168,6 +170,7 @@ const Service: any = {
     const { signature, timestamp } = await Service.smmileIdSignature();
 
     try {
+      const job_id = `kyc_${randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
       const body = {
         ...Service.smileIDEnv,
         signature,
@@ -176,14 +179,14 @@ const Service: any = {
         ...(id_type === Service.smileIDType.DRIVERS && { phone_number, dob }),
         ...(id_type === Service.smileIDType.BANK && { bank_code }),
         ...(gender && { gender }),
-        ...(process.env.SMILEID_ENV === 'SANDBOX' && {
+        ...(SMILEID_ENV === 'SANDBOX' && {
           id_number: Service.smileIDTypeData[id_type],
         }),
-        ...(process.env.SMILEID_ENV === 'PRODUCTION' && { id_number }),
+        ...(SMILEID_ENV === 'PRODUCTION' && { id_number }),
         id_type,
         first_name,
         last_name,
-        partner_params: { job_id: table_code, user_id: table_id, table_type },
+        partner_params: { job_id, table_code, user_id: table_id, table_type },
       };
       const { data } = await Service.axiosInstance.post('/v2/verify_async', body);
       return sendObjectResponse('smileID response', data);
@@ -202,34 +205,33 @@ const Service: any = {
     const { BUSINESS_VERIFICATION } = Service.smileIDJobType;
     const { signature, timestamp } = await Service.smmileIdSignature();
     try {
+      const job_id = `biz_kyb_${randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+      // Cater for country, sandbox and defaults
       const body = {
         ...Service.smileIDEnv,
         signature,
         source_sdk_version: '1.0.0',
         timestamp,
-        smile_client_id: process.env.SMILEID_PARTNER_ID,
-        // ...(id_type === 'CAC' && { company }),
-        ...(process.env.SMILEID_ENV === 'SANDBOX' && {
+        smile_client_id: SMILEID_PARTNER_ID,
+        ...(SMILEID_ENV === 'SANDBOX' && {
           id_number: Service.smileIDTypeData[id_type],
         }),
-        ...(process.env.SMILEID_ENV === 'PRODUCTION' && { id_number }),
+        ...(SMILEID_ENV === 'PRODUCTION' && { id_number }),
         id_type: Service.smileBusinessIDType[id_type],
-        business_type: Service.smileBusinessType[business_type],
+        business_type: SMILEID_ENV === 'SANDBOX' ? Service.smileBusinessType.ENTERPRISE : Service.smileBusinessType[business_type],
         partner_params: {
           job_type: BUSINESS_VERIFICATION,
-          job_id: table_id,
-          // table_code,
+          job_id,
+          table_id,
           user_id,
           table_type,
         },
       };
-      const data = await Service.axiosInstance.post('/v1/async_id_verification', body);
+      const data = await Service.axiosInstance.post('/v1/async_business_verification', body);
       return sendObjectResponse('smileID response', data);
     } catch (err: any) {
       log(Log.fg.red, `smile-Id businessKyb: ${err.response.data}`);
-      console.log({ err });
       return BadRequestException('smileID did not complete businessKyb', err);
-      // throw new HttpException(error.response.data.message, HttpStatus.NOT_ACCEPTABLE);
     }
   },
 
@@ -238,11 +240,15 @@ const Service: any = {
     const idTypeChange: any = {
       ip: 'PASSPORT',
       dl: 'DRIVERS_LICENSE',
-      nin: 'NATIONAL_ID',
+      nin: 'IDENTITY_CARD',
       vi: 'VOTER_ID',
+      td: 'TRAVEL_DOC',
+      rid: 'RESIDENT_ID',
+      rcert: 'REGISTRATION_CERTIFICATE',
     };
 
     payload.id_type = idTypeChange[payload.id_type];
+    payload.id_type = idTypeChange.vi;
 
     const { DOCUMENT_VERIFICATION, ENHANCED_DOCUMENT_VERIFICATION } = Service.smileIDJobType;
 
@@ -254,6 +260,7 @@ const Service: any = {
     const formattedImages = await Promise.all(unFormattedImages.map(Service.determineImageTypeId));
 
     try {
+      const job_id = `doc_ver_${randomstring.generate({ length: 6, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
       const connection = await Service.smmileIdWebApiConnection();
 
       const createdPayload = {
@@ -270,24 +277,19 @@ const Service: any = {
         },
         partner_params: {
           job_type: DOCUMENT_VERIFICATION,
-          job_id: table_id,
-          // table_code,
+          job_id,
+          table_id,
           user_id,
           table_type,
         },
       };
 
       const { partner_params, image_details, id_info, options } = createdPayload;
-      console.log({ partner_params, image_details, id_info, options });
-
       const response = await connection.submit_job(partner_params, image_details, id_info, options);
       return sendObjectResponse('smileID response', response);
     } catch (err: any) {
-      console.log({ err });
-      log(Log.fg.red, err.message);
-      log(Log.fg.red, `smile-Id documentVerification: ${err.response.data}`);
+      log(Log.fg.red, `smile-Id documentVerification: ${err}`);
       return BadRequestException('smileID did not complete documentVerification', err);
-      // throw new HttpException(error.message, HttpStatus.NOT_ACCEPTABLE);
     }
   },
 };

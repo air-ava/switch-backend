@@ -13,6 +13,8 @@ import { Repo as DocumentREPO } from '../database/repositories/documents.repo';
 import SmileIDIntegration from '../integrations/verifications/smileId.Integration';
 import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import CustomError from '../utils/customError';
+import { log, Log } from '../utils/logs';
+import { imageUrlToResizedBlob } from '../services/helper.service';
 
 dotenv.config();
 
@@ -76,7 +78,7 @@ const Service = {
   },
 
   async reviewBusinessSubmission(data: any, channel: Channel, msg: ConsumeMessage, queryRunner: QueryRunner) {
-    const { onboarding_reference, document_reference, tag, process, user_id, documentId, school_id } = data;
+    const { org_id, table_type, onboarding_reference, document_reference, tag, process, user_id, documentId, school_id } = data;
 
     const organisationDetails = await getOneOrganisationREPO({ onboarding_reference, status: STATUSES.ACTIVE }, []);
     if (!organisationDetails) {
@@ -84,7 +86,7 @@ const Service = {
       channel.ack(msg);
       return;
     }
-    logger.info({ message: `Business Submission`, payload: { data, organisationDetails } });
+    // logger.info({ message: `Business Submission`, payload: { data, organisationDetails } });
     const document = await DocumentREPO.findDocument(
       {
         id: documentId,
@@ -93,32 +95,37 @@ const Service = {
       [],
       ['Asset'],
     );
-    console.log({ document, data });
     const { type: id_type, number: id_number, entity_id, asset_id } = document;
     const partner_params = {
       onboarding_reference,
       document_reference,
+      tag,
       process,
       school_id,
       table_id: String(entity_id),
-      table_type: 'business',
+      table_type,
       user_id,
+      org_id,
     };
-    console.log({ partner_params });
     if (asset_id) {
+      const imageBlob = await imageUrlToResizedBlob(document.Asset.url);
       const verification = await SmileIDIntegration.documentVerification({
         id_type,
         images: [
           {
-            is_image_base64: false,
+            is_image_base64: true,
             image_type: 'ID',
             image_face: 'FRONT',
-            image: document.Asset.url,
+            image: imageBlob,
+          },
+          {
+            is_image_base64: true,
+            image_type: 'SELFIE',
+            image: imageBlob, // todo: Make this the image of the selfie of the Individual submitting the document
           },
         ],
         partner_params,
       });
-      console.log({ verification });
       if (!verification.success) throw new CustomError(verification.error, 400, verification.data);
     }
     if (id_number) {
@@ -129,7 +136,6 @@ const Service = {
         company: organisationDetails.name,
         partner_params,
       });
-      console.log({ verification });
       if (!verification.success) throw new CustomError(verification.error, 400, verification.data);
     }
   },
@@ -153,11 +159,11 @@ const Service = {
             logger.info({ message: `document with ID ${documentId} Not belonging to any domain for verification`, payload: content });
             channel.ack(msg);
           }
-          console.log({ content: 'here' });
           await queryRunner.commitTransaction();
           channel.ack(msg);
         } catch (error) {
-          console.log({ error });
+          console.log({ mainError: error });
+          log(Log.fg.red, `review:customer:submission: ${error}`);
           await queryRunner.rollbackTransaction();
           logger.error(JSON.stringify(error));
           channel.nack(msg, false, true);
