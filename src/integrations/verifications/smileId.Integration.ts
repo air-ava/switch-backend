@@ -4,11 +4,11 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import randomstring from 'randomstring';
 import { BadRequestException, sendObjectResponse, ValidationError } from '../../utils/errors';
 import { log, Log } from '../../utils/logs';
 import SmileIdValidator from '../../validators/smileId.validator';
 import { theResponse } from '../../utils/interface';
-import randomstring from 'randomstring';
 import { SMILEID_API_KEY, SMILEID_CALLBACK_URL, SMILEID_ENV, SMILEID_PARTNER_ID, SMILEID_URL } from '../../utils/secrets';
 
 const smileIdentityCore = require('smile-identity-core');
@@ -90,7 +90,6 @@ const Service: any = {
     VOTER: '0000000000000000000',
     TIN: '00000000-0000',
     CAC: '0000000',
-    CAC: '0000000',
   },
 
   smileBusinessType: {
@@ -162,9 +161,6 @@ const Service: any = {
   async basicKyc(payload: any) {
     log(Log.fg.cyan, `smile-Id basicKyc`);
 
-    // const { error } = SmileIdValidator.basicKyc.validate(payload);
-    // if (error) throw new ValidationError(error.message);
-
     const { first_name, last_name, phone_number, dob, bank_code, id_type, id_number, gender, partner_params } = payload;
     const { table_id, table_type, table_code } = partner_params;
     const { signature, timestamp } = await Service.smmileIdSignature();
@@ -197,8 +193,6 @@ const Service: any = {
 
   async businessKyb(payload: any) {
     log(Log.fg.cyan, `smile-Id businessKyb`);
-    // const { error } = SmileIdValidator.businessKyc.validate(payload);
-    // if (error) throw new ValidationError(error.message);
 
     const { id_type, id_number, company, partner_params, business_type } = payload;
     const { table_id, table_type, user_id, table_code } = partner_params;
@@ -238,25 +232,22 @@ const Service: any = {
   async documentVerification(payload: any): Promise<theResponse | any> {
     log(Log.fg.cyan, `smile-Id documentVerification`);
     const idTypeChange: any = {
-      ip: 'PASSPORT',
-      dl: 'DRIVERS_LICENSE',
-      nin: 'IDENTITY_CARD',
-      vi: 'VOTER_ID',
+      PASSPORT: 'PASSPORT',
+      DRIVERS_LICENSE: 'DRIVERS_LICENSE',
+      IDENTITY_CARD: 'IDENTITY_CARD',
+      VOTER_ID: 'VOTER_ID',
       td: 'TRAVEL_DOC',
       rid: 'RESIDENT_ID',
       rcert: 'REGISTRATION_CERTIFICATE',
     };
 
     payload.id_type = idTypeChange[payload.id_type];
-    payload.id_type = idTypeChange.vi;
+    // payload.id_type = idTypeChange.vi;
 
     const { DOCUMENT_VERIFICATION, ENHANCED_DOCUMENT_VERIFICATION } = Service.smileIDJobType;
 
-    // const { error } = SmileIdValidator.documentVerification.validate(payload);
-    // if (error) throw new ValidationError(error.message);
-
     const { id_type, images: unFormattedImages, partner_params: partner } = payload;
-    const { table_id, table_type, table_code, user_id } = partner;
+    const { table_id, table_type, user_id } = partner;
     const formattedImages = await Promise.all(unFormattedImages.map(Service.determineImageTypeId));
 
     try {

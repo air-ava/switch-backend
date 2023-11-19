@@ -160,8 +160,12 @@ export const getDocumentRequirementCONTROLLER: RequestHandler = async (req, res)
 };
 
 export const addOnboardingDocumentsCONTROLLER: RequestHandler = async (req, res) => {
-  const payload = { ...req.body, user: req.user };
+  const payload = { ...req.body, user: req.user, organisation: req.organisation, school: req.school };
+
+  const validation = schoolOwnerValidator.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
   // const response = await DocumentService.addOnboardingDocument(payload);
+
   const response = await DocumentService.addMultipleDocuments(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);

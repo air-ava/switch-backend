@@ -31,6 +31,7 @@ export const smileIdWEBHOOK: RequestHandler = async (req, res): Promise<void> =>
   try {
     // logger.info(req.body);
     ResponseService.success(res, 'OK');
+    console.log({ 'req.body': req.body });
     await SmileIdWebhook.basicKycResponseNew(req.body);
     // await SmileIdWebhook.basicKycResponse(req.body);
   } catch (error) {

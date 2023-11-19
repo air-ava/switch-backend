@@ -155,10 +155,10 @@ export const updateOrganisationOwner = async (data: {
     await DocumentService.addMultipleDocuments({
       documents,
       user,
-      process,
-      incoming_reference: document_reference,
       tag,
+      process,
       country,
+      incoming_reference: document_reference,
       verificationData: {
         queue: 'review:customer:submission',
         message: {

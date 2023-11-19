@@ -28,6 +28,8 @@ declare namespace Express {
       phone_number: string;
       owner: string;
       slug: string;
+      onboarding_reference?: string;
+      document_reference?: string;
       created_at: Date;
       updated_at: Date;
     };

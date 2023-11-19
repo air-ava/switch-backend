@@ -119,6 +119,38 @@ const Service: any = {
     return sendObjectResponse(`${toTitle(process)} Document submitted successfully'`);
   },
 
+  async onboardingDocument(data: any): Promise<any> {
+    const { school, organisation, documents, country, user, process = 'onboarding', tag, incoming_reference } = data;
+
+    const { onboarding_reference, document_reference: reference } = organisation;
+    const document_reference = reference || `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+
+    await Service.addMultipleDocuments({
+      documents,
+      user,
+      tag,
+      process,
+      country,
+      incoming_reference: document_reference,
+      verificationData: {
+        queue: 'review:customer:submission',
+        message: {
+          onboarding_reference,
+          document_reference,
+          tag,
+          process,
+          school_id: school.code,
+          org_id: organisation.code,
+          user_id: organisation.code,
+          table_type: 'organisations',
+        },
+      },
+    });
+
+    await updateSchool({ id: school.id }, { document_reference });
+    return sendObjectResponse(`${toTitle(process)} Document submitted successfully'`);
+  },
+
   async addMultipleDocuments(data: any): Promise<any> {
     const { documents, user, process = 'onboarding', incoming_reference, tag, country = 'UGANDA', verificationData } = data;
     const {
@@ -127,17 +159,12 @@ const Service: any = {
 
     const reference = incoming_reference || `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
 
-    const query: {
-      process: string;
-      country: 'UGANDA' | 'NIGERIA';
-      tag?: FindOperator<any>;
-    } = { process, country };
+    const query: { process: string; country: 'UGANDA' | 'NIGERIA'; tag?: FindOperator<any> } = { process, country };
     if (tag) query.tag = Raw((columnAlias) => `FIND_IN_SET('${tag}', ${columnAlias})`);
 
     const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements(query, [], []);
-    // const requirementDocs = await createObjectFromArray(documentRequirement, 'id', 'requirement_type');
+
     const requirementDocs = await createObjectFromArray(documentRequirement, 'id');
-    console.log({ requirementDocs });
     if (!requirementDocs) throw new ValidationError('No document required for this domain');
     else
       documents.map((doc: { requirementId: string | number }) => {

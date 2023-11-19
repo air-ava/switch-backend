@@ -19,7 +19,24 @@ const document = joi.object({
     'date.format': 'Invalid date format for "expiryDate". Should be in ISO format (e.g., "2023-07-18T00:00:00Z").',
   }),
   document: joi.string().required(),
-  type: joi.string().required(),
+  type: joi
+    .string()
+    .valid(
+      'POA',
+      'BN-NUMBER',
+      'RC-NUMBER',
+      'TIN',
+      'UTILITY',
+      'BN-DOC',
+      'CAC',
+      'CAC-2A',
+      'CAC-7A',
+      'PASSPORT',
+      'DRIVERS_LICENSE',
+      'IDENTITY_CARD',
+      'VOTER_ID',
+    )
+    .required(),
 });
 
 export const getQuestionnaire = joi.object().keys({
@@ -67,6 +84,19 @@ export const schoolOwnerValidator = joi
       documents: joi.array().items(document).required(),
     }),
   });
+
+export const onboardingDocumentValidator = joi.object().keys({
+  documents: joi.array().items(document).required(),
+  tag: joi.string().valid('SOLE_PROPITOR', 'LIMITED_LIABILITY', 'ADDRESS', 'DIRECTOR').required(),
+  process: joi.string().valid('onboarding').required(),
+  country: joi
+    .string()
+    .valid('UGANDA', 'NIGERIA')
+    .messages({
+      'string.valid.base': 'Steward is not availaible in your country yet',
+    })
+    .required(),
+});
 
 export const schoolContact = joi.object().keys({
   address: joi.object().keys({

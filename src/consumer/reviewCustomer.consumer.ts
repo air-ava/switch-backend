@@ -33,11 +33,11 @@ const Service = {
   },
 
   async reviewDirectorSubmission(data: any, channel: Channel, msg: ConsumeMessage, queryRunner: QueryRunner) {
-    const { onboarding_reference, document_reference, tag, process, tableId: id, documentId, school_id } = data;
+    const { org_id, table_type, onboarding_reference, document_reference, tag, process, user_id, documentId, school_id } = data;
 
-    const directorDetails = await findIndividual({ id, status: Not(STATUSES.DELETED) }, [], ['phoneNumber'], queryRunner);
+    const directorDetails = await findIndividual({ id: user_id, status: Not(STATUSES.DELETED) }, [], ['phoneNumber'], queryRunner);
     if (!directorDetails) {
-      logger.info({ message: `Individual with ID ${id} Not found`, payload: data });
+      logger.info({ message: `Individual with ID ${user_id} Not found`, payload: data });
       channel.ack(msg);
       return;
     }
@@ -57,7 +57,7 @@ const Service = {
       [],
       ['Status', 'Asset'],
     );
-    const { type: id_type, number: id_number, table_id } = document;
+    const { type: id_type, number: id_number } = document;
     await SmileIDIntegration.basicKyc({
       first_name,
       last_name,
@@ -66,13 +66,15 @@ const Service = {
       id_type,
       id_number,
       partner_params: {
-        // table_code: verifyDirectorsDocs.code,
-        table_id: String(table_id),
-        table_type: 'individual',
+        table_id: String(user_id),
+        user_id,
+        table_type: table_type || 'individual',
         onboarding_reference,
         document_reference,
         process,
         school_id,
+        tag,
+        document_id: documentId,
       },
     });
   },
@@ -95,17 +97,18 @@ const Service = {
       [],
       ['Asset'],
     );
-    const { type: id_type, number: id_number, entity_id, asset_id } = document;
+    const { type: id_type, number: id_number, asset_id } = document;
     const partner_params = {
       onboarding_reference,
       document_reference,
       tag,
       process,
       school_id,
-      table_id: String(entity_id),
+      table_id: String(user_id),
       table_type,
       user_id,
       org_id,
+      document_id: documentId,
     };
     if (asset_id) {
       const imageBlob = await imageUrlToResizedBlob(document.Asset.url);
