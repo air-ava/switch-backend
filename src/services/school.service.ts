@@ -3,8 +3,8 @@ import randomstring from 'randomstring';
 import { STATUSES } from '../database/models/status.model';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable array-callback-return */
-import { IUser } from '../database/modelInterfaces';
-import { findIndividual, updateIndividual } from '../database/repositories/individual.repo';
+import { IOrganisation, ISchools, IUser } from '../database/modelInterfaces';
+import { findIndividual, listDirectors, saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool, listSchools, updateSchool } from '../database/repositories/schools.repo';
 import { sendObjectResponse, BadRequestException, ResourceNotFoundError, NotFoundError, ValidationError, ExistsError } from '../utils/errors';
@@ -381,26 +381,6 @@ const Service = {
   async listClassInSchool(data: any): Promise<theResponse> {
     const { school, ...rest } = data;
     // todo: repo for sum of students and a sum of expected tuition fee
-    // const response = await listSchoolClass(
-    //   {
-    //     school_id: school.id,
-    //     status: Not(STATUSES.DELETED),
-    //     ...rest,
-    //   },
-    //   [],
-    //   [
-    //     'ClassLevel',
-    //     'ClassLevel.Classes',
-    //     'School',
-    //     'School.Students',
-    //     'School.Students.Class',
-    //     'Fees',
-    //     'Fees.ProductType',
-    //     'Fees.PaymentType',
-    //     'Fees.Period',
-    //     'Fees.Session',
-    //   ],
-    // );
     const response = await listSchoolsClassAndFees({
       school_id: school.id,
       status: Not(STATUSES.DELETED),
@@ -472,6 +452,101 @@ const Service = {
       user: owner,
       schoolDetails,
     });
+  },
+
+  async listSchoolDirectors(data: any): Promise<theResponse> {
+    const response = await listDirectors({ school_id: data.school, status: Not(STATUSES.DELETED) }, []);
+    return sendObjectResponse('All Officers retrieved successfully', response);
+  },
+
+  async addOrganisationOfficer(data: {
+    firstName: string;
+    lastName: string;
+    job_title?: string;
+    email: string;
+    type?: string;
+    phone_number: {
+      localFormat: string;
+      countryCode: string;
+    };
+    user: IUser;
+    school: Partial<ISchools>;
+    organisation: Partial<IOrganisation>;
+    documents?: any;
+    country: 'UGANDA' | 'NIGERIA';
+  }): Promise<theResponse> {
+    const {
+      school: foundSchool,
+      organisation,
+      documents,
+      country = 'UGANDA',
+      type = 'director',
+      job_title,
+      email,
+      user,
+      phone_number: reqPhone,
+      firstName,
+      lastName,
+    } = data;
+
+    console.log({ data });
+    const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
+    const { id: phone_number } = phoneNumber.data;
+
+    const school_id = foundSchool.id;
+    const organisationOwner = await findIndividual({ school_id: foundSchool.id }, []);
+    if (!organisationOwner) throw new NotFoundError('organisation owner');
+    const organisationOfficer = await findIndividual(
+      [
+        { school_id, email },
+        { school_id, phoneNumber: phone_number },
+      ],
+      [],
+    );
+    if (organisationOfficer) throw new ExistsError('Director');
+
+    const document_reference = `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+    const onboarding_reference =
+      organisation.onboarding_reference || `onb_${randomstring.generate({ length: 20, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+
+    const savedDirector = await saveIndividual({
+      email,
+      firstName,
+      lastName,
+      phone_number,
+      job_title: job_title && Settings.get('JOB_TITLES')[job_title],
+      school_id: foundSchool.id,
+      onboarding_reference,
+      document_reference,
+      type: type && type.toLowerCase(),
+    });
+
+    if (country === 'NIGERIA') {
+      const tag = 'DIRECTOR';
+      const process = 'onboarding';
+      await DocumentService.addMultipleDocuments({
+        documents,
+        user,
+        tag,
+        process,
+        country,
+        incoming_reference: document_reference,
+        verificationData: {
+          queue: 'review:customer:submission',
+          message: {
+            onboarding_reference,
+            document_reference,
+            tag,
+            process,
+            school_id: foundSchool.code,
+            org_id: organisation.code,
+            user_id: savedDirector.code,
+            table_type: 'individual',
+          },
+        },
+      });
+    }
+    return sendObjectResponse('School Officer Information successfully updated');
   },
 };
 export default Service;

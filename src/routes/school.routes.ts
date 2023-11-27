@@ -15,6 +15,9 @@ import {
   listClassInSchoolCONTROLLER,
   listClassLevelByEducationLevelCONTROLLER,
   listEducationLevelCONTROLLER,
+  listDirectorsCONTROLLER,
+  listRejectedDocumentsCONTROLLER,
+  addOfficerCONTROLLER,
 } from '../controllers/school.controller';
 import { catchErrors } from '../utils/errors';
 
@@ -25,6 +28,7 @@ router.patch('/', updateSchoolCONTROLLER);
 router.post('/info', catchErrors(schoolInfoCONTROLLER));
 router.post('/contact', catchErrors(schoolContactCONTROLLER));
 router.post('/owner', catchErrors(schoolOwnerCONTROLLER));
+router.post('/officer', catchErrors(addOfficerCONTROLLER));
 router.get('/documents', catchErrors(getDocumentRequirementCONTROLLER));
 router.post('/documents', catchErrors(addOnboardingDocumentsCONTROLLER));
 router.get('/questionnaire', accountUseCaseQuestionnaireCONTROLLER);
@@ -35,5 +39,7 @@ router.get('/class', catchErrors(listClassInSchoolCONTROLLER));
 router.get('/levels/:code', catchErrors(listClassLevelByEducationLevelCONTROLLER));
 router.get('/levels', catchErrors(listEducationLevelCONTROLLER));
 router.get('/periods', catchErrors(listSchoolPeriodsCONTROLLER));
+router.get('/directors', catchErrors(listDirectorsCONTROLLER));
+router.get('/reject', catchErrors(listRejectedDocumentsCONTROLLER));
 
 export default router;

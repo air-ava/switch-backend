@@ -227,12 +227,14 @@ export interface IDocumentRequirement {
 export interface IDocuments {
   id: number;
   reference: string;
+  referenced_entity: string;
   type: string;
   metadata: string;
   status: number;
   number: string;
   asset_id: string;
   link_id: number;
+  school_id: number;
   processor: string;
   tag: string;
   response: string;

@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
 import { STATUSES } from './status.model';
-import { IAssets, ILink, IStatus } from '../modelInterfaces';
+import { IAssets, IBankTransfers, IDocumentRequirement, IIndividual, ILink, IOrganisation, ISchools, IStatus, ITransactions } from '../modelInterfaces';
 import { Assets } from './assets.model';
 import { Link } from './link.model';
 
@@ -11,6 +11,9 @@ export class Documents {
 
   @Column()
   reference: string;
+
+  @Column()
+  referenced_entity: string;
 
   @Column({ nullable: false })
   type: string;
@@ -54,6 +57,9 @@ export class Documents {
   @Column()
   issuing_date?: Date;
 
+  @Column('int')
+  school_id: number;
+
   @CreateDateColumn()
   created_at: Date;
 
@@ -67,6 +73,30 @@ export class Documents {
   @OneToOne('Assets', 'documents')
   @JoinColumn({ name: 'asset_id' })
   Asset: IStatus;
+
+  @OneToOne('DocumentRequirement', 'documents')
+  @JoinColumn({ name: 'entity_id' })
+  DocumentRequirement: IDocumentRequirement;
+
+  @OneToOne('Individual', 'documents')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'document_reference' })
+  Individual: IIndividual;
+
+  @OneToOne('Transactions', 'documents')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'document_reference' })
+  Transaction: ITransactions;
+
+  @OneToOne('Organisation', 'documents')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'document_reference' })
+  Organisation: IOrganisation;
+  
+  @OneToOne('Schools', 'documents')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'document_reference' })
+  School: ISchools;
+  
+  @OneToOne('BankTransfers', 'documents')
+  @JoinColumn({ name: 'reference', referencedColumnName: 'document_reference' })
+  BankTransfer: IBankTransfers;
 
   @OneToMany(() => Assets, (asset) => asset.Document)
   Assets: IAssets[];

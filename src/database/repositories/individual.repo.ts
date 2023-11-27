@@ -5,7 +5,7 @@ import { Users } from '../models/users.model';
 import { Individual } from '../models/individual.model';
 
 export const findIndividual = async (
-  queryParam: Partial<IIndividual | any>,
+  queryParam: Partial<IIndividual | IIndividual[] | any>,
   selectOptions: Array<keyof Individual>,
   relationOptions?: any[],
   t?: QueryRunner,
@@ -22,6 +22,25 @@ export const findIndividual = async (
         // relations: ['phone'],
         ...(relationOptions && { relations: relationOptions }),
       });
+};
+
+export const listDirectors = async (
+  queryParam: Partial<IIndividual | any>,
+  selectOptions: Array<keyof Individual>,
+  relationOptions?: any[],
+  t?: QueryRunner,
+): Promise<Individual[] | any[]> => {
+  const repository = t ? t.manager.getRepository(Individual) : getRepository(Individual);
+
+  const modifiedQueryParam = {
+    ...queryParam,
+    type: In(['director', 'shareholder']),
+  };
+  return repository.find({
+    where: modifiedQueryParam,
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+    ...(relationOptions && { relations: relationOptions }),
+  });
 };
 
 export const createIndividual = async (payload: {

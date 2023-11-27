@@ -1,3 +1,4 @@
+import { listDirectors } from './../database/repositories/individual.repo';
 import { RequestHandler } from 'express';
 import SchoolService, {
   answerQuestionnaireService,
@@ -27,6 +28,7 @@ import {
 } from '../validators/schools.validator';
 import ValidationError from '../utils/validationError';
 import { createBusinessValidator } from '../validators/business.validator';
+import { STATUSES } from '../database/models/status.model';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
@@ -254,6 +256,31 @@ export const listClassLevelByEducationLevelCONTROLLER: RequestHandler = async (r
 
 export const listEducationLevelCONTROLLER: RequestHandler = async (req, res) => {
   const response = await SchoolService.educationLevel();
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};
+
+export const listDirectorsCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { school: req.school, ...req.query };
+  const response = await SchoolService.listSchoolDirectors(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};
+
+export const addOfficerCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { organisation: req.organisation, school: req.school, user: req.user, ...req.body };
+  const response = await SchoolService.addOrganisationOfficer(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};
+
+export const listRejectedDocumentsCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = {
+    school: req.school,
+    status: STATUSES.REJECTED,
+    ...req.query,
+  };
+  const response = await DocumentService.listDocuments(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
 };

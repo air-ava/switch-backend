@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import randomstring from 'randomstring';
 import { FindOperator, In, Not, Raw } from 'typeorm';
 import { STATUSES } from '../database/models/status.model';
@@ -14,6 +15,7 @@ import { getSchool, updateSchool } from '../database/repositories/schools.repo';
 import { listDocuments, verifyDocument } from '../validators/document.validator';
 import { publishMessage } from '../utils/amqpProducer';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { ISchools } from '../database/modelInterfaces';
 
 const Service: any = {
   async listDocumentRequirements({
@@ -45,10 +47,14 @@ const Service: any = {
     process = 'onboarding',
     country = 'UGANDA',
     reference,
+    school,
+    status,
   }: {
     process: string;
     country: 'UGANDA';
-    reference: string;
+    reference?: string;
+    school?: Partial<ISchools>;
+    status?: number;
   }): Promise<theResponse> {
     const validation = listDocuments.validate({ process, country });
     if (validation.error) return ResourceNotFoundError(validation.error);
@@ -56,11 +62,14 @@ const Service: any = {
     const response = await DocumentREPO.listDocuments(
       {
         ...(reference && { reference }),
+        ...(school && { school_id: school.id }),
+        ...(status && { status }),
         trigger: process,
         country,
+        addTargetEntity: true,
       },
       [],
-      ['Status', 'Asset'],
+      ['Status', 'Asset', 'DocumentRequirement'],
     );
     return sendObjectResponse(`Documents retrieved successfully'`, Sanitizer.sanitizeAllArray(response, Sanitizer.sanitizeDocument));
   },
@@ -355,7 +364,7 @@ const Service: any = {
 
     if (documents.length !== requiredDocs.length) return false;
 
-    return documents.every((doc) => doc.status === document_status);
+    return documents.every((doc: any) => doc.status === document_status);
   },
 };
 

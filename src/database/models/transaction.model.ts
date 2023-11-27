@@ -73,7 +73,7 @@ export class Transactions {
   @ManyToOne('SettlementTransactions', 'transactions')
   @JoinColumn({ name: 'reference', referencedColumnName: 'tx_reference' })
   Settlement: ISettlementTransactions;
-  
+
   @ManyToOne('CashDeposit', 'transactions')
   @JoinColumn({ name: 'reference', referencedColumnName: 'transaction_reference' })
   CashDeposit: ICashDeposit;
