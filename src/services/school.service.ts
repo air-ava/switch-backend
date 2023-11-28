@@ -522,8 +522,6 @@ const Service = {
 
     const organisationOfficer = await findIndividual({ code: officerCode, school_id: school.id, type: Not('guardian') }, []);
     if (!organisationOfficer) throw new NotFoundError('Director');
-    console.log({ organisationOfficer });
-
     if (organisationOfficer.verification_status === STATUSES.VERIFIED) throw new ValidationError('Officer has been verified');
     const updatePayload = { ...organisationOfficer };
     if (reqPhone) {
@@ -539,14 +537,6 @@ const Service = {
 
     await updateIndividual({ id: organisationOfficer.id }, updatePayload);
 
-    console.log({
-      documents,
-      user,
-      tag: 'DIRECTOR',
-      process: 'onboarding',
-      country: school.country,
-      incoming_reference: organisationOfficer.document_reference,
-    });
     if (documents)
       await DocumentService.addMultipleDocuments({
         documents,

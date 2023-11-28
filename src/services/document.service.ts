@@ -174,13 +174,11 @@ const Service: any = {
     const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements(query, [], []);
 
     const requirementDocs = await createObjectFromArray(documentRequirement, 'id');
-    console.log({ requirementDocs });
     if (!requirementDocs) throw new ValidationError('No document required for this domain');
     else
       documents.map((doc: { requirementId: string | number }) => {
         if (!requirementDocs[doc.requirementId]) throw new ValidationError('Submitted document does not exist for this domain');
       });
-    // const requiredDocsIds = requirementDocs.map((req) => req.id);
 
     await Service.callService('addDocument', documents, {
       reference,
