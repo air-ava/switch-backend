@@ -6,6 +6,9 @@ const schoolType = joi
   .messages({ 'string.valid.base': 'A wrong school type was selected' });
 
 const orgType = joi.string().valid('sole proprietorship', 'limited liability');
+const individualCode = joi.string().pattern(new RegExp('ind_.{17}$')).messages({
+  'string.pattern.base': 'Invalid class code, should start with ind_',
+});
 const country = joi.string().valid('UGANDA', 'NIGERIA');
 const document = joi.object({
   requirementType: joi.string().valid('text', 'file', 'number', 'link').required(),
@@ -82,6 +85,75 @@ export const schoolOwnerValidator = joi
     then: joi.object({
       type: joi.string().valid('Director', 'Shareholder').required(),
       documents: joi.array().items(document).required(),
+    }),
+  });
+
+export const addSchoolOfficerValidator = joi
+  .object()
+  .keys({
+    phone_number: joi
+      .object({
+        countryCode: joi.string().required(),
+        localFormat: joi.string().required(),
+      })
+      .required(),
+    firstName: joi.string().required(),
+    lastName: joi.string().required(),
+    country: joi
+      .string()
+      .valid('UGANDA', 'NIGERIA')
+      .messages({
+        'string.valid.base': 'Steward is not availaible in your country yet',
+      })
+      .required(),
+    email: joi.string().email().required(),
+  })
+  .when('.country', {
+    is: 'UGANDA',
+    then: joi.object({
+      job_title: joi.string().valid('Director', 'Head Teacher', 'Administrator', 'Teacher', 'Business Person', 'Others').required(),
+    }),
+  })
+  .when('.country', {
+    is: 'NIGERIA',
+    then: joi.object({
+      type: joi.string().valid('Director', 'Shareholder').required(),
+      documents: joi.array().items(document).required(),
+    }),
+  });
+
+export const updateSchoolOfficerValidator = joi
+  .object()
+  .keys({
+    officerCode: individualCode.required(),
+    phone_number: joi
+      .object({
+        countryCode: joi.string().required(),
+        localFormat: joi.string().required(),
+      })
+      .optional(),
+    firstName: joi.string().optional(),
+    lastName: joi.string().optional(),
+    country: joi
+      .string()
+      .valid('UGANDA', 'NIGERIA')
+      .messages({
+        'string.valid.base': 'Steward is not availaible in your country yet',
+      })
+      .optional(),
+    email: joi.string().email().optional(),
+  })
+  .when('.country', {
+    is: 'UGANDA',
+    then: joi.object({
+      job_title: joi.string().valid('Director', 'Head Teacher', 'Administrator', 'Teacher', 'Business Person', 'Others').optional(),
+    }),
+  })
+  .when('.country', {
+    is: 'NIGERIA',
+    then: joi.object({
+      type: joi.string().valid('Director', 'Shareholder').optional(),
+      documents: joi.array().items(document).optional(),
     }),
   });
 

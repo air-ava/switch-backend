@@ -174,6 +174,7 @@ const Service: any = {
     const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements(query, [], []);
 
     const requirementDocs = await createObjectFromArray(documentRequirement, 'id');
+    console.log({ requirementDocs });
     if (!requirementDocs) throw new ValidationError('No document required for this domain');
     else
       documents.map((doc: { requirementId: string | number }) => {
@@ -259,6 +260,7 @@ const Service: any = {
       type,
       organisation,
       school,
+      school_id: school.id,
       user,
       verificationData,
     };

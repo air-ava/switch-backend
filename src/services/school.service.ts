@@ -1,4 +1,4 @@
-import { Not } from 'typeorm';
+import { In, Not } from 'typeorm';
 import randomstring from 'randomstring';
 import { STATUSES } from '../database/models/status.model';
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -15,7 +15,7 @@ import { answerQuestionnaire, findQuestionnaire } from '../database/repositories
 import { listQuestionnaire } from '../database/repositories/questionTitle.repo';
 import { getQuestionnaire, schoolContact, schoolInfo } from '../validators/schools.validator';
 import { toTitle } from '../utils/utils';
-import { answerBooleanQuestionsDTO, answerQuestionServiceDTO, answerTextQuestionsDTO } from '../dto/school.dto';
+import { addOrganisationOfficerDTO, answerBooleanQuestionsDTO, answerQuestionServiceDTO, answerTextQuestionsDTO, updateOrganisationOfficerDTO } from '../dto/school.dto';
 import { getQuestion } from '../database/repositories/question.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import { updateUser } from '../database/repositories/user.repo';
@@ -459,50 +459,18 @@ const Service = {
     return sendObjectResponse('All Officers retrieved successfully', response);
   },
 
-  async addOrganisationOfficer(data: {
-    firstName: string;
-    lastName: string;
-    job_title?: string;
-    email: string;
-    type?: string;
-    phone_number: {
-      localFormat: string;
-      countryCode: string;
-    };
-    user: IUser;
-    school: Partial<ISchools>;
-    organisation: Partial<IOrganisation>;
-    documents?: any;
-    country: 'UGANDA' | 'NIGERIA';
-  }): Promise<theResponse> {
-    const {
-      school: foundSchool,
-      organisation,
-      documents,
-      country = 'UGANDA',
-      type = 'director',
-      job_title,
-      email,
-      user,
-      phone_number: reqPhone,
-      firstName,
-      lastName,
-    } = data;
+  async addOrganisationOfficer(data: addOrganisationOfficerDTO): Promise<theResponse> {
+    // eslint-disable-next-line prettier/prettier
+    const { school: foundSchool, organisation, documents, country = 'UGANDA', type = 'director', job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
 
-    console.log({ data });
     const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
     const { id: phone_number } = phoneNumber.data;
 
     const school_id = foundSchool.id;
     const organisationOwner = await findIndividual({ school_id: foundSchool.id }, []);
     if (!organisationOwner) throw new NotFoundError('organisation owner');
-    const organisationOfficer = await findIndividual(
-      [
-        { school_id, email },
-        { school_id, phoneNumber: phone_number },
-      ],
-      [],
-    );
+    // eslint-disable-next-line prettier/prettier
+    const organisationOfficer = await findIndividual([{ school_id, email }, { school_id, phoneNumber: phone_number }], []);
     if (organisationOfficer) throw new ExistsError('Director');
 
     const document_reference = `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
@@ -546,6 +514,48 @@ const Service = {
         },
       });
     }
+    return sendObjectResponse('School Officer Information successfully added');
+  },
+
+  async updateOrganisationOfficer(data: updateOrganisationOfficerDTO): Promise<theResponse> {
+    const { user, school, officerCode, documents, type = 'director', job_title, email, phone_number: reqPhone, firstName, lastName } = data;
+
+    const organisationOfficer = await findIndividual({ code: officerCode, school_id: school.id, type: Not('guardian') }, []);
+    if (!organisationOfficer) throw new NotFoundError('Director');
+    console.log({ organisationOfficer });
+
+    if (organisationOfficer.verification_status === STATUSES.VERIFIED) throw new ValidationError('Officer has been verified');
+    const updatePayload = { ...organisationOfficer };
+    if (reqPhone) {
+      const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
+      const { id: phone_number } = phoneNumber.data;
+      updatePayload.phone_number = phone_number;
+    }
+    if (type) updatePayload.type = type.toLowerCase();
+    if (job_title) updatePayload.job_title = Settings.get('JOB_TITLES')[job_title];
+    if (email) updatePayload.email = email;
+    if (firstName) updatePayload.firstName = firstName;
+    if (lastName) updatePayload.lastName = lastName;
+
+    await updateIndividual({ id: organisationOfficer.id }, updatePayload);
+
+    console.log({
+      documents,
+      user,
+      tag: 'DIRECTOR',
+      process: 'onboarding',
+      country: school.country,
+      incoming_reference: organisationOfficer.document_reference,
+    });
+    if (documents)
+      await DocumentService.addMultipleDocuments({
+        documents,
+        user,
+        tag: 'DIRECTOR',
+        process: 'onboarding',
+        country: school.country,
+        incoming_reference: organisationOfficer.document_reference,
+      });
     return sendObjectResponse('School Officer Information successfully updated');
   },
 };

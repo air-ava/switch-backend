@@ -1,4 +1,4 @@
-import { IQuestions, IUser } from '../database/modelInterfaces';
+import { IOrganisation, IQuestions, ISchools, IUser } from '../database/modelInterfaces';
 
 export interface questionsDTO {
   question: number;
@@ -47,4 +47,37 @@ export interface answerQuestionnaireServiceDTO {
 export interface answerQuestionServiceDTO {
   question: number;
   choice: boolean;
+}
+
+export interface addOrganisationOfficerDTO {
+  firstName: string;
+  lastName: string;
+  job_title?: string;
+  email: string;
+  type?: string;
+  phone_number: {
+    localFormat: string;
+    countryCode: string;
+  };
+  user: IUser;
+  school: Partial<ISchools>;
+  organisation: Partial<IOrganisation>;
+  documents?: any;
+  country: 'UGANDA' | 'NIGERIA';
+}
+
+export interface updateOrganisationOfficerDTO {
+  firstName?: string;
+  lastName?: string;
+  officerCode?: string;
+  job_title?: string;
+  email?: string;
+  type?: string;
+  phone_number: {
+    localFormat: string;
+    countryCode: string;
+  };
+  user: IUser;
+  school: Partial<ISchools>;
+  documents?: any;
 }

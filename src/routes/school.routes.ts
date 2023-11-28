@@ -18,6 +18,7 @@ import {
   listDirectorsCONTROLLER,
   listRejectedDocumentsCONTROLLER,
   addOfficerCONTROLLER,
+  updateOfficerCONTROLLER,
 } from '../controllers/school.controller';
 import { catchErrors } from '../utils/errors';
 
@@ -29,6 +30,7 @@ router.post('/info', catchErrors(schoolInfoCONTROLLER));
 router.post('/contact', catchErrors(schoolContactCONTROLLER));
 router.post('/owner', catchErrors(schoolOwnerCONTROLLER));
 router.post('/officer', catchErrors(addOfficerCONTROLLER));
+router.patch('/officer/:code', catchErrors(updateOfficerCONTROLLER));
 router.get('/documents', catchErrors(getDocumentRequirementCONTROLLER));
 router.post('/documents', catchErrors(addOnboardingDocumentsCONTROLLER));
 router.get('/questionnaire', accountUseCaseQuestionnaireCONTROLLER);

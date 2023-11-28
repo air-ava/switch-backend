@@ -20,11 +20,13 @@ import { Sanitizer } from '../utils/sanitizer';
 import {
   addClass,
   addClassAdmin,
+  addSchoolOfficerValidator,
   getClassLevel,
   getQuestionnaire,
   schoolContact,
   schoolInfo,
   schoolOwnerValidator,
+  updateSchoolOfficerValidator,
 } from '../validators/schools.validator';
 import ValidationError from '../utils/validationError';
 import { createBusinessValidator } from '../validators/business.validator';
@@ -269,7 +271,23 @@ export const listDirectorsCONTROLLER: RequestHandler = async (req, res) => {
 
 export const addOfficerCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { organisation: req.organisation, school: req.school, user: req.user, ...req.body };
+
+  const validation = addSchoolOfficerValidator.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
   const response = await SchoolService.addOrganisationOfficer(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};
+
+export const updateOfficerCONTROLLER: RequestHandler = async (req, res) => {
+  const validatingPayload = { ...req.body, officerCode: req.params.code };
+  const payload = { organisation: req.organisation, school: req.school, user: req.user, ...validatingPayload };
+
+  const validation = updateSchoolOfficerValidator.validate(validatingPayload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await SchoolService.updateOrganisationOfficer(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
 };
