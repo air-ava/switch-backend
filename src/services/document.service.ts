@@ -343,7 +343,18 @@ const Service: any = {
   },
 
   async areAllRequiredDocumentsApproved(data: any): Promise<boolean> {
-    const { tag, process, country, required = true, requirement_status = STATUSES.ACTIVE, document_status = STATUSES.VERIFIED } = data;
+    const { document_status = STATUSES.VERIFIED, ...rest } = data;
+    const submmitedDocuments = await Service.areAllRequiredDocumentsSubmitted(rest);
+    if (!submmitedDocuments.documents) return true;
+
+    return submmitedDocuments.documents.every((doc: any) => doc.status === document_status);
+  },
+
+  async areAllRequiredDocumentsSubmitted(data: any): Promise<{
+    isAlldocumentsSubmitted: boolean;
+    documents?: any;
+  }> {
+    const { tag, process, country, required = true, requirement_status = STATUSES.ACTIVE } = data;
     const requiredDocs = await DocumentRequirementREPO.listDocumentRequirements(
       {
         tag,
@@ -354,7 +365,7 @@ const Service: any = {
       },
       ['id'],
     );
-    if (requiredDocs.length === 0) return true;
+    if (requiredDocs.length === 0) return { isAlldocumentsSubmitted: true };
 
     const requiredDocsIds = requiredDocs.map((req) => req.id);
     const documents = await DocumentREPO.listDocuments(
@@ -362,9 +373,10 @@ const Service: any = {
       ['entity_id', 'reference'],
     );
 
-    if (documents.length !== requiredDocs.length) return false;
-
-    return documents.every((doc: any) => doc.status === document_status);
+    return {
+      isAlldocumentsSubmitted: documents.length !== requiredDocs.length,
+      documents,
+    };
   },
 };
 

@@ -84,3 +84,8 @@ export class Organisation {
   @JoinColumn({ name: 'logo' })
   LogoId: IUser;
 }
+
+export const businessType: any = {
+  'sole proprietorship': 'SOLE_PROPITOR',
+  'limited liability': 'LIMITED_LIABILITY',
+};

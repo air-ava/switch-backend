@@ -46,7 +46,9 @@ import { formatPhoneNumber } from '../utils/utils';
 import { getOnePhoneNumber, updatePhoneNumber } from '../database/repositories/phoneNumber.repo';
 import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
 import { PhoneNumbers } from '../database/models/phoneNumber.model';
+import DocumentService from './document.service';
 import { IBackOfficeUsers } from '../database/modelInterfaces';
+import { businessType } from '../database/models/organisation.model';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -222,7 +224,14 @@ export const userAuth = async (data: any): Promise<theResponse> => {
       userAlreadyExist.Organisation = organisation as any;
       if (organisation) {
         const school = await getSchool({ organisation_id: organisation.id }, [], ['Logo']);
-        if (school) userAlreadyExist.School = school as any;
+        if (school) {
+          const { isAlldocumentsSubmitted } = await DocumentService.areAllRequiredDocumentsSubmitted({
+            ...(organisation.business_type && { tag: businessType[organisation.business_type] }),
+            process: 'onboarding',
+            country: school.country.toUpperCase(),
+          });
+          userAlreadyExist.School = { ...school, isAlldocumentsSubmitted };
+        }
       }
     }
 
@@ -240,7 +249,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
   try {
     let phoneNumber;
     let internationalFormat;
-    
+
     if (phone_number) {
       const { countryCode, localFormat } = phone_number;
       internationalFormat = formatPhoneNumber(localFormat, countryCode);

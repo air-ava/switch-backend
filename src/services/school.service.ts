@@ -30,6 +30,7 @@ import FeesService from './fees.service';
 import { getEducationLevel, listEducationLevel } from '../database/repositories/education_level.repo';
 import DocumentService from './document.service';
 import { publishMessage } from '../utils/amqpProducer';
+import { businessType } from '../database/models/organisation.model';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   const { user, schoolName, organisationName, organisationType, schoolEmail, schoolDescription, schoolWebsite } = data;
@@ -247,9 +248,15 @@ export const getSchoolDetails = async (data: any) => {
   try {
     const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
     if (!gottenSchool.success) return gottenSchool;
-    const { school } = gottenSchool.data;
+    const { school, organisation } = gottenSchool.data;
 
-    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool({ ...school, session }));
+    const { isAlldocumentsSubmitted, documents } = await DocumentService.areAllRequiredDocumentsSubmitted({
+      ...(organisation.business_type && { tag: businessType[organisation.business_type] }),
+      process: 'onboarding',
+      country: school.country.toUpperCase(),
+    });
+
+    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool({ ...school, session, isAlldocumentsSubmitted }));
   } catch (e: any) {
     return BadRequestException(e.message);
   }
