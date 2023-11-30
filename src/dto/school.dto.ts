@@ -53,6 +53,8 @@ export interface addOrganisationOfficerDTO {
   firstName: string;
   lastName: string;
   job_title?: string;
+  dob?: string;
+  nationality?: string;
   email: string;
   type?: string;
   phone_number: {
@@ -71,6 +73,8 @@ export interface updateOrganisationOfficerDTO {
   lastName?: string;
   officerCode?: string;
   job_title?: string;
+  dob?: string;
+  nationality?: string;
   email?: string;
   type?: string;
   phone_number: {

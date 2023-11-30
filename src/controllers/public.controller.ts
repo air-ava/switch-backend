@@ -7,6 +7,8 @@ import countries from '../miscillaneous/countries.json';
 import { getScholarships } from '../services/scholarship.service';
 import { Sanitizer } from '../utils/sanitizer';
 import { getPartnership } from '../services/organisation.service';
+import { getPublicSchoolDetails } from '../services/school.service';
+import ResponseService from '../utils/response';
 
 export const allBusinessAndProductsCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -58,4 +60,10 @@ export const getPartnershipScholarshipCONTROLLER: RequestHandler = async (req, r
     console.log({ error });
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
+};
+
+export const getPublicSchoolCONTROLLER: RequestHandler = async (req, res) => {
+  const response = await getPublicSchoolDetails(req.params.code);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };

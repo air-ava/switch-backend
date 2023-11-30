@@ -48,6 +48,23 @@ export function generateBackOfficeToken(data: any) {
   return sign(payload, JWT_KEY, signInOptions);
 }
 
+export function generateGuardianToken(data: any) {
+  // information to be encoded in the JWT
+  const { name, id: userId } = data;
+  const payload = {
+    name,
+    type: 'guardian',
+    userId,
+    accessTypes: ['getTeams', 'addTeams', 'updateTeams', 'deleteTeams'],
+  };
+  const signInOptions: SignOptions = {
+    expiresIn: '1h',
+  };
+
+  // generate JWT
+  return sign(payload, JWT_KEY, signInOptions);
+}
+
 export function decodeToken(token: string, key: string): { success: boolean } {
   try {
     jwt.verify(token, key);

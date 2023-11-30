@@ -16,7 +16,7 @@ import {
   userAuthValidator,
   verifyUserValidator,
 } from '../validators/auth.validator';
-import { BadRequestException, ResourceNotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
+import { BadRequestException, NotFoundError, ResourceNotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
 import {
   businessLoginDTO,
   changePasswordDTO,
@@ -30,14 +30,14 @@ import {
 import { findUser, createAUser, updateUser, verifyUser, listUser } from '../database/repositories/user.repo';
 import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
-import { generateBackOfficeToken, generateToken } from '../utils/jwt';
+import { generateBackOfficeToken, generateGuardianToken, generateToken } from '../utils/jwt';
 import { getBusinessesREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
 import { STATUSES } from '../database/models/status.model';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool, saveSchoolsREPO } from '../database/repositories/schools.repo';
-import { saveIndividual } from '../database/repositories/individual.repo';
+import { findIndividual, saveIndividual } from '../database/repositories/individual.repo';
 import { Service as WalletService } from './wallet.service';
 import { countryMapping } from '../database/models/users.model';
 import { sendSms } from '../integrations/africasTalking/sms.integration';
@@ -49,6 +49,8 @@ import { PhoneNumbers } from '../database/models/phoneNumber.model';
 import DocumentService from './document.service';
 import { IBackOfficeUsers } from '../database/modelInterfaces';
 import { businessType } from '../database/models/organisation.model';
+import { getStudentGuardian, listStudentGuardian } from '../database/repositories/studentGuardian.repo';
+import { getStudent } from '../database/repositories/student.repo';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -567,4 +569,38 @@ export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse>
     console.log({ e });
     return BadRequestException(e.message);
   }
+};
+
+export const guardianAuth = async (data: any): Promise<theResponse> => {
+  const { uniqueStudentId, pin, parent_username } = data;
+
+  const student: any = await getStudent({ uniqueStudentId }, [], ['School']);
+  if (!student) throw new NotFoundError(`Student`);
+
+  const guardian: any = await findIndividual({ username: parent_username, status: STATUSES.ACTIVE }, []);
+  if (!guardian) throw new NotFoundError('Guardian');
+
+  const studentGuardian: any = await getStudentGuardian(
+    { studentId: student.id, individualId: guardian.id, status: STATUSES.ACTIVE },
+    [],
+    ['Guardian', 'student', 'Guardian.phoneNumber'],
+  );
+  if (!studentGuardian) throw Error(`Your credentials are incorrect`);
+  if (!bcrypt.compareSync(pin, studentGuardian.authentication_pin)) throw new ValidationError('Your credentials are incorrect');
+
+  const { School } = student;
+  delete student.School;
+  return sendObjectResponse('Guardian Authenticated', { ...studentGuardian, School, Student: student });
+};
+
+export const guardianLogin = async (data: any): Promise<theResponse> => {
+  // const {}
+  const { data: user, success, error } = await guardianAuth({ ...data });
+
+  const token = generateGuardianToken(user);
+
+  return sendObjectResponse('Login successful', {
+    ...Sanitizer.sanitizeStudentGuardian(user),
+    token,
+  });
 };

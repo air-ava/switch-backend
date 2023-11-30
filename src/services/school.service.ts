@@ -262,6 +262,13 @@ export const getSchoolDetails = async (data: any) => {
   }
 };
 
+export const getPublicSchoolDetails = async (slug: string): Promise<any> => {
+  const school = await getSchool({ slug, status: Not(STATUSES.DELETED) }, [], ['phoneNumber', 'Logo', 'Address']);
+  if (!school) throw new NotFoundError('School');
+
+  return sendObjectResponse('School retrieved successfully', Sanitizer.sanitizeSchool(school));
+};
+
 export const listSchool = async (data: any) => {
   try {
     const foundSchool = await listSchools(
@@ -462,13 +469,13 @@ const Service = {
   },
 
   async listSchoolDirectors(data: any): Promise<theResponse> {
-    const response = await listDirectors({ school_id: data.school, status: Not(STATUSES.DELETED) }, []);
+    const response = await listDirectors({ school_id: data.school, status: Not(STATUSES.DELETED) }, [], ['phoneNumber']);
     return sendObjectResponse('All Officers retrieved successfully', response);
   },
 
   async addOrganisationOfficer(data: addOrganisationOfficerDTO): Promise<theResponse> {
     // eslint-disable-next-line prettier/prettier
-    const { school: foundSchool, organisation, documents, country = 'UGANDA', type = 'director', job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
+    const { nationality, dob, school: foundSchool, organisation, documents, country = 'UGANDA', type = 'director', job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
 
     const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
     const { id: phone_number } = phoneNumber.data;
@@ -492,6 +499,8 @@ const Service = {
       job_title: job_title && Settings.get('JOB_TITLES')[job_title],
       school_id: foundSchool.id,
       onboarding_reference,
+      ...(dob && { dob: new Date(dob) }),
+      nationality,
       document_reference,
       type: type && type.toLowerCase(),
     });
@@ -525,7 +534,7 @@ const Service = {
   },
 
   async updateOrganisationOfficer(data: updateOrganisationOfficerDTO): Promise<theResponse> {
-    const { user, school, officerCode, documents, type = 'director', job_title, email, phone_number: reqPhone, firstName, lastName } = data;
+    const { dob, user, school, officerCode, documents, type = 'director', job_title, email, phone_number: reqPhone, firstName, lastName } = data;
 
     const organisationOfficer = await findIndividual({ code: officerCode, school_id: school.id, type: Not('guardian') }, []);
     if (!organisationOfficer) throw new NotFoundError('Director');
@@ -541,6 +550,7 @@ const Service = {
     if (email) updatePayload.email = email;
     if (firstName) updatePayload.firstName = firstName;
     if (lastName) updatePayload.lastName = lastName;
+    if (dob) updatePayload.dob = new Date(dob);
 
     await updateIndividual({ id: organisationOfficer.id }, updatePayload);
 

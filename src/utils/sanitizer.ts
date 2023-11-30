@@ -599,12 +599,13 @@ export const Sanitizer = {
 
   sanitizeStudentGuardian(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { id, status, Guardian, individualId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, Guardian, School, individualId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       student: Student && Sanitizer.sanitizeStudent(Student),
       guardian: Guardian && Sanitizer.sanitizeIndividual(Guardian),
+      school: School && Sanitizer.sanitizeSchool(School),
     };
     return sanitized;
   },

@@ -65,6 +65,8 @@ export const schoolOwnerValidator = joi
       .required(),
     firstName: joi.string().required(),
     lastName: joi.string().required(),
+    dob: joi.string().optional(),
+    nationality: joi.string().optional(),
     country: joi
       .string()
       .valid('UGANDA', 'NIGERIA')
@@ -99,6 +101,8 @@ export const addSchoolOfficerValidator = joi
       .required(),
     firstName: joi.string().required(),
     lastName: joi.string().required(),
+    dob: joi.string().optional(),
+    nationality: joi.string().optional(),
     country: joi
       .string()
       .valid('UGANDA', 'NIGERIA')
@@ -133,6 +137,8 @@ export const updateSchoolOfficerValidator = joi
       })
       .optional(),
     firstName: joi.string().optional(),
+    dob: joi.string().optional(),
+    nationality: joi.string().optional(),
     lastName: joi.string().optional(),
     country: joi
       .string()

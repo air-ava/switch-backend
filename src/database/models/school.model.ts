@@ -10,6 +10,9 @@ export class Schools {
 
   @Column()
   code: string;
+  
+  @Column()
+  slug: string;
 
   @Column()
   country: string;

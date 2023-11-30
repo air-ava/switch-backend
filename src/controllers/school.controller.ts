@@ -277,7 +277,7 @@ export const addOfficerCONTROLLER: RequestHandler = async (req, res) => {
 
   const response = await SchoolService.addOrganisationOfficer(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
 };
 
 export const updateOfficerCONTROLLER: RequestHandler = async (req, res) => {

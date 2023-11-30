@@ -120,6 +120,8 @@ export interface IIndividual {
   id: number;
   firstName: string;
   lastName: string;
+  nationality: string;
+  dob?: Date;
   email: string;
   gender: 'male' | 'female' | 'others';
   type: string;
@@ -129,6 +131,7 @@ export interface IIndividual {
   verification_status: number;
   document_reference: string;
   onboarding_reference: string;
+  username: string;
   metadata: string;
   school_id: number;
   phone_number: number;
@@ -201,6 +204,7 @@ export interface ISchools {
   document_reference: string;
   onboarding_reference: string;
   website: string;
+  slug: string;
   status: number;
   logo: number;
   organisation_id?: number;
@@ -865,6 +869,7 @@ export interface IStudentGuardian {
   id: number;
   code: string;
   relationship: string;
+  authentication_pin: string;
   studentId: number;
   individualId: number;
   status: number;

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { IUser, IBusiness, IAddresses, IAddress, IOrganisation, IPhoneNumber, IStudentGuardian } from '../modelInterfaces';
+import { IUser, IBusiness, IAddresses, IAddress, IOrganisation, IPhoneNumber, IStudentGuardian, ISchools } from '../modelInterfaces';
 
 @Entity('individual')
 export class Individual {
@@ -30,6 +30,12 @@ export class Individual {
   @Column('int')
   job_title: number;
 
+  @Column()
+  dob: Date;
+
+  @Column()
+  nationality: string;
+
   @Column('int')
   status: number;
 
@@ -41,6 +47,9 @@ export class Individual {
 
   @Column()
   onboarding_reference: string;
+
+  @Column()
+  username: string;
 
   @Column()
   metadata: string;
@@ -70,7 +79,7 @@ export class Individual {
 
   @OneToOne('Schools', 'individual')
   @JoinColumn({ name: 'school_id', referencedColumnName: 'id' })
-  Organisation: IOrganisation;
+  School: ISchools;
 
   @ManyToOne('StudentGuardian', 'individual')
   @JoinColumn({ name: 'id', referencedColumnName: 'individualId' })

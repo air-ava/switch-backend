@@ -24,6 +24,9 @@ export class StudentGuardian {
 
   @Column()
   relationship: string;
+  
+  @Column()
+  authentication_pin: string;
 
   @Column()
   studentId: number;
