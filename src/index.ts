@@ -20,6 +20,7 @@ import office from './routes/office/index';
 import webhook from './routes/webhook.routes';
 import ussd from './routes/ussd.routes';
 import jobs from './routes/jobs';
+import guardian from './routes/guardian';
 import { PORT, BASE_URL } from './utils/secrets';
 import { Log, log } from './utils/logs';
 
@@ -62,6 +63,7 @@ async function startServer(): Promise<void> {
   app.use('/webhook', webhook);
   app.use('/ussd', ussd);
   app.use('/jobs', jobs);
+  app.use('/guardians', guardian);
 
   app.get("/debug-sentry", function mainHandler(req, res) {
     throw new Error("My first Sentry error!");

@@ -14,6 +14,8 @@ import { ControllerResponse } from '../utils/interface'
 import { JWT_KEY } from '../utils/secrets';
 import { jwtDecodedDTO, jwtDTO } from '../dto/helper.dto';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
+import { findIndividual } from '../database/repositories/individual.repo';
+import { getStudentGuardian } from '../database/repositories/studentGuardian.repo';
 
 const decodeToken = (token: string): ControllerResponse & { data?: jwtDecodedDTO } => {
   try {
@@ -36,6 +38,25 @@ const sessionData = {
     const user = await BackOfficeUserRepo.findBackOfficeUser({ id }, []);
     if (!user) throw Error(`User admin does not exist`);
     return { user };
+  },
+
+  async getGuardianSessionData(data: jwtDecodedDTO & { originalUrl: string }): Promise<any> {
+    const { id, originalUrl } = data;
+    if (!originalUrl.includes('/guardians/')) throw Error(`Invalid token provided`);
+
+    const studentGuardian = await getStudentGuardian(
+      { id },
+      [],
+      ['Guardian', 'student', 'student.School', 'student.School.Organisation', 'Guardian.phoneNumber'],
+    );
+    if (!studentGuardian) throw Error(`Guardian does not exist`);
+    const { student, Guardian } = studentGuardian;
+    if (Guardian.type !== 'guardian') throw Error(`Guardian does not exist`);
+    const { School: school } = student as any;
+    const { Organisation: organisation } = school as any;
+    const payload = { individual: Guardian, school, organisation };
+    delete (student as any).School;
+    return { ...payload, student };
   },
 
   async getDashboardSessionData(data: jwtDecodedDTO & { originalUrl: string }): Promise<any> {
@@ -73,9 +94,7 @@ export const validateSession: RequestHandler = async (req, res, next) => {
     }
     const [, token] = Authorization.split('Bearer ');
     const decodeResponse = decodeToken(token);
-    if (!decodeResponse.success) {
-      return res.status(401).json(decodeResponse);
-    }
+    if (!decodeResponse.success) return res.status(401).json(decodeResponse);
 
     const { data } = decodeResponse;
     const extractedData = data as jwtDecodedDTO;
@@ -89,6 +108,12 @@ export const validateSession: RequestHandler = async (req, res, next) => {
       // New
       const { user: foundUser } = await sessionData.getBackOfficeSessionData(sessionDataPayload);
       req.backOfficeUser = foundUser;
+    } else if (extractedData.type === 'guardian') {
+      const { individual, school, organisation, student } = await sessionData.getGuardianSessionData(sessionDataPayload);
+      req.guardian = individual;
+      req.school = school;
+      req.organisation = organisation;
+      req.student = student;
     } else {
       // New
       const { user: foundUser, school: foundSchool, organisation: foundOrganisation } = await sessionData.getDashboardSessionData(sessionDataPayload);

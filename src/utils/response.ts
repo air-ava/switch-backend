@@ -28,6 +28,17 @@ export = {
     res.status(200).json(payload);
   },
 
+  successTwo(res: Response, message: string, data: any = null, meta: any = null) {
+    const payload: any = {
+      message,
+      success: true,
+      error: false,
+    };
+    if (data) payload.data = data;
+    if (meta) payload.meta = meta;
+    res.status(200).json(payload);
+  },
+
   failure(res: Response, message: string) {
     const payload: any = {
       message,

@@ -44,11 +44,11 @@ export interface jwtDTO {
   userId: string;
   first_name: string;
   name: string;
-  type: 'user' | 'backOffice';
+  type: 'user' | 'backOffice' | 'guardian';
 }
 export interface jwtDecodedDTO {
   id: string;
   first_name: string;
   name: string;
-  type: 'user' | 'backOffice';
+  type: 'user' | 'backOffice' | 'guardian';
 }

@@ -574,7 +574,7 @@ export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse>
 export const guardianAuth = async (data: any): Promise<theResponse> => {
   const { uniqueStudentId, pin, parent_username } = data;
 
-  const student: any = await getStudent({ uniqueStudentId }, [], ['School']);
+  const student: any = await getStudent({ uniqueStudentId }, [], ['School', 'School.Organisation']);
   if (!student) throw new NotFoundError(`Student`);
 
   const guardian: any = await findIndividual({ username: parent_username, status: STATUSES.ACTIVE }, []);
@@ -589,8 +589,10 @@ export const guardianAuth = async (data: any): Promise<theResponse> => {
   if (!bcrypt.compareSync(pin, studentGuardian.authentication_pin)) throw new ValidationError('Your credentials are incorrect');
 
   const { School } = student;
+  const { Organisation: organisation } = School;
   delete student.School;
-  return sendObjectResponse('Guardian Authenticated', { ...studentGuardian, School, Student: student });
+  delete School.Organisation;
+  return sendObjectResponse('Guardian Authenticated', { ...studentGuardian, School, Student: student, organisation });
 };
 
 export const guardianLogin = async (data: any): Promise<theResponse> => {

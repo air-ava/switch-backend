@@ -3,7 +3,6 @@
 import * as bcrypt from 'bcrypt';
 import randomstring from 'randomstring';
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
-import { getStudentGuardian, listStudentGuardian } from '../repositories/studentGuardian.repo';
 import { StudentGuardian } from '../models/studentGuardian.model';
 import { sendEmail } from '../../utils/mailtrap';
 
@@ -17,16 +16,12 @@ const inputLength = 6;
 
 export class AddandSeedAuthenticationPinToStudentGuardian1701342652447 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // await queryRunner.addColumn(tableName, new TableColumn({ ...columnDetails, isNullable: false }));
+    await queryRunner.addColumn(tableName, new TableColumn({ ...columnDetails, isNullable: false }));
 
-    // const studentGuardians = await queryRunner.manager.createQueryBuilder().select('*').from(tableName, 'studentGuardian').getRawMany();
-    // const studentGuardians = await listStudentGuardian({}, [], ['Guardian', 'student', 'student.User', 'Guardian.phoneNumber']);
     const studentGuardians = await queryRunner.manager.find(StudentGuardian, {
       where: {},
       relations: ['Guardian', 'student', 'student.User', 'Guardian.phoneNumber'],
     });
-
-    console.log({ studentGuardians });
 
     let body = `\n\n 🎊 New PIN for Guardians and their Kids: \n\n`;
     const updatedPinDetails = [];
@@ -42,7 +37,7 @@ export class AddandSeedAuthenticationPinToStudentGuardian1701342652447 implement
       const { first_name, last_name } = User;
 
       body += `*Student Name*: ${first_name} ${last_name} \n *Student Id*: ${uniqueStudentId}  \n *Guardian PIN*: ${pin} \n *StudentGuardian Code*: ${code} \n *Guardian Code*: ${guardianCode} \n *Guardian Name*: ${firstName} ${lastName} \n *Guardian Email*: ${email} \n *Guardian Phone*: ${internationalFormat} \n\n`;
-      // console.log();
+
       updatedPinDetails.push({
         studentGuardian: code,
         guardianCode,
@@ -65,8 +60,6 @@ export class AddandSeedAuthenticationPinToStudentGuardian1701342652447 implement
         newColumn: new TableColumn({ ...columnDetails, isNullable: false }),
       },
     ]);
-
-    console.log({ body, updatedPinDetails });
 
     sendEmail({
       recipientEmail: 'daniel+migration@joinsteward.com',

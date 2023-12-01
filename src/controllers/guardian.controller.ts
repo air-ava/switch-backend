@@ -12,5 +12,5 @@ export const guardianLoginCONTROLLER: RequestHandler = async (req, res) => {
 
   const response = await guardianLogin(req.body);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, data);
+  return ResponseService.successTwo(res, message || error, data);
 };

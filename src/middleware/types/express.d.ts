@@ -80,6 +80,40 @@ declare namespace Express {
       created_at: Date;
       updated_at: Date;
     }>;
+    guardian?: Partial<{
+      id: number;
+      firstName: string;
+      lastName: string;
+      nationality: string;
+      dob?: Date;
+      email: string;
+      gender: 'male' | 'female' | 'others';
+      type: string;
+      avatar: number;
+      job_title: number;
+      status: number;
+      verification_status: number;
+      document_reference: string;
+      onboarding_reference: string;
+      username: string;
+      metadata: string;
+      school_id: number;
+      phone_number: number;
+      address_id: number;
+      created_at: Date;
+      updated_at: Date;
+    }>;
+    student?: {
+      id: number;
+      schoolId: number;
+      uniqueStudentId: string;
+      userId: string;
+      status: number;
+      paymentTypeId: number;
+      defaultEmail: boolean;
+      created_at: Date;
+      updated_at: Date;
+    };
   }
 }
 

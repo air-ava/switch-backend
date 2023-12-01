@@ -50,9 +50,9 @@ export function generateBackOfficeToken(data: any) {
 
 export function generateGuardianToken(data: any) {
   // information to be encoded in the JWT
-  const { name, id: userId } = data;
+  const { id: userId } = data;
   const payload = {
-    name,
+    first_name: data.Guardian.firstName,
     type: 'guardian',
     userId,
     accessTypes: ['getTeams', 'addTeams', 'updateTeams', 'deleteTeams'],
