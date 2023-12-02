@@ -613,12 +613,13 @@ export const Sanitizer = {
 
   sanitizeIndividual(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { id, status, school_id, phoneNumber, phone_number, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, verification_status, school_id, phoneNumber, phone_number, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
       ...rest,
       phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      verification_status: verification_status && Sanitizer.getStatusById(STATUSES, verification_status).toLowerCase(),
     };
     return sanitized;
   },
