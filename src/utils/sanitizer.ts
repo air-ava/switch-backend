@@ -230,7 +230,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizeAdmin(payload: any): any {
     if (!payload) return null;
     const { id, ...rest } = Sanitizer.sanitizeAdminUser(payload);
@@ -599,10 +599,11 @@ export const Sanitizer = {
 
   sanitizeStudentGuardian(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { id, status, Guardian, School, individualId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, verification_status, Guardian, School, individualId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      verification_status: verification_status && Sanitizer.getStatusById(STATUSES, verification_status).toLowerCase(),
       student: Student && Sanitizer.sanitizeStudent(Student),
       guardian: Guardian && Sanitizer.sanitizeIndividual(Guardian),
       school: School && Sanitizer.sanitizeSchool(School),
@@ -744,8 +745,21 @@ export const Sanitizer = {
   sanitizeSchool(payload: any): any {
     if (!payload) return null;
 
-    const { country, education_level, email, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } =
-      Sanitizer.jsonify(payload);
+    const {
+      owner,
+      country,
+      education_level,
+      email,
+      status,
+      organisation_id,
+      phone_number,
+      address_id,
+      Address,
+      phoneNumber,
+      Organisation,
+      Logo,
+      ...rest
+    } = Sanitizer.jsonify(payload);
     return {
       ...rest,
       email: Sanitizer.sanitizeEmail(email),
@@ -756,6 +770,7 @@ export const Sanitizer = {
       organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
       logo: Logo && Sanitizer.sanitizeAsset(Logo),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      owner: owner && Sanitizer.sanitizeIndividual(owner),
     };
   },
   sanitizeBank(payload: any): any {

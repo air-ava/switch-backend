@@ -125,6 +125,7 @@ export interface IIndividual {
   email: string;
   gender: 'male' | 'female' | 'others';
   type: string;
+  is_owner: boolean;
   avatar: number;
   job_title: number;
   status: number;

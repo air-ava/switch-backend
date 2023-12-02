@@ -23,6 +23,9 @@ export class Individual {
 
   @Column()
   type: string;
+  
+  @Column()
+  is_owner: boolean;
 
   @Column('int')
   avatar: number;

@@ -250,13 +250,19 @@ export const getSchoolDetails = async (data: any) => {
     if (!gottenSchool.success) return gottenSchool;
     const { school, organisation } = gottenSchool.data;
 
+    const owner = await findIndividual({ school_id: school.id, is_owner: true }, []);
+    if (!owner) throw new NotFoundError('Owner');
+
     const { isAlldocumentsSubmitted, documents } = await DocumentService.areAllRequiredDocumentsSubmitted({
       ...(organisation.business_type && { tag: businessType[organisation.business_type] }),
       process: 'onboarding',
       country: school.country.toUpperCase(),
     });
 
-    return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool({ ...school, session, isAlldocumentsSubmitted }));
+    return sendObjectResponse(
+      'School details retrieved successful',
+      Sanitizer.sanitizeSchool({ ...school, session, isAlldocumentsSubmitted, owner }),
+    );
   } catch (e: any) {
     return BadRequestException(e.message);
   }
