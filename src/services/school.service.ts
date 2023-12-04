@@ -15,7 +15,13 @@ import { answerQuestionnaire, findQuestionnaire } from '../database/repositories
 import { listQuestionnaire } from '../database/repositories/questionTitle.repo';
 import { getQuestionnaire, schoolContact, schoolInfo } from '../validators/schools.validator';
 import { toTitle } from '../utils/utils';
-import { addOrganisationOfficerDTO, answerBooleanQuestionsDTO, answerQuestionServiceDTO, answerTextQuestionsDTO, updateOrganisationOfficerDTO } from '../dto/school.dto';
+import {
+  addOrganisationOfficerDTO,
+  answerBooleanQuestionsDTO,
+  answerQuestionServiceDTO,
+  answerTextQuestionsDTO,
+  updateOrganisationOfficerDTO,
+} from '../dto/school.dto';
 import { getQuestion } from '../database/repositories/question.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import { updateUser } from '../database/repositories/user.repo';
@@ -105,6 +111,11 @@ export const updateSchoolContact = async (data: {
   return sendObjectResponse('School Contact Information successfully updated');
 };
 
+export const emailDomainCheck = (email: string): boolean => {
+  const domains = ['usersteward.com', 'studentsteward.com', 'schoolsteward.com', 'orgsteward.com'];
+  return domains.some((domain) => email.includes(domain));
+};
+
 export const updateOrganisationOwner = async (data: {
   firstName: string;
   lastName: string;
@@ -153,7 +164,8 @@ export const updateOrganisationOwner = async (data: {
     },
   );
 
-  updateUser({ id: user.id }, { phone_number, job_title: job_title && Settings.get('JOB_TITLES')[job_title] });
+  const defaultEmail = emailDomainCheck(email);
+  updateUser({ id: user.id }, { ...(!defaultEmail && { phone_number }), job_title: job_title && Settings.get('JOB_TITLES')[job_title] });
   if (country === 'NIGERIA') {
     const tag = 'DIRECTOR';
     const process = 'onboarding';
@@ -574,6 +586,11 @@ const Service = {
         incoming_reference: organisationOfficer.document_reference,
       });
     return sendObjectResponse('School Officer Information successfully updated');
+  },
+
+  emailDomainCheck(email: string): boolean {
+    const domains = ['usersteward.com', 'studentsteward.com', 'schoolsteward.com', 'orgsteward.com'];
+    return domains.some((domain) => email.includes(domain));
   },
 };
 export default Service;
