@@ -254,7 +254,7 @@ export const getSchoolDetails = async (data: any) => {
     if (!gottenSchool.success) return gottenSchool;
     const { school, organisation } = gottenSchool.data;
 
-    const owner = await findIndividual({ school_id: school.id, is_owner: true }, []);
+    const owner = await findIndividual({ school_id: school.id, is_owner: true }, [], ['phoneNumber']);
     if (!owner) throw new NotFoundError('Owner');
 
     const { isAlldocumentsSubmitted, documents } = await DocumentService.areAllRequiredDocumentsSubmitted({
