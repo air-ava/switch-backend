@@ -298,6 +298,64 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
         channel: 'document-review',
         blocks: slackBlocks,
       };
+    case 'guardian_pin':
+      slackBlocks.push({
+        type: 'section',
+        text: {
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n 🎊 New PIN for Guardians and their Kids: \n\n *Student Name*: ${body.first_name} ${
+            body.last_name
+          } \n *Guardian Name*: ${body.firstName} ${body.lastName} \n *Guardian Email*: ${body.email} \n *Guardian Phone*: ${
+            body.internationalFormat
+          } \n\n`,
+          type: 'mrkdwn',
+        },
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: '*Student Id*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.uniqueStudentId}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Guardian PIN*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.pin}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*StudentGuardian Code*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.code}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Guardian Code*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.guardianCode}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Guardian Username*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.username}`,
+          },
+        ],
+      });
+      return {
+        channel: 'guardianpin',
+        blocks: slackBlocks,
+      };
     default:
       throw new Error('slack channel not available');
   }

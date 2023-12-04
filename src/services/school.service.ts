@@ -109,6 +109,8 @@ export const updateOrganisationOwner = async (data: {
   firstName: string;
   lastName: string;
   job_title?: string;
+  dob?: string;
+  nationality?: string;
   email: string;
   type?: string;
   phone_number: {
@@ -119,7 +121,7 @@ export const updateOrganisationOwner = async (data: {
   documents?: any;
   country: 'UGANDA' | 'NIGERIA';
 }): Promise<theResponse> => {
-  const { documents, country = 'UGANDA', type, job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
+  const { nationality, dob, documents, country = 'UGANDA', type, job_title, email, user, phone_number: reqPhone, firstName, lastName } = data;
 
   const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
   const { school: foundSchool, organisation } = gottenSchool.data;
@@ -142,6 +144,8 @@ export const updateOrganisationOwner = async (data: {
       firstName,
       lastName,
       phone_number,
+      ...(dob && { dob: new Date(dob) }),
+      nationality,
       job_title: job_title && Settings.get('JOB_TITLES')[job_title],
       type: type && type.toLowerCase(),
       onboarding_reference,
@@ -475,7 +479,7 @@ const Service = {
   },
 
   async listSchoolDirectors(data: any): Promise<theResponse> {
-    const response = await listDirectors({ school_id: data.school, status: Not(STATUSES.DELETED) }, [], ['phoneNumber']);
+    const response = await listDirectors({ school_id: data.school, status: Not(STATUSES.DELETED) }, [], ['phoneNumber', 'Avatar', 'JobTitle']);
     return sendObjectResponse('All Officers retrieved successfully', response);
   },
 

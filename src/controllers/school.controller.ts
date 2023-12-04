@@ -266,7 +266,7 @@ export const listDirectorsCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { school: req.school, ...req.query };
   const response = await SchoolService.listSchoolDirectors(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
 };
 
 export const addOfficerCONTROLLER: RequestHandler = async (req, res) => {

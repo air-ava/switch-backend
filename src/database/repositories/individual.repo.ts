@@ -84,12 +84,12 @@ export const findOrCreateIndividual = async (queryParams: Partial<IIndividual>, 
   const { phone_number, email } = queryParams;
 
   // Prepare the find conditions based on the extracted keys
-  const findConditions: FindConditions<IIndividual> = {};
+  const findConditions: Partial<IIndividual> = {};
   if (phone_number) findConditions.phone_number = phone_number;
   if (email) findConditions.email = email;
 
   // Attempt to find an existing individual based on the provided queryParams
-  const existingIndividual = await queryRunner.findOne(queryParams);
+  const existingIndividual = await queryRunner.findOne(findConditions);
 
   // If an existing individual is found, return it
   if (existingIndividual) return existingIndividual;

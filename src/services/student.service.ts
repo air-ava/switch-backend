@@ -46,6 +46,7 @@ import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { listProductTransaction } from '../database/repositories/productTransaction.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
+import { sendSlackMessage } from '../integrations/extra/slack.integration';
 
 class StudentSetupBuilder {
   private classId: string | number;
@@ -172,10 +173,21 @@ const Service: ServiceInterface = {
 
     // Convert status to its corresponding numerical value
     const statusValue = STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'];
+    console.log({ payload, statusValue });
 
     // Check if user already exists
-    // const existingUser = await findUser({ first_name, last_name, other_name, gender, status: STATUSES.UNVERIFIED }, [], []);
-    // if (existingUser) throw new ExistsError('User');
+    const existingUser = await findUser(
+      { first_name, last_name, ...(other_name && { other_name }), ...(gender && { gender }), status: STATUSES.UNVERIFIED },
+      [],
+      [],
+    );
+    if (existingUser) {
+      const existingStudent = await getStudent({ userId: existingUser.id, schoolId }, [], []);
+      if (existingStudent) {
+        const existingStudentClass = await getStudentClass({ studentId: existingStudent.id, classId }, [], []);
+        if (existingStudentClass) throw new CustomError('Student with same details already exists in this class');
+      }
+    }
 
     const studentPayload: any = {
       email: Utils.removeStringWhiteSpace(studentEmail),
@@ -187,6 +199,7 @@ const Service: ServiceInterface = {
       other_name: other_name && other_name,
       password: passwordHash,
     };
+
     if (reqPhone) {
       const {
         data: { id: phone_number },
@@ -200,13 +213,16 @@ const Service: ServiceInterface = {
     const existingStudent = await getStudent({ userId: studentUserRecord.id }, [], []);
     if (existingStudent) throw new ExistsError('Student');
 
-    const student = await saveStudentREPO({
+    const createdStudent = await saveStudentREPO({
       schoolId,
       uniqueStudentId,
       userId: studentUserRecord.id,
       status: statusValue,
       paymentTypeId: PAYMENT_TYPE[partPayment.toUpperCase() as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'],
     });
+
+    const student = await getStudent({ id: createdStudent.id }, [], ['User']);
+    if (!student) throw new NotFoundError('Student');
 
     // Check if student already exists in the class
     const existingStudentClass = await getStudentClass({ studentId: student.id, classId }, [], []);
@@ -310,6 +326,11 @@ const Service: ServiceInterface = {
     const { relationship, firstName, lastName, email, gender, phone_number } = guardian;
     if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
     const { data: phone } = await findOrCreatePhoneNumber(phone_number);
+
+    const pin = randomstring.generate({ length: 6, charset: 'numeric' });
+    const hashedPin = bcrypt.hashSync(pin, 8);
+    const username = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+
     const individual = await findOrCreateIndividual({
       firstName,
       lastName,
@@ -318,11 +339,31 @@ const Service: ServiceInterface = {
       email,
       gender,
       type: 'guardian',
+      username,
     });
-    await saveStudentGuardianREPO({
+    const studentGuardian = await saveStudentGuardianREPO({
       studentId: student.id,
       relationship,
       individualId: individual.id,
+      authentication_pin: hashedPin,
+    });
+    const { first_name, last_name } = student.User;
+
+    await sendSlackMessage({
+      body: {
+        first_name,
+        last_name,
+        firstName,
+        lastName,
+        email,
+        internationalFormat: phone.internationalFormat,
+        uniqueStudentId: student.uniqueStudentId,
+        pin,
+        code: studentGuardian.code,
+        guardianCode: individual.code,
+        username: individual.username || username,
+      },
+      feature: 'guardian_pin',
     });
 
     return sendObjectResponse('Guardian added successfully');
