@@ -324,13 +324,15 @@ const Service: ServiceInterface = {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async addGuardian(data: any): Promise<theResponse> {
     const { student, school, incomingGuardians, guardian } = data;
-    // const school = await getSchool({ id: incomingSchool.id }, [], ['Logo']);
-    // if (!school) throw new NotFoundError('School');
-
-    guardian as { relationship: string; firstName: any; lastName: any; gender: any; email?: string; phone_number: any };
+    guardian as { relationship: string; firstName: any; lastName: any; gender: any; email?: string; phone_number?: any };
     const { relationship, firstName, lastName, email, gender, phone_number } = guardian;
     if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
-    const { data: phone } = await findOrCreatePhoneNumber(phone_number);
+
+    let phone;
+    if (phone_number) {
+      const { data: phoneData } = await findOrCreatePhoneNumber(phone_number);
+      phone = phoneData;
+    }
 
     const pin = randomstring.generate({ length: 6, charset: 'numeric' });
     const hashedPin = bcrypt.hashSync(pin, 8);
@@ -340,22 +342,23 @@ const Service: ServiceInterface = {
       firstName,
       lastName,
       school_id: school.id,
-      phone_number: phone.id,
+      ...(phone && { phone_number: phone.id }),
       email,
       gender,
       type: 'guardian',
       username,
     });
+
     const studentGuardian = await saveStudentGuardianREPO({
       studentId: student.id,
       relationship,
       individualId: individual.id,
       authentication_pin: hashedPin,
     });
+
     const { first_name, last_name } = student.User;
-    console.log({ email, Logo: school });
     if (email)
-      await Promise.all([
+      Promise.all([
         sendEmail({
           recipientEmail: email,
           purpose: 'guardian_login',
@@ -388,14 +391,14 @@ const Service: ServiceInterface = {
         }),
       ]);
 
-    await sendSlackMessage({
+    sendSlackMessage({
       body: {
         first_name,
         last_name,
         firstName,
         lastName,
         email,
-        internationalFormat: phone.internationalFormat,
+        ...(phone && { internationalFormat: phone.internationalFormat }),
         uniqueStudentId: student.uniqueStudentId,
         pin,
         code: studentGuardian.code,
