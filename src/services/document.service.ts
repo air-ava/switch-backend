@@ -373,6 +373,8 @@ const Service: any = {
       ['entity_id', 'reference'],
     );
 
+    console.log({ documents, requiredDocs });
+
     return {
       isAlldocumentsSubmitted: documents.length === requiredDocs.length,
       documents,

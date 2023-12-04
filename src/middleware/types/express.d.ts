@@ -45,6 +45,7 @@ declare namespace Express {
       website: string;
       status: number;
       logo: any;
+      Logo?: any;
       organisation_id?: number;
       phone_number?: number;
       address_id?: number;

@@ -210,6 +210,10 @@ const Utils = {
     return Utils.isProd() ? `https://steward-prod-rmq4b.ondigitalocean.app` : `https://king-prawn-app-ovupz.ondigitalocean.app`;
   },
 
+  getDashboardURL() {
+    return Utils.isProd() ? `https://app.joinsteward.com` : `https://steward-demo.netlify.app`;
+  },
+
   getMoMoURL() {
     return Utils.isProd() ? `https://sandbox.momodeveloper.mtn.com` : `https://sandbox.momodeveloper.mtn.com`;
   },

@@ -6,6 +6,7 @@ import randomstring from 'randomstring';
 // import { StudentGuardian } from './../database/models/studentGuardian.model';
 import * as bcrypt from 'bcrypt';
 import { In, IsNull, Like, Not } from 'typeorm';
+import { getSchool } from '../database/repositories/schools.repo';
 import Utils, { createObjectFromArrayWithoutValue, mapAnArray } from '../utils/utils';
 import { ISchoolProduct, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
@@ -47,6 +48,7 @@ import { listProductTransaction } from '../database/repositories/productTransact
 import { Sanitizer } from '../utils/sanitizer';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendEmail } from '../utils/mailtrap';
 
 class StudentSetupBuilder {
   private classId: string | number;
@@ -322,6 +324,9 @@ const Service: ServiceInterface = {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async addGuardian(data: any): Promise<theResponse> {
     const { student, school, incomingGuardians, guardian } = data;
+    // const school = await getSchool({ id: incomingSchool.id }, [], ['Logo']);
+    // if (!school) throw new NotFoundError('School');
+
     guardian as { relationship: string; firstName: any; lastName: any; gender: any; email?: string; phone_number: any };
     const { relationship, firstName, lastName, email, gender, phone_number } = guardian;
     if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
@@ -348,6 +353,40 @@ const Service: ServiceInterface = {
       authentication_pin: hashedPin,
     });
     const { first_name, last_name } = student.User;
+    console.log({ email, Logo: school });
+    if (email)
+      await Promise.all([
+        sendEmail({
+          recipientEmail: email,
+          purpose: 'guardian_login',
+          templateInfo: {
+            supportEmail: 'support@joinsteward.com',
+            schoolName: school.name,
+            schoolLogo: school.Logo.url,
+            schoolPageUrl: `${Utils.getDashboardURL()}/guardian/${school.slug}`,
+            pin,
+            username,
+            studentCode: student.uniqueStudentId,
+            studentName: `${first_name} ${last_name}`,
+            guardianName: `${firstName} ${lastName}`,
+          },
+        }),
+        sendEmail({
+          recipientEmail: email,
+          purpose: 'student_payment_details',
+          templateInfo: {
+            supportEmail: 'support@joinsteward.com',
+            schoolName: school.name,
+            schoolLogo: school.Logo.url,
+            accountNumber: student.uniqueStudentId,
+            bankName: 'WEMA Bank',
+            accountName: `${first_name} ${last_name}/${school.name}`,
+            studentCode: student.uniqueStudentId,
+            studentName: `${first_name} ${last_name}`,
+            guardianName: `${firstName} ${lastName}`,
+          },
+        }),
+      ]);
 
     await sendSlackMessage({
       body: {
