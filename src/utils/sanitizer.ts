@@ -788,6 +788,7 @@ export const Sanitizer = {
 
   sanitizeEmail(email: string): any {
     if (!email) return null;
+    if (email.includes('joinsteward.com')) return email;
     return email.includes('steward.com') ? null : email;
   },
 
