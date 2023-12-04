@@ -374,7 +374,7 @@ const Service: any = {
     );
 
     return {
-      isAlldocumentsSubmitted: documents.length !== requiredDocs.length,
+      isAlldocumentsSubmitted: documents.length === requiredDocs.length,
       documents,
     };
   },
