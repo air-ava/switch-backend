@@ -214,6 +214,15 @@ const Utils = {
     return Utils.isProd() ? `https://app.joinsteward.com` : `https://steward-demo.netlify.app`;
   },
 
+  getAvatar() {
+    return {
+      student: `https://cdn-icons-png.flaticon.com/512/67/67902.png`,
+      school: `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzkowCIjVkz8P95hG7DW_WuN26wwl5KQpnms1u_7tkini5Rp-S2Di24zdJexNLgwU2Cek&usqp=CAU`,
+      user: `https://e7.pngegg.com/pngimages/753/432/png-clipart-user-profile-2018-in-sight-user-conference-expo-business-default-business-angle-service-thumbnail.png`,
+      officer: `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiS6Oz_n8UzBVIxQW4S6pUw8aqmJ9bgM2TfXK2EE5Z5YfgWGu9VVkaTLlr3zxJKQj2xew&usqp=CAU`,
+    };
+  },
+
   getMoMoURL() {
     return Utils.isProd() ? `https://sandbox.momodeveloper.mtn.com` : `https://sandbox.momodeveloper.mtn.com`;
   },

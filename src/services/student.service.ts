@@ -359,6 +359,7 @@ const Service: ServiceInterface = {
     });
 
     const { first_name, last_name } = student.User;
+    const avatar = Utils.getAvatar();
     if (email)
       Promise.all([
         sendEmail({
@@ -367,7 +368,7 @@ const Service: ServiceInterface = {
           templateInfo: {
             supportEmail: 'support@joinsteward.com',
             schoolName: school.name,
-            schoolLogo: school.Logo.url,
+            schoolLogo: school.Logo ? school.Logo.url : avatar.school,
             schoolPageUrl: `${Utils.getDashboardURL()}/guardian/${school.slug}/login`,
             pin,
             username,
@@ -382,7 +383,7 @@ const Service: ServiceInterface = {
           templateInfo: {
             supportEmail: 'support@joinsteward.com',
             schoolName: school.name,
-            schoolLogo: school.Logo.url,
+            schoolLogo: school.Logo ? school.Logo.url : avatar.school,
             accountNumber: student.uniqueStudentId,
             bankName: 'WEMA Bank',
             accountName: `${first_name} ${last_name}/${school.name}`,
