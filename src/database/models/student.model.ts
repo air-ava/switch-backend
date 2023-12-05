@@ -40,7 +40,7 @@ export class Student {
   @OneToOne('Schools', 'students')
   @JoinColumn({ name: 'schoolId', referencedColumnName: 'id' })
   School: ISchools;
-  
+
   @OneToOne('StudentClass', 'students')
   @JoinColumn({ name: 'id', referencedColumnName: 'studentId' })
   Class: IStudentClass;
@@ -52,7 +52,7 @@ export class Student {
   @ManyToOne('Schools', 'students')
   @JoinColumn({ name: 'schoolId', referencedColumnName: 'id' })
   Schools: ISchools;
-  
+
   @OneToMany(() => StudentClass, (classLevel) => classLevel.Student)
   Classes: StudentClass[];
 

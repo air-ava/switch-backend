@@ -37,6 +37,7 @@ import {
   saveSchoolClass,
 } from '../database/repositories/schoolClass.repo';
 import {
+  calculateTotalFee,
   getBeneficiaryProductPayment,
   increaseOutstandingAmount,
   listBeneficiaryProductPayments,
@@ -503,12 +504,14 @@ const Service: ServiceInterface = {
   },
 
   async getStudentPaymentSummary(criteria: any): Promise<theResponse> {
-    const { studentId, school } = criteria;
+    const { studentId, school, currency = 'NGN' } = criteria;
     const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees', 'User']);
     if (!student) throw new NotFoundError('Student');
 
-    const paymentTransactions = await sumPaymentsAndOutstandings({ beneficiary_id: student.id, beneficiary_type: 'student' });
-    (paymentTransactions as any).total_fees = 0;
+    const paymentTransactions = await sumPaymentsAndOutstandings({ beneficiary_id: student.id, beneficiary_type: 'student', currency });
+    const totalFees = await calculateTotalFee({ beneficiary_id: student.id, beneficiary_type: 'student', currency });
+    (paymentTransactions as any).total_fees = totalFees.total_fee;
+    (paymentTransactions as any).currency = currency;
     return sendObjectResponse(
       'Student payment summary retrieved successfully',
       {

@@ -3,6 +3,7 @@ import { QueryRunner, getRepository, UpdateResult, Not } from 'typeorm';
 import { IBeneficiaryProductPayment } from '../modelInterfaces';
 import { BeneficiaryProductPayment } from '../models/beneficiaryProductPayment.model';
 import { STATUSES } from '../models/status.model';
+import { SchoolProduct } from '../models/schoolProduct.model';
 
 export const getBeneficiaryProductPayment = async (
   queryParam: Partial<IBeneficiaryProductPayment> | any,
@@ -35,8 +36,7 @@ export const listBeneficiaryProductPayments = async (
 export const sumPaymentsAndOutstandings = async (
   queryParam: Partial<IBeneficiaryProductPayment> | Partial<IBeneficiaryProductPayment>[] | any,
 ): Promise<any | any[]> => {
-  const { status = STATUSES.DELETED, beneficiary_id, beneficiary_type = 'student' } = queryParam;
-  console.log({ beneficiary_id });
+  const { currency, status = STATUSES.DELETED, beneficiary_id, beneficiary_type = 'student' } = queryParam;
   const repository = getRepository(BeneficiaryProductPayment);
 
   const query = repository
@@ -45,7 +45,27 @@ export const sumPaymentsAndOutstandings = async (
     .addSelect('SUM(payment.amount_outstanding)', 'total_outstanding')
     .where('payment.beneficiary_id = :beneficiary_id', { beneficiary_id })
     .andWhere('payment.beneficiary_type = :beneficiary_type', { beneficiary_type })
-    .andWhere('payment.status <> :status', { status });
+    .andWhere('payment.status <> :status', { status })
+    .andWhere('payment.product_currency = :currency', { currency });
+
+  const sums = await query.getRawOne();
+  return sums;
+};
+
+export const calculateTotalFee = async (
+  queryParam: Partial<IBeneficiaryProductPayment> | Partial<IBeneficiaryProductPayment>[] | any,
+): Promise<any | any[]> => {
+  const { currency, status = STATUSES.DELETED, beneficiary_id, beneficiary_type = 'student' } = queryParam;
+  const repository = getRepository(BeneficiaryProductPayment);
+
+  const query = repository
+    .createQueryBuilder('payment')
+    .leftJoin(SchoolProduct, 'product', 'payment.product_id = product.id')
+    .select('SUM(CASE WHEN payment.is_default_amount = true THEN product.amount ELSE payment.custom_amount END)', 'total_fee')
+    .where('payment.beneficiary_id = :beneficiary_id', { beneficiary_id })
+    .andWhere('payment.beneficiary_type = :beneficiary_type', { beneficiary_type })
+    .andWhere('payment.status <> :status', { status })
+    .andWhere('payment.product_currency = :currency', { currency });
 
   const sums = await query.getRawOne();
   return sums;
