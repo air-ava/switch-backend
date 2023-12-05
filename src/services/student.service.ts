@@ -366,7 +366,7 @@ const Service: ServiceInterface = {
             supportEmail: 'support@joinsteward.com',
             schoolName: school.name,
             schoolLogo: school.Logo.url,
-            schoolPageUrl: `${Utils.getDashboardURL()}/guardian/${school.slug}`,
+            schoolPageUrl: `${Utils.getDashboardURL()}/guardian/${school.slug}/login`,
             pin,
             username,
             studentCode: student.uniqueStudentId,
