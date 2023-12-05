@@ -257,4 +257,5 @@ export const recordSettlementTransaction = async (data: any): Promise<any> => {
   return sendObjectResponse('Settlement completed successfully', withdrawal);
 };
 
+
 // todo: get pending payment
