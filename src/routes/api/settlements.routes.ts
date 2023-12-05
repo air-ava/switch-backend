@@ -1,5 +1,5 @@
 import express from 'express';
-import { fetchSettlementsCONTROLLER, listSettlementsCONTROLLER, processSettlementCONTROLLER } from '../controllers/settlement.contoller';
+import { fetchSettlementsCONTROLLER, listSettlementsCONTROLLER, processSettlementCONTROLLER } from '../../controllers/settlement.contoller';
 
 const router = express.Router();
 

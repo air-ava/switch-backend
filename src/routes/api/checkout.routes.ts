@@ -1,5 +1,5 @@
 import express from 'express';
-import { completeCheckoutCONTROLLER } from '../controllers/checkout.controller';
+import { completeCheckoutCONTROLLER } from '../../controllers/checkout.controller';
 
 const router = express.Router();
 /**

@@ -4,7 +4,7 @@ import {
   getBusinessCONTROLLER,
   updateBusinessCONTROLLER,
   viewAllBusinessCONTROLLER,
-} from '../controllers/business.controller';
+} from '../../controllers/business.controller';
 
 const router = express.Router();
 

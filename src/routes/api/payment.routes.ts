@@ -8,8 +8,8 @@ import {
   notifySlackCONTROLLER,
   recordBankTransferCONTROLLER,
   updateBankTransferCONTROLLER,
-} from '../controllers/payment.controller';
-import { fundWalletCONTROLLER, withdrawFromWalletCONTROLLER } from '../controllers/wallets.controller';
+} from '../../controllers/payment.controller';
+import { fundWalletCONTROLLER, withdrawFromWalletCONTROLLER } from '../../controllers/wallets.controller';
 
 const router = express.Router();
 

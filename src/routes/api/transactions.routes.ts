@@ -1,5 +1,5 @@
-import { catchErrors } from './../utils/errors';
 import express from 'express';
+import { catchErrors } from '../../utils/errors';
 import {
   listTransactionsCONTROLLER,
   getTransactionCONTROLLER,
@@ -7,7 +7,7 @@ import {
   statsOnTransactionsCONTROLLER,
   addDocumentToTransactionCONTROLLER,
   getTransactionsAnalyticsCONTROLLER,
-} from '../controllers/transaction.controller';
+} from '../../controllers/transaction.controller';
 
 const router = express.Router();
 

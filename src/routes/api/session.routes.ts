@@ -4,9 +4,9 @@ import {
   listPeriodsCONTROLLER,
   createSchoolPeriodCONTROLLER,
   listSessionsCONTROLLER,
-} from '../controllers/session.controller';
+} from '../../controllers/session.controller';
 
-import { catchErrors } from '../utils/errors';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 

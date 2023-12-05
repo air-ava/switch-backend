@@ -15,7 +15,7 @@ import Settings from './services/settings.service';
 // import User from './database/models/user.entity';
 // import { getOneUser } from './database/repositories/user.repository';
 import logger from './utils/logger';
-import router from './routes';
+import router from './routes/api';
 import office from './routes/office/index';
 import webhook from './routes/webhook.routes';
 import ussd from './routes/ussd.routes';

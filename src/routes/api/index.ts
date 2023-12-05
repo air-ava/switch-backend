@@ -11,7 +11,7 @@ import addressRouter from './address.routes';
 import cartRouter from './cart.routes';
 import checkoutRouter from './checkout.routes';
 import userRouter from './user.routes';
-import webhookRouter from './webhook.routes';
+import webhookRouter from '../webhook.routes';
 import miscillaneousRouter from './miscillaneous.routes';
 import banksRouter from './bank.routes';
 import settlementsRouter from './settlements.routes';
@@ -24,8 +24,8 @@ import sessionRouter from './session.routes';
 import feesRouter from './fees.routes';
 import cashDepositsRouter from './cashDeposits.routes';
 import notificationRouter from './notification.routes';
-import { validateSession } from '../middleware/auth.middleware';
-import Settings from '../services/settings.service';
+import { validateSession } from '../../middleware/auth.middleware';
+import Settings from '../../services/settings.service';
 
 const router = express.Router();
 

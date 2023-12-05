@@ -6,7 +6,7 @@ import {
   getApplicationCONTROLLER,
   getScholarshipCONTROLLER,
   getScholarshipsCONTROLLER,
-} from '../controllers/scholarship.controller';
+} from '../../controllers/scholarship.controller';
 
 const router = express.Router();
 

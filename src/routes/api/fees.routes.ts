@@ -11,8 +11,8 @@ import {
   deleteFeesCONTROLLER,
   getFeesInClassCONTROLLER,
   editFeeCONTROLLER,
-} from '../controllers/fees.controller';
-import { catchErrors } from '../utils/errors';
+} from '../../controllers/fees.controller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 

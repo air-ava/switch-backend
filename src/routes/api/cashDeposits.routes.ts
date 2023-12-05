@@ -1,6 +1,13 @@
 import express from 'express';
-import { cashDepositCONTROLLER, getCashDepositCONTROLLER, listCashDepositCONTROLLER, reviewCashDepositsCONTROLLER, submitRecieptCONTROLLER, updateCashDepositRecordCONTROLLER } from '../controllers/cashDeposit.controller';
-import { catchErrors } from '../utils/errors';
+import {
+  cashDepositCONTROLLER,
+  getCashDepositCONTROLLER,
+  listCashDepositCONTROLLER,
+  reviewCashDepositsCONTROLLER,
+  submitRecieptCONTROLLER,
+  updateCashDepositRecordCONTROLLER,
+} from '../../controllers/cashDeposit.controller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 import express from 'express';
-import { createAddressCONTROLLER, getAddressCONTROLLER } from '../controllers/address.controller';
-import { createCartCONTROLLER, deleteItemCONTROLLER, getCartCONTROLLER } from '../controllers/cart.contoller';
-import { completeCheckoutCONTROLLER } from '../controllers/checkout.controller';
+import { createAddressCONTROLLER, getAddressCONTROLLER } from '../../controllers/address.controller';
+import { createCartCONTROLLER, deleteItemCONTROLLER, getCartCONTROLLER } from '../../controllers/cart.contoller';
+import { completeCheckoutCONTROLLER } from '../../controllers/checkout.controller';
 
 const router = express.Router();
 

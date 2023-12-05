@@ -1,6 +1,6 @@
 import express from 'express';
-import { catchErrors } from '../utils/errors';
-import { guardianLoginCONTROLLER } from '../controllers/guardian.controller';
+import { catchErrors } from '../../utils/errors';
+import { guardianLoginCONTROLLER } from '../../controllers/guardian.controller';
 
 const router = express.Router();
 

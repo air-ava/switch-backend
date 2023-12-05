@@ -7,9 +7,9 @@ import {
   resetPasswordCONTROLLER,
   signUpCONTROLLER,
   verifyCONTROLLER,
-} from '../controllers/auth.controller';
-import { guardianLoginCONTROLLER } from '../controllers/guardian.controller';
-import { catchErrors } from '../utils/errors';
+} from '../../controllers/auth.controller';
+import { guardianLoginCONTROLLER } from '../../controllers/guardian.controller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 

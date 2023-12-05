@@ -1,5 +1,5 @@
 import express from 'express';
-import { listSchoolPeriodsCONTROLLER } from '../controllers/session.controller';
+import { listSchoolPeriodsCONTROLLER } from '../../controllers/session.controller';
 import {
   accountUseCaseQuestionnaireCONTROLLER,
   schoolInfoCONTROLLER,
@@ -19,8 +19,8 @@ import {
   listRejectedDocumentsCONTROLLER,
   addOfficerCONTROLLER,
   updateOfficerCONTROLLER,
-} from '../controllers/school.controller';
-import { catchErrors } from '../utils/errors';
+} from '../../controllers/school.controller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 

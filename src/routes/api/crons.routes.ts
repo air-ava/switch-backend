@@ -1,5 +1,5 @@
 import express from 'express';
-import { catchErrors } from '../utils/errors';
+import { catchErrors } from '../../utils/errors';
 import {
   createCronCONTROLLER,
   deleteCronCONTROLLER,
@@ -7,7 +7,7 @@ import {
   getCronHistoryCONTROLLER,
   listCronCONTROLLER,
   updateCronCONTROLLER,
-} from '../controllers/crons.controller';
+} from '../../controllers/crons.controller';
 
 const router = express.Router();
 

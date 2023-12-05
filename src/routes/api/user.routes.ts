@@ -1,6 +1,6 @@
 import express from 'express';
-import { changePasswordCONTROLLER, resetPasswordCONTROLLER, verifyCONTROLLER } from '../controllers/auth.controller';
-import { fetchUserCONTROLLER, updateUserCONTROLLER } from '../controllers/user.contoller';
+import { changePasswordCONTROLLER, resetPasswordCONTROLLER, verifyCONTROLLER } from '../../controllers/auth.controller';
+import { fetchUserCONTROLLER, updateUserCONTROLLER } from '../../controllers/user.contoller';
 
 const router = express.Router();
 

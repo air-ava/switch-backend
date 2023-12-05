@@ -1,7 +1,13 @@
 import express from 'express';
-import { countriesCONTROLLER, educationLevelCONTROLLER, getCurrenciesCONTROLLER, jobTitlesCONTROLLER, uploadCONTROLLER } from '../controllers/miscillaneous.controller';
-import { listClassCONTROLLER } from '../controllers/student.controller';
-import { catchErrors } from '../utils/errors';
+import {
+  countriesCONTROLLER,
+  educationLevelCONTROLLER,
+  getCurrenciesCONTROLLER,
+  jobTitlesCONTROLLER,
+  uploadCONTROLLER,
+} from '../../controllers/miscillaneous.controller';
+import { listClassCONTROLLER } from '../../controllers/student.controller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 

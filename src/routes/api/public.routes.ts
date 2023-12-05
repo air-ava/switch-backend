@@ -1,16 +1,16 @@
 import express from 'express';
-import { catchErrors } from '../utils/errors';
-import { getAddressCONTROLLER } from '../controllers/address.controller';
-import { viewAllBusinessCONTROLLER } from '../controllers/business.controller';
-import { countriesCONTROLLER } from '../controllers/miscillaneous.controller';
-import { viewAllProductCategoriesCONTROLLER, viewAllProductCONTROLLER } from '../controllers/product.controller';
+import { catchErrors } from '../../utils/errors';
+import { getAddressCONTROLLER } from '../../controllers/address.controller';
+import { viewAllBusinessCONTROLLER } from '../../controllers/business.controller';
+import { countriesCONTROLLER } from '../../controllers/miscillaneous.controller';
+import { viewAllProductCategoriesCONTROLLER, viewAllProductCONTROLLER } from '../../controllers/product.controller';
 import {
   allBusinessAndProductsCONTROLLER,
   getPartnershipScholarshipCONTROLLER,
   getPublicSchoolCONTROLLER,
   getScholarshipsCONTROLLER,
-} from '../controllers/public.controller';
-import { addSponsorsCONTROLLER, getScholarshipCONTROLLER, scholarshipApplicationCONTROLLER } from '../controllers/scholarship.controller';
+} from '../../controllers/public.controller';
+import { addSponsorsCONTROLLER, getScholarshipCONTROLLER, scholarshipApplicationCONTROLLER } from '../../controllers/scholarship.controller';
 
 const router = express.Router();
 

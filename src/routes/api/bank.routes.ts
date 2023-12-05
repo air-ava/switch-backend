@@ -1,5 +1,11 @@
 import express from 'express';
-import { listBanksCONTROLLER, addBankCONTROLLER, defaulBankCONTROLLER, bankListCONTROLLER, deleteBankCONTROLLER } from '../controllers/bank.contoller';
+import {
+  listBanksCONTROLLER,
+  addBankCONTROLLER,
+  defaulBankCONTROLLER,
+  bankListCONTROLLER,
+  deleteBankCONTROLLER,
+} from '../../controllers/bank.contoller';
 
 const router = express.Router();
 

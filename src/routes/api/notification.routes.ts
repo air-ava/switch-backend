@@ -4,8 +4,8 @@ import {
   createNotificationConfigurationCONTROLLER,
   deletePhoneOrEmailCONTROLLER,
   updateConfigurationCONTROLLER,
-} from '../controllers/preferences.controller';
-import { catchErrors } from '../utils/errors';
+} from '../../controllers/preferences.controller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 
