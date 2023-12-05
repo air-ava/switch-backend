@@ -35,19 +35,19 @@ export const listBeneficiaryProductPayments = async (
 export const sumPaymentsAndOutstandings = async (
   queryParam: Partial<IBeneficiaryProductPayment> | Partial<IBeneficiaryProductPayment>[] | any,
 ): Promise<any | any[]> => {
-  const { status, beneficiary_id } = queryParam;
+  const { status = STATUSES.DELETED, beneficiary_id, beneficiary_type = 'student' } = queryParam;
+  console.log({ beneficiary_id });
   const repository = getRepository(BeneficiaryProductPayment);
 
   const query = repository
     .createQueryBuilder('payment')
-    .select('payment.beneficiary_id', 'beneficiary_id')
-    .addSelect('SUM(payment.amount_paid)', 'total_paid')
+    .select('SUM(payment.amount_paid)', 'total_paid')
     .addSelect('SUM(payment.amount_outstanding)', 'total_outstanding')
     .where('payment.beneficiary_id = :beneficiary_id', { beneficiary_id })
-    .andWhere('payment.status = :status', { status })
-    .groupBy('payment.beneficiary_id');
+    .andWhere('payment.beneficiary_type = :beneficiary_type', { beneficiary_type })
+    .andWhere('payment.status <> :status', { status });
 
-  const sums = await query.getRawMany();
+  const sums = await query.getRawOne();
   return sums;
 };
 

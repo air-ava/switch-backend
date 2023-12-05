@@ -102,7 +102,7 @@ export const getStudentPaymentHistory_GUARDIAN_CONTROLLER: RequestHandler = asyn
 export const getStudentDetail_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
   const { school, organisation, student } = req;
   const { uniqueStudentId: studentId } = student as any;
-  const response = await StudentService.getStudentFeesLight({ studentId });
+  const response = await StudentService.getStudentPaymentSummary({ studentId, school });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };

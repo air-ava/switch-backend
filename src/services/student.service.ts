@@ -41,6 +41,7 @@ import {
   increaseOutstandingAmount,
   listBeneficiaryProductPayments,
   saveBeneficiaryProductPayment,
+  sumPaymentsAndOutstandings,
   updateBeneficiaryProductPayment,
 } from '../database/repositories/beneficiaryProductPayment.repo';
 import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
@@ -498,6 +499,27 @@ const Service: ServiceInterface = {
     return sendObjectResponse(
       'Student Fees retrieved successfully',
       Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizeBeneficiaryFee),
+    );
+  },
+
+  async getStudentPaymentSummary(criteria: any): Promise<theResponse> {
+    const { studentId, school } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees', 'User']);
+    if (!student) throw new NotFoundError('Student');
+
+    const paymentTransactions = await sumPaymentsAndOutstandings({ beneficiary_id: student.id, beneficiary_type: 'student' });
+    (paymentTransactions as any).total_fees = 0;
+    return sendObjectResponse(
+      'Student payment summary retrieved successfully',
+      {
+        paymentTransactions,
+        paymentDetails: {
+          account_name: `${student.User.first_name} ${student.User.last_name}/${school.name}`,
+          account_number: `${student.uniqueStudentId}`,
+          bank: `Wema Bank`,
+        },
+      },
+      // Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizeBeneficiaryFee),
     );
   },
 
