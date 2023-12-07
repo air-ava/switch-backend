@@ -1,3 +1,4 @@
+import { IIndividual } from './../database/modelInterfaces';
 import {
   IBusiness,
   ICurrency,
@@ -611,7 +612,7 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  sanitizeIndividual(payload: IScholarshipApplication): any {
+  sanitizeIndividual(payload: IIndividual): any {
     if (!payload) return null;
     const { id, status, avatar, email, job_title, verification_status, school_id, phoneNumber, phone_number, Avatar, JobTitle, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {

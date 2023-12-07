@@ -6,6 +6,7 @@ import { countriesCONTROLLER } from '../../controllers/miscillaneous.controller'
 import { viewAllProductCategoriesCONTROLLER, viewAllProductCONTROLLER } from '../../controllers/product.controller';
 import {
   allBusinessAndProductsCONTROLLER,
+  getGuardianWardCONTROLLER,
   getPartnershipScholarshipCONTROLLER,
   getPublicSchoolCONTROLLER,
   getScholarshipsCONTROLLER,
@@ -26,5 +27,6 @@ const router = express.Router();
 // router.get('/address/:business', getAddressCONTROLLER);
 // router.get('/business', viewAllBusinessCONTROLLER);
 router.get('/:code', catchErrors(getPublicSchoolCONTROLLER));
+router.get('/:code/:username', catchErrors(getGuardianWardCONTROLLER));
 
 export default router;

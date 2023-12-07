@@ -5,6 +5,7 @@ import { oldSendObjectResponse } from '../utils/errors';
 import { Log } from '../utils/logs';
 import countries from '../miscillaneous/countries.json';
 import { getScholarships } from '../services/scholarship.service';
+import GuardianService from '../services/guardian.service';
 import { Sanitizer } from '../utils/sanitizer';
 import { getPartnership } from '../services/organisation.service';
 import { getPublicSchoolDetails } from '../services/school.service';
@@ -64,6 +65,13 @@ export const getPartnershipScholarshipCONTROLLER: RequestHandler = async (req, r
 
 export const getPublicSchoolCONTROLLER: RequestHandler = async (req, res) => {
   const response = await getPublicSchoolDetails(req.params.code);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const getGuardianWardCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { guardian_username: req.params.username, school_slug: req.params.code };
+  const response = await GuardianService.validateGuardianUsername(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };

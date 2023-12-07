@@ -51,6 +51,7 @@ import { IBackOfficeUsers } from '../database/modelInterfaces';
 import { businessType } from '../database/models/organisation.model';
 import { getStudentGuardian, listStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { getStudent } from '../database/repositories/student.repo';
+import { CURRENCIES } from '../database/models/currencies.model';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -388,7 +389,7 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
 
     await WalletService.createDollarWallet({
       user: userAlreadyExist,
-      currency: 'UGX',
+      currency: CURRENCIES[school.country.toUpperCase()],
       type: 'permanent',
       entity: 'school',
       entityId: school.id,
