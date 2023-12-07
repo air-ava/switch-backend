@@ -22,6 +22,7 @@ import { getTransactionReference } from './transaction.service';
 import { Service as WalletService } from './wallet.service';
 import FeesService from './fees.service';
 import { updateStatusOfALienTransaction } from '../database/repositories/lienTransaction.repo';
+import { CURRENCIES } from '../database/models/currencies.model';
 
 const Service = {
   async createCashDeposit(data: any): Promise<theResponse> {
@@ -38,7 +39,7 @@ const Service = {
       ipAddress,
       deviceDetails,
       clientCordinate,
-      currency = 'UGX',
+      currency = CURRENCIES[school.country.toUpperCase()],
       amount,
       recieptUrls,
       description,
@@ -145,7 +146,17 @@ const Service = {
   // submitRecieptForCashDeposits
   // [ addListOfLogs, recipts, recordTransactions(processing), status(Unresolved), approvalStatus(Pending) ]
   async submitRecieptForCashDeposits(data: any): Promise<theResponse> {
-    const { ipAddress, cashDeposits, bankName, recipts, clientCordinate, deviceDetails, loggedInUser, school, currency = 'UGX' } = data;
+    const {
+      ipAddress,
+      cashDeposits,
+      bankName,
+      recipts,
+      clientCordinate,
+      deviceDetails,
+      loggedInUser,
+      school,
+      currency = CURRENCIES[school.country.toUpperCase()],
+    } = data;
     const { longitude, latitude } = clientCordinate;
 
     // confirm all submitted cashDeposit Codes

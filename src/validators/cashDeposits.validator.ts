@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import joi from 'joi';
+import { currencyCodes } from './fee.validator';
 
 const classCode = joi.string().pattern(new RegExp('cll_.{17}$')).messages({
   'string.pattern.base': 'Invalid class code, should start with cll_',
@@ -46,7 +47,7 @@ const Validator = {
       })
       .required(),
     recieptUrls: joi.array().items(joi.string().uri()).optional(),
-    currency: joi.string().valid('UGX').required(),
+    currency: currencyCodes.required(),
     amount: joi.number().greater(10000).positive().required().messages({
       'number.positive': '"amount" should be a positive value.',
       'number.greater': '"amount" should be greater than 100.',
@@ -66,7 +67,7 @@ const Validator = {
       .required(),
     recipts: joi.array().items(joi.string().uri()).optional(),
     cashDeposits: joi.array().items(cashDepositCode).required(),
-    currency: joi.string().valid('UGX').optional(),
+    currency: currencyCodes.optional(),
     ipAddress: joi.string().required(),
     bankName: joi.string().required(),
   }),
@@ -112,7 +113,7 @@ const Validator = {
     description: joi.string().optional(),
     notes: joi.string().optional(),
     recieptUrls: joi.array().items(joi.string().uri()).optional(),
-    currency: joi.string().valid('UGX').optional(),
+    currency: currencyCodes.optional(),
     amount: joi.number().greater(10000).positive().optional().messages({
       'number.positive': '"amount" should be a positive value.',
       'number.greater': '"amount" should be greater than 100.',

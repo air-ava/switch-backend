@@ -37,6 +37,7 @@ import { getEducationLevel, listEducationLevel } from '../database/repositories/
 import DocumentService from './document.service';
 import { publishMessage } from '../utils/amqpProducer';
 import { businessType } from '../database/models/organisation.model';
+import { CURRENCIES } from '../database/models/currencies.model';
 
 export const updateSchoolInfo = async (data: any): Promise<theResponse> => {
   const { user, schoolName, organisationName, organisationType, schoolEmail, schoolDescription, schoolWebsite } = data;
@@ -420,12 +421,14 @@ const Service = {
     const response = await listSchoolsClassAndFees({
       school_id: school.id,
       status: Not(STATUSES.DELETED),
+      currency: CURRENCIES[school.country.toUpperCase()],
       ...rest,
     });
     return sendObjectResponse('All Classes retrieved successfully', response);
   },
 
   async addClassToSchool(data: any): Promise<theResponse> {
+    const currencies = Settings.get('COUNTRY_CURRENCIES');
     const { school, code: classCode, authSession } = data;
     const foundClassLevel = await getClassLevel({ code: classCode }, []);
     if (!foundClassLevel) throw new NotFoundError('Class Level');
@@ -440,7 +443,6 @@ const Service = {
     });
 
     const feesTypes = Settings.get('FEE_TYPES');
-    const currencies = Settings.get('COUNTRY_CURRENCIES');
     FeesService.createAFee({
       authSession,
       school,
@@ -448,7 +450,7 @@ const Service = {
       name: 'Tuition Fee',
       paymentType: 'install-mental',
       feeType: feesTypes.tuition,
-      currency: currencies[school.country] || 'UGX',
+      currency: currencies[school.country.toUppercase()] || 'UGX',
       amount: 0,
       description: 'Class Default Tuition Fee',
     });

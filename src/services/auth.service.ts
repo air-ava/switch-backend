@@ -562,7 +562,7 @@ export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse>
 
     await WalletService.createDollarWallet({
       user: userAlreadyExist,
-      currency: 'UGX',
+      currency: CURRENCIES[school.country.toUpperCase()],
       type: 'permanent',
       entity: 'school',
       entityId: school.id,

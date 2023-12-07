@@ -51,6 +51,7 @@ import { Sanitizer } from '../utils/sanitizer';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
 import { sendEmail } from '../utils/mailtrap';
+import { CURRENCIES } from '../database/models/currencies.model';
 
 class StudentSetupBuilder {
   private classId: string | number;
@@ -858,15 +859,15 @@ const Service: ServiceInterface = {
   },
 
   async addClassToSchoolWitFees(data: any): Promise<theResponse> {
+    const { school } = data;
     const {
       forPeriod = false,
       forSession = false,
       expiresAtPeriodEnd = false,
       description,
       amount,
-      currency = 'UGX',
+      currency = CURRENCIES[school.country.toUppercase()] || 'UGX',
       image,
-      school,
       class: classCode,
       eduPeriodCode,
       periodCode,
@@ -930,6 +931,7 @@ const Service: ServiceInterface = {
         page,
         from,
         to,
+        currency: CURRENCIES[school.country.toUpperCase()],
       },
       [],
       ['student.Fees', 'student.Fees.Fee', 'student.User', 'student.Fees.FeesHistory'],
@@ -947,8 +949,7 @@ const Service: ServiceInterface = {
     if (!foundSchoolClass) throw new NotFoundError('Class for School');
 
     const classDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
-    const [classDetail] = classDetails.filter((value: any) => value.currency === 'UGX');
-    console.log({ foundSchoolClass });
+    const [classDetail] = classDetails.filter((value: any) => value.currency === CURRENCIES[school.country.toUppercase()]);
 
     const { code, ...rest } = foundClassLevel;
     return sendObjectResponse('Added Class to School Successfully', { code: foundSchoolClass.code, ...rest, ...classDetail });
