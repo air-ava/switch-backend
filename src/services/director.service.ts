@@ -12,9 +12,10 @@ import { findOrCreatePhoneNumber } from './helper.service';
 import Settings from './settings.service';
 import DocumentService from './document.service';
 import { sendEmail } from '../utils/mailtrap';
-import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
+import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
 import Utils from '../utils/utils';
+import { Sanitizer } from '../utils/sanitizer';
 
 const Service = {
   async listSchoolDirectors(data: any): Promise<theResponse> {
@@ -126,6 +127,8 @@ const Service = {
       organisation.onboarding_reference || `onb_${randomstring.generate({ length: 20, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
     const username = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
 
+    if (!organisation.onboarding_reference) await updateOrganisationREPO({ id: organisation.id }, { onboarding_reference });
+
     await saveIndividual({
       email,
       firstName,
@@ -174,14 +177,16 @@ const Service = {
     const organisation = await getOneOrganisationREPO({ slug: organisation_slug }, [], []);
     if (!organisation) throw new NotFoundError('Organisation');
 
-    console.log({ organisation, username: director_username, onboarding_reference: organisation.onboarding_reference, status: STATUSES.INVITED });
     const organisationOfficer = await findIndividual(
       { username: director_username, onboarding_reference: organisation.onboarding_reference, status: STATUSES.INVITED },
       [],
     );
     if (!organisationOfficer) throw new NotFoundError('Director');
 
-    return sendObjectResponse(`Organisation ${organisationOfficer.type} has been successfully retrieved`);
+    return sendObjectResponse(
+      `Organisation ${organisationOfficer.type} has been successfully retrieved`,
+      Sanitizer.sanitizeIndividual(organisationOfficer),
+    );
   },
 };
 // Get Officer Details
