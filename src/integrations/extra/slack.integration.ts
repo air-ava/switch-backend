@@ -356,6 +356,60 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
         channel: 'guardianpin',
         blocks: slackBlocks,
       };
+    case 'director_invite':
+      slackBlocks.push({
+        type: 'section',
+        text: {
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} \n\n 🎊 New Director Invited: \n\n `,
+          type: 'mrkdwn',
+        },
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: '*Director name*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.name}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Organisation Name*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.organisation_name}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Complete Page*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.url}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Director Type*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.type}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Director Email*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.email}`,
+          },
+        ],
+      });
+      return {
+        channel: 'directorinvite',
+        blocks: slackBlocks,
+      };
     default:
       throw new Error('slack channel not available');
   }

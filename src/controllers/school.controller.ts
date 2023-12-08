@@ -11,7 +11,7 @@ import SchoolService, {
   updateSchoolDetails,
   updateSchoolInfo,
 } from '../services/school.service';
-// import SchoolService from '../services/school.service';
+import DirectorService from '../services/director.service';
 import DocumentService from '../services/document.service';
 import StudentService from '../services/student.service';
 import AuditLogsService from '../services/auditLogs.service';
@@ -264,7 +264,7 @@ export const listEducationLevelCONTROLLER: RequestHandler = async (req, res) => 
 
 export const listDirectorsCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { school: req.school, ...req.query };
-  const response = await SchoolService.listSchoolDirectors(payload);
+  const response = await DirectorService.listSchoolDirectors(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
 };
@@ -275,7 +275,18 @@ export const addOfficerCONTROLLER: RequestHandler = async (req, res) => {
   const validation = addSchoolOfficerValidator.validate(req.body);
   if (validation.error) throw new ValidationError(validation.error.message);
 
-  const response = await SchoolService.addOrganisationOfficer(payload);
+  const response = await DirectorService.addOrganisationOfficer(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
+};
+
+export const inviteOfficerCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { organisation: req.organisation, school: req.school, user: req.user, ...req.body };
+
+  // const validation = addSchoolOfficerValidator.validate(req.body);
+  // if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await DirectorService.sendInviteToOfficer(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
 };
@@ -287,7 +298,7 @@ export const updateOfficerCONTROLLER: RequestHandler = async (req, res) => {
   const validation = updateSchoolOfficerValidator.validate(validatingPayload);
   if (validation.error) throw new ValidationError(validation.error.message);
 
-  const response = await SchoolService.updateOrganisationOfficer(payload);
+  const response = await DirectorService.updateOrganisationOfficer(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
 };

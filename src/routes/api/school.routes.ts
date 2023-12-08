@@ -19,6 +19,7 @@ import {
   listRejectedDocumentsCONTROLLER,
   addOfficerCONTROLLER,
   updateOfficerCONTROLLER,
+  inviteOfficerCONTROLLER,
 } from '../../controllers/school.controller';
 import { catchErrors } from '../../utils/errors';
 
@@ -42,6 +43,7 @@ router.get('/levels/:code', catchErrors(listClassLevelByEducationLevelCONTROLLER
 router.get('/levels', catchErrors(listEducationLevelCONTROLLER));
 router.get('/periods', catchErrors(listSchoolPeriodsCONTROLLER));
 router.get('/directors', catchErrors(listDirectorsCONTROLLER));
+router.post('/invite', catchErrors(inviteOfficerCONTROLLER));
 router.get('/reject', catchErrors(listRejectedDocumentsCONTROLLER));
 
 export default router;

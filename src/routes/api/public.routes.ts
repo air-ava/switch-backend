@@ -10,6 +10,7 @@ import {
   getPartnershipScholarshipCONTROLLER,
   getPublicSchoolCONTROLLER,
   getScholarshipsCONTROLLER,
+  getInvitedOfficerCONTROLLER,
 } from '../../controllers/public.controller';
 import { addSponsorsCONTROLLER, getScholarshipCONTROLLER, scholarshipApplicationCONTROLLER } from '../../controllers/scholarship.controller';
 
@@ -28,5 +29,7 @@ const router = express.Router();
 // router.get('/business', viewAllBusinessCONTROLLER);
 router.get('/:code', catchErrors(getPublicSchoolCONTROLLER));
 router.get('/:code/:username', catchErrors(getGuardianWardCONTROLLER));
+router.get('/:code/director/:username', catchErrors(getInvitedOfficerCONTROLLER));
+router.post('/:code/director/:username', catchErrors(getInvitedOfficerCONTROLLER));
 
 export default router;

@@ -1,15 +1,17 @@
 import { RequestHandler } from 'express';
 import { log } from 'winston';
 import { allBusinessAndProducts } from '../services/public.service';
-import { oldSendObjectResponse } from '../utils/errors';
+import { ValidationError, oldSendObjectResponse } from '../utils/errors';
 import { Log } from '../utils/logs';
 import countries from '../miscillaneous/countries.json';
 import { getScholarships } from '../services/scholarship.service';
 import GuardianService from '../services/guardian.service';
+import DirectorService from '../services/director.service';
 import { Sanitizer } from '../utils/sanitizer';
 import { getPartnership } from '../services/organisation.service';
 import { getPublicSchoolDetails } from '../services/school.service';
 import ResponseService from '../utils/response';
+import { completeOfficerValidator } from '../validators/public.validator';
 
 export const allBusinessAndProductsCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -72,6 +74,25 @@ export const getPublicSchoolCONTROLLER: RequestHandler = async (req, res) => {
 export const getGuardianWardCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { guardian_username: req.params.username, school_slug: req.params.code };
   const response = await GuardianService.validateGuardianUsername(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const getInvitedOfficerCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { director_username: req.params.username, organisation_slug: req.params.code };
+  const response = await DirectorService.getInvitedOfficer(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const completeOrganisationOfficerInviteCONTROLLER: RequestHandler = async (req, res) => {
+  const params = { director_username: req.params.username, organisation_slug: req.params.code };
+  const payload = { ...req.body, ...params };
+
+  const validation = completeOfficerValidator.validate(payload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await DirectorService.updateOrganisationOfficer(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };
