@@ -443,7 +443,6 @@ const Service = {
     });
 
     const feesTypes = Settings.get('FEE_TYPES');
-    console.log({ school });
     FeesService.createAFee({
       authSession,
       school,
