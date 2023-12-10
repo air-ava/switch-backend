@@ -44,7 +44,7 @@ const errorMessages = {
 export const schoolInfoCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
 
-  const validation = schoolInfo.validate({ ...req.body, country: payload.user.country });
+  const validation = schoolInfo.validate({ ...req.body, country: payload.user.country || req.body.country });
   if (validation.error) throw new ValidationError(validation.error.message);
 
   const response = await updateSchoolInfo(payload);

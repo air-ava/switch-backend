@@ -296,6 +296,17 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
       message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
+    if (!Utils.isProd())
+      sendSlackMessage({
+        body: {
+          recipient: internationalFormat,
+          code: `${remember_token}`,
+          channel: 'Phone',
+          text: `🔔 OTP for ${user.first_name} ${user.last_name}`,
+        },
+        feature: 'otp',
+      });
+
     return sendObjectResponse('OTP resent successfully');
   } catch (e: any) {
     return BadRequestException(e.message || 'Account creation failed, kindly try again', e);
@@ -550,6 +561,17 @@ export const forgotPassword = async (data: {
       // message: `Hi ${user.first_name}, \n Welcome to Steward, to complete your registration use this OTP \n ${remember_token} \n It expires in 10 minutes`,
       message: `Hi ${userAlreadyExist.first_name}, Here is your OTP ${otp}`,
     });
+
+    if (!Utils.isProd())
+      sendSlackMessage({
+        body: {
+          recipient: internationalFormat,
+          code: `${otp}`,
+          channel: 'Phone',
+          text: `🔔 OTP for ${userAlreadyExist.first_name} ${userAlreadyExist.last_name}`,
+        },
+        feature: 'otp',
+      });
 
     return sendObjectResponse(`OTP sent to ${reqPhone ? internationalFormat : userAlreadyExist.email}`);
   } catch (e: any) {

@@ -37,7 +37,7 @@ export const Service: any = {
     const { user, type = 'permanent', entity = 'school', entityId } = data;
 
     const country = user.country.length === 2 ? countryMapping[user.country] : user.country;
-    const { currency = CURRENCIES[country.toUppercase()] || 'UGX' } = data;
+    const { currency = CURRENCIES[country.toUpperCase()] || 'UGX' } = data;
     // const schema = joi.object(createDollarWalletSchema).and('currency', 'type');
     // const validation = schema.validate({ userMobile, firstName, lastName, type, currency });
 

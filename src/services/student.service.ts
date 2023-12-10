@@ -866,7 +866,7 @@ const Service: ServiceInterface = {
       expiresAtPeriodEnd = false,
       description,
       amount,
-      currency = CURRENCIES[school.country.toUppercase()] || 'UGX',
+      currency = CURRENCIES[school.country.toUpperCase()] || 'UGX',
       image,
       class: classCode,
       eduPeriodCode,
@@ -949,7 +949,7 @@ const Service: ServiceInterface = {
     if (!foundSchoolClass) throw new NotFoundError('Class for School');
 
     const classDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
-    const [classDetail] = classDetails.filter((value: any) => value.currency === CURRENCIES[school.country.toUppercase()]);
+    const [classDetail] = classDetails.filter((value: any) => value.currency === CURRENCIES[school.country.toUpperCase()]);
 
     const { code, ...rest } = foundClassLevel;
     return sendObjectResponse('Added Class to School Successfully', { code: foundSchoolClass.code, ...rest, ...classDetail });

@@ -443,6 +443,7 @@ const Service = {
     });
 
     const feesTypes = Settings.get('FEE_TYPES');
+    console.log({ school });
     FeesService.createAFee({
       authSession,
       school,
@@ -450,7 +451,7 @@ const Service = {
       name: 'Tuition Fee',
       paymentType: 'install-mental',
       feeType: feesTypes.tuition,
-      currency: currencies[school.country.toUppercase()] || 'UGX',
+      currency: currencies[school.country.toUpperCase()] || 'UGX',
       amount: 0,
       description: 'Class Default Tuition Fee',
     });
