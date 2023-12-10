@@ -84,15 +84,36 @@ const Service = {
   },
 
   async updateOrganisationOfficer(data: updateOrganisationOfficerDTO): Promise<theResponse> {
-    const { dob, user, school, officerCode, documents, type = 'director', job_title, email, phone_number: reqPhone, firstName, lastName } = data;
+    const {
+      dob,
+      user,
+      school,
+      organisation,
+      officerCode,
+      documents,
+      type = 'director',
+      job_title,
+      email,
+      phone_number: reqPhone,
+      firstName,
+      lastName,
+    } = data;
 
+    if (!school && !organisation) throw new ValidationError('Does not belong to any organisation');
     const organisationOfficer = await findIndividual(
-      { code: officerCode, school_id: school.id, type: Not('guardian'), status: Not(STATUSES.DELETED) },
+      {
+        code: officerCode,
+        ...(organisation && { onboarding_reference: organisation.onboarding_reference }),
+        ...(school && { school_id: school.id }),
+        type: Not('guardian'),
+        status: Not(STATUSES.DELETED),
+      },
       [],
     );
     if (!organisationOfficer) throw new NotFoundError('Director');
     if (organisationOfficer.verification_status === STATUSES.VERIFIED) throw new ValidationError('Officer has been verified');
-    const updatePayload = { ...organisationOfficer, status: STATUSES.ACTIVE };
+    const updatePayload = { ...organisationOfficer };
+    if (!organisationOfficer.document_reference) updatePayload.document_reference = `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
     if (reqPhone) {
       const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
       const { id: phone_number } = phoneNumber.data;
@@ -113,10 +134,9 @@ const Service = {
         user,
         tag: 'DIRECTOR',
         process: 'onboarding',
-        country: school.country,
-        incoming_reference:
-          organisationOfficer.document_reference ||
-          `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+        ...(school && { country: school.country }),
+        ...(organisation && { country: organisation.Owner.country }),
+        incoming_reference: organisationOfficer.document_reference,
       });
     return sendObjectResponse('School Officer Information successfully updated');
   },
@@ -128,6 +148,8 @@ const Service = {
     const username = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
 
     if (!organisation.onboarding_reference) await updateOrganisationREPO({ id: organisation.id }, { onboarding_reference });
+    const organisationOfficer = await findIndividual({ email, type: Not('guardian'), status: Not(STATUSES.DELETED) }, []);
+    if (organisationOfficer) throw new ExistsError('Officers');
 
     await saveIndividual({
       email,
@@ -140,21 +162,16 @@ const Service = {
       username,
     });
 
-    // sendEmail({
-    //   recipientEmail: email,
-    //   purpose: 'director_invite',
-    //   templateInfo: {
-    //     supportEmail: 'support@joinsteward.com',
-    //     schoolName: school.name,
-    //     schoolLogo: school.Logo ? school.Logo.url : avatar.school,
-    //     schoolPageUrl: `${Utils.getDashboardURL()}/director/${organisation.slug}/${username}`,
-    //     pin,
-    //     username,
-    //     studentCode: student.uniqueStudentId,
-    //     studentName: `${first_name} ${last_name}`,
-    //     guardianName: `${firstName} ${lastName}`,
-    //   },
-    // })
+    sendEmail({
+      recipientEmail: email,
+      purpose: 'director_invite',
+      templateInfo: {
+        supportEmail: 'support@joinsteward.com',
+        organisationName: organisation.name,
+        firstName,
+        directorPageUrl: `${Utils.getDashboardURL()}/director/${organisation.slug}/${username}`,
+      },
+    });
 
     // director_invite
     sendSlackMessage({
@@ -172,16 +189,21 @@ const Service = {
   },
 
   async getInvitedOfficer(data: any): Promise<theResponse> {
-    const { organisation_slug, director_username } = data;
+    const { organisation_slug, director_username, belongsToOrganisation = false } = data;
 
-    const organisation = await getOneOrganisationREPO({ slug: organisation_slug }, [], []);
+    const organisation = await getOneOrganisationREPO({ slug: organisation_slug }, [], ['Owner']);
     if (!organisation) throw new NotFoundError('Organisation');
 
-    const organisationOfficer = await findIndividual(
-      { username: director_username, onboarding_reference: organisation.onboarding_reference, status: STATUSES.INVITED },
-      [],
-    );
-    if (!organisationOfficer) throw new NotFoundError('Director');
+    const organisationOfficer = await findIndividual({ username: director_username, onboarding_reference: organisation.onboarding_reference }, []);
+    if (!organisationOfficer) {
+      if (belongsToOrganisation) throw new ValidationError('Director does not belong to this organisation');
+      throw new NotFoundError('Director');
+    }
+
+    if (belongsToOrganisation) {
+      if (organisationOfficer.status !== STATUSES.INVITED) throw new ValidationError('Directors Invite is not Valid');
+      return sendObjectResponse(`Retrieved organisation and direcor details successfully`, { organisation, organisationOfficer });
+    }
 
     return sendObjectResponse(
       `Organisation ${organisationOfficer.type} has been successfully retrieved`,

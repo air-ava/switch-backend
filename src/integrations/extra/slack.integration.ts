@@ -416,7 +416,6 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
 }
 
 export const sendSlackMessage = async ({ body, feature }: { body: any; feature: string }): Promise<any> => {
-  console.log({ body, feature });
   const { channel, blocks } = getSlackDetailsByFeature(feature, body);
   if (feature === 'payment_notification' && body.payment_type === 'mobile-money') {
     blocks[0].text.text = blocks[0].text.text.replace('Account number', 'Phone number');

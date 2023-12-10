@@ -11,6 +11,7 @@ import {
   getPublicSchoolCONTROLLER,
   getScholarshipsCONTROLLER,
   getInvitedOfficerCONTROLLER,
+  completeOrganisationOfficerInviteCONTROLLER,
 } from '../../controllers/public.controller';
 import { addSponsorsCONTROLLER, getScholarshipCONTROLLER, scholarshipApplicationCONTROLLER } from '../../controllers/scholarship.controller';
 
@@ -30,6 +31,6 @@ const router = express.Router();
 router.get('/:code', catchErrors(getPublicSchoolCONTROLLER));
 router.get('/:code/:username', catchErrors(getGuardianWardCONTROLLER));
 router.get('/:code/director/:username', catchErrors(getInvitedOfficerCONTROLLER));
-router.post('/:code/director/:username', catchErrors(getInvitedOfficerCONTROLLER));
+router.post('/:code/director/:username', catchErrors(completeOrganisationOfficerInviteCONTROLLER));
 
 export default router;

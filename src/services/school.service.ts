@@ -558,9 +558,32 @@ const Service = {
   },
 
   async updateOrganisationOfficer(data: updateOrganisationOfficerDTO): Promise<theResponse> {
-    const { dob, user, school, officerCode, documents, type = 'director', job_title, email, phone_number: reqPhone, firstName, lastName } = data;
+    const {
+      dob,
+      user,
+      school,
+      organisation,
+      officerCode,
+      documents,
+      type = 'director',
+      job_title,
+      email,
+      phone_number: reqPhone,
+      firstName,
+      lastName,
+    } = data;
 
-    const organisationOfficer = await findIndividual({ code: officerCode, school_id: school.id, type: Not('guardian') }, []);
+    if (!school && !organisation) throw new ValidationError('Does not belong to any organisation');
+
+    const organisationOfficer = await findIndividual(
+      {
+        code: officerCode,
+        ...(organisation && { onboarding_reference: organisation.onboarding_reference }),
+        ...(school && { school_id: school.id }),
+        type: Not('guardian'),
+      },
+      [],
+    );
     if (!organisationOfficer) throw new NotFoundError('Director');
     if (organisationOfficer.verification_status === STATUSES.VERIFIED) throw new ValidationError('Officer has been verified');
     const updatePayload = { ...organisationOfficer };
@@ -584,8 +607,11 @@ const Service = {
         user,
         tag: 'DIRECTOR',
         process: 'onboarding',
-        country: school.country,
-        incoming_reference: organisationOfficer.document_reference,
+        ...(school && { country: school.country }),
+        ...(organisation && { country: organisation.Owner.country }),
+        incoming_reference:
+          organisationOfficer.document_reference ||
+          `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
       });
     return sendObjectResponse('School Officer Information successfully updated');
   },

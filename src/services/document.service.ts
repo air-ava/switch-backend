@@ -353,6 +353,7 @@ const Service: any = {
   async areAllRequiredDocumentsSubmitted(data: any): Promise<{
     isAlldocumentsSubmitted: boolean;
     documents?: any;
+    document_reference?: string;
   }> {
     const { tag, process, country, required = true, requirement_status = STATUSES.ACTIVE } = data;
     const requiredDocs = await DocumentRequirementREPO.listDocumentRequirements(
@@ -372,8 +373,6 @@ const Service: any = {
       { entity_id: In(requiredDocsIds), entity: 'document_requirements', status: Not(STATUSES.DELETED) },
       ['entity_id', 'reference'],
     );
-
-    console.log({ documents, requiredDocs });
 
     return {
       isAlldocumentsSubmitted: documents.length === requiredDocs.length,

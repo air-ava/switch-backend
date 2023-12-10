@@ -7,11 +7,14 @@ import countries from '../miscillaneous/countries.json';
 import { getScholarships } from '../services/scholarship.service';
 import GuardianService from '../services/guardian.service';
 import DirectorService from '../services/director.service';
+import DocumentService from '../services/document.service';
 import { Sanitizer } from '../utils/sanitizer';
 import { getPartnership } from '../services/organisation.service';
 import { getPublicSchoolDetails } from '../services/school.service';
 import ResponseService from '../utils/response';
 import { completeOfficerValidator } from '../validators/public.validator';
+import { updateIndividual } from '../database/repositories/individual.repo';
+import { STATUSES } from '../database/models/status.model';
 
 export const allBusinessAndProductsCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -92,7 +95,23 @@ export const completeOrganisationOfficerInviteCONTROLLER: RequestHandler = async
   const validation = completeOfficerValidator.validate(payload);
   if (validation.error) throw new ValidationError(validation.error.message);
 
-  const response = await DirectorService.updateOrganisationOfficer(payload);
+  const { data: officer } = await DirectorService.getInvitedOfficer({ ...params, belongsToOrganisation: true });
+  const { organisation, organisationOfficer } = officer;
+  // get officer code
+  const response = await DirectorService.updateOrganisationOfficer({
+    ...payload,
+    user: organisation.Owner,
+    organisation,
+    officerCode: organisationOfficer.code,
+  });
+
+  const { isAlldocumentsSubmitted } = await DocumentService.areAllRequiredDocumentsSubmitted({
+    tag: 'DIRECTOR',
+    process: 'onboarding',
+    country: organisation.Owner.country.toUpperCase(),
+  });
+  if (isAlldocumentsSubmitted) await updateIndividual({ id: organisationOfficer.id }, { status: STATUSES.ACTIVE });
+
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, data);
 };

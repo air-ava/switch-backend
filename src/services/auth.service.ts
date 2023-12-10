@@ -42,7 +42,7 @@ import { Service as WalletService } from './wallet.service';
 import { countryMapping } from '../database/models/users.model';
 import { sendSms } from '../integrations/africasTalking/sms.integration';
 import Settings from './settings.service';
-import { formatPhoneNumber } from '../utils/utils';
+import Utils, { formatPhoneNumber } from '../utils/utils';
 import { getOnePhoneNumber, updatePhoneNumber } from '../database/repositories/phoneNumber.repo';
 import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
 import { PhoneNumbers } from '../database/models/phoneNumber.model';
@@ -52,6 +52,7 @@ import { businessType } from '../database/models/organisation.model';
 import { getStudentGuardian, listStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { getStudent } from '../database/repositories/student.repo';
 import { CURRENCIES } from '../database/models/currencies.model';
+import { sendSlackMessage } from '../integrations/extra/slack.integration';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -194,6 +195,17 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       } \n It expires in 10 minutes`,
       // message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
+
+    if (!Utils.isProd())
+      sendSlackMessage({
+        body: {
+          recipient: internationalFormat,
+          code: `${remember_token_phone || remember_token}`,
+          channel: 'Phone',
+          text: `🔔 OTP for ${user.first_name} ${user.last_name}`,
+        },
+        feature: 'otp',
+      });
 
     const token = generateToken(user);
 

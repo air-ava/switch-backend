@@ -82,6 +82,7 @@ export interface updateOrganisationOfficerDTO {
     countryCode: string;
   };
   user: IUser;
-  school: Partial<ISchools>;
+  school?: Partial<ISchools>;
+  organisation?: Partial<IOrganisation | any>;
   documents?: any;
 }
