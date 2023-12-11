@@ -1,5 +1,5 @@
 import randomstring from 'randomstring';
-import { Not } from 'typeorm';
+import { FindOperator, Not, Raw } from 'typeorm';
 import { STATUSES } from '../database/models/status.model';
 import { listDirectors, findIndividual, saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { addOrganisationOfficerDTO, updateOrganisationOfficerDTO } from '../dto/school.dto';
@@ -16,6 +16,7 @@ import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repo
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
 import Utils from '../utils/utils';
 import { Sanitizer } from '../utils/sanitizer';
+import { Repo as DocumentRequirementREPO } from '../database/repositories/documentRequirement.repo';
 
 const Service = {
   async listSchoolDirectors(data: any): Promise<theResponse> {
@@ -113,7 +114,8 @@ const Service = {
     if (!organisationOfficer) throw new NotFoundError('Director');
     if (organisationOfficer.verification_status === STATUSES.VERIFIED) throw new ValidationError('Officer has been verified');
     const updatePayload = { ...organisationOfficer };
-    if (!organisationOfficer.document_reference) updatePayload.document_reference = `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
+    if (!organisationOfficer.document_reference)
+      updatePayload.document_reference = `doc_ref_${randomstring.generate({ length: 12, capitalization: 'lowercase', charset: 'alphanumeric' })}`;
     if (reqPhone) {
       const phoneNumber = await findOrCreatePhoneNumber(reqPhone);
       const { id: phone_number } = phoneNumber.data;
@@ -205,10 +207,15 @@ const Service = {
       return sendObjectResponse(`Retrieved organisation and direcor details successfully`, { organisation, organisationOfficer });
     }
 
-    return sendObjectResponse(
-      `Organisation ${organisationOfficer.type} has been successfully retrieved`,
-      Sanitizer.sanitizeIndividual(organisationOfficer),
-    );
+    const query: { process: string; country: 'UGANDA' | 'NIGERIA'; tag?: FindOperator<any> } = { process: 'onboarding', country: 'NIGERIA' };
+    query.tag = Raw((columnAlias) => `FIND_IN_SET('DIRECTOR', ${columnAlias})`);
+
+    const documentRequirement = await DocumentRequirementREPO.listDocumentRequirements(query, [], []);
+
+    return sendObjectResponse(`Organisation ${organisationOfficer.type} has been successfully retrieved`, {
+      individual: Sanitizer.sanitizeIndividual(organisationOfficer),
+      documentRequirement,
+    });
   },
 };
 // Get Officer Details
