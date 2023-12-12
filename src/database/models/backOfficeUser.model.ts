@@ -51,4 +51,5 @@ export class BackOfficeUsers {
 
 export const countryMapping: { [key: string]: string } = {
   UG: 'UGANDA',
+  NG: 'NIGERIA',
 };

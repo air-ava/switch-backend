@@ -218,7 +218,5 @@ const Service = {
     });
   },
 };
-// Get Officer Details
-// Submitting Officer Details
 
 export default Service;

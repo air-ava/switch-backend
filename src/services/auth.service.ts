@@ -320,7 +320,9 @@ export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
   try {
     const { data: user, success, error } = await userAuth({ ...data, addPhone: true });
     if (!success) throw Error(error);
-    if (!user.email_verified_at) throw Error('This account has not been verified');
+    if (user.status !== STATUSES.VERIFIED) throw new ValidationError('This account has not been verified');
+    // Todo: [Urgency][Request][Medium]:[entity:users][title: Verification Request][body: { message: Email Verification Required }]
+    // if (!user.email_verified_at) throw Error('This account has not been verified');
 
     const token = generateToken(user);
 
@@ -367,56 +369,48 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
     let userAlreadyExist = id ? await findUser({ id }, [], []) : await findUser({ remember_token }, [], []);
     let emailToken = true;
     if (!userAlreadyExist) {
-      if (!remember_token) throw Error(`User Not Found`);
+      if (!remember_token) throw new ValidationError(`Token not passed`);
 
-      const message = remember_token ? 'OTP not found' : 'User not found';
+      const message = remember_token ? 'OTP' : 'User';
 
       // Check if the OTP belongs to the phone Number
       const phoneNumber = await getOnePhoneNumber({ queryParams: { remember_token } });
-      if (!phoneNumber) throw Error(message);
+      if (!phoneNumber) throw new NotFoundError(message);
+      // Todo: [Urgency][Request][Medium]:[entity:phone_numbers][title: Verification Request][body: { message: Phone Number Verification Required }]
       // if (phoneNumber.is_verified) throw Error(`User has been verified`);
+      emailToken = false;
 
       userAlreadyExist = await findUser({ phone_number: phoneNumber.id }, []);
-      if (!userAlreadyExist) throw Error(message);
+      if (!userAlreadyExist) throw new NotFoundError(message);
 
       userAlreadyExist.remember_token = remember_token;
       id = userAlreadyExist.id;
-      emailToken = false;
 
-      await updatePhoneNumber(
-        {
-          id: phoneNumber.id,
-        },
-        {
-          verified_at: new Date(Date.now()),
-          is_verified: true,
-        },
-      );
+      await updatePhoneNumber({ id: phoneNumber.id }, { verified_at: new Date(Date.now()), is_verified: true });
     }
-    if (userAlreadyExist.remember_token !== remember_token) throw Error(`Wrong Token`);
-    if (userAlreadyExist.email_verified_at) throw Error(`User has been verified`);
-
-    const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, []);
-    if (!school) throw Error(`School not found`);
+    if (userAlreadyExist.remember_token !== remember_token) throw new ValidationError(`Wrong Token`);
+    if (userAlreadyExist.status === STATUSES.VERIFIED) throw new ValidationError(`User has been verified`);
+    // Todo: [Urgency][Request][Medium]:[entity:users][title: Verification Request][body: { message: Email Verification Required }]
+    // if (userAlreadyExist.email_verified_at) throw new NotFoundError(`User has been verified`);
 
     await verifyUser(
-      {
-        ...(emailToken && { remember_token }),
-        ...(id && { id }),
-      },
-      {
-        ...(emailToken && { email_verified_at: new Date(Date.now()) }),
-        status: STATUSES.VERIFIED,
-      },
+      { ...(emailToken && { remember_token }), ...(id && { id }) },
+      { ...(emailToken && { email_verified_at: new Date(Date.now()) }), status: STATUSES.VERIFIED },
     );
 
-    await WalletService.createDollarWallet({
-      user: userAlreadyExist,
-      currency: CURRENCIES[school.country.toUpperCase()],
-      type: 'permanent',
-      entity: 'school',
-      entityId: school.id,
-    });
+    if (userAlreadyExist.user_type === 'school') {
+      const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, []);
+      if (!school) throw new NotFoundError(`School`);
+
+      // Create Wallet Consumer
+      await WalletService.createDollarWallet({
+        user: userAlreadyExist,
+        currency: CURRENCIES[school.country.toUpperCase()],
+        type: 'permanent',
+        entity: 'school',
+        entityId: school.id,
+      });
+    }
 
     const token = generateToken(userAlreadyExist);
     return sendObjectResponse('user verified', { token });
