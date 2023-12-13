@@ -29,13 +29,11 @@ const CountryStateRepository = {
     t?: Transaction,
   ): Promise<CountryState[] | any[]> {
     const repository = t ? t.manager.getRepository(CountryState) : getRepository(CountryState);
-    const response = await repository.find({
+    return repository.find({
       where: queryParam,
       ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
       ...(relationOptions && { relations: relationOptions }),
     });
-    console.log({ response });
-    return response;
   },
 
   async createCountryState(queryParams: Partial<CountryState> | Partial<CountryState>[] | any, t?: Transaction): Promise<CountryState> {
