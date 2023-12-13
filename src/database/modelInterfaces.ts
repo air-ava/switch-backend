@@ -140,6 +140,18 @@ export interface IIndividual {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface ICountryState {
+  id: number;
+  code: string;
+  country: string;
+  state_district: string;
+  alpha_code: string;
+  postal_code: string;
+  lga_cities: string;
+  created_at: Date;
+  updated_at: Date;
+}
 export interface IPhoneNumber {
   id: number;
   countryCode: string;

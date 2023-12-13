@@ -1,0 +1,909 @@
+{
+    "regions": [
+        {
+          "name": "NORTHERN",
+          "alpha_code": "NORTH",
+          "districts": [
+            "ABIM",
+            "ADJUMANI",
+            "AGAGO",
+            "ALEBTONG",
+            "AMOLATAR",
+            "AMUDAT",
+            "AMURU",
+            "APAC",
+            "ARUA",
+            "ARUA CITY",
+            "BUDAKA",
+            "BUDUDA",
+            "BUGIRI",
+            "BUGWERI",
+            "DOKOLO",
+            "GULU",
+            "GULU CITY",
+            "KABONG",
+            "KOLE",
+            "KOTIDO",
+            "KWANIA",
+            "MADI-OKOLLO",
+            "MARACHA",
+            "NABILATUK",
+            "NAKAPIRIPIT",
+            "NAPAK",
+            "OTUKE",
+            "OYAM",
+            "PADER",
+            "PAKWACH",
+            "SHEEMA",
+            "YUMBE",
+            "ZOMBO"
+          ],
+          "code": 3
+        },
+        {
+          "name": "EASTERN",
+          "alpha_code": "EAST",
+          "districts": [
+            "AMURIA",
+            "BUDAKA",
+            "BUDUDA",
+            "BUGIRI",
+            "BUGWERI",
+            "BUKEDEA",
+            "BULAMBULI",
+            "BUTALEJA",
+            "BUTEBO",
+            "DOKOLO",
+            "KABERAMAIDO",
+            "KALAKI",
+            "KUMI",
+            "KYANKWANZI",
+            "LUUKA",
+            "MBALE",
+            "MBALE CITY",
+            "NAMAYINGO",
+            "NAMISINDWA",
+            "NAMUTUMBA",
+            "NGORA",
+            "RAKAI",
+            "SERERE",
+            "SIRONKO",
+            "SOROTI",
+            "SOROTI CITY",
+            "TORORO"
+          ],
+          "code": 2
+        },
+        {
+          "name": "WESTERN",
+          "alpha_code": "WEST",
+          "districts": [
+            "BUHWEJU",
+            "BUIKWE",
+            "BUSHENYI",
+            "IBANDA",
+            "ISANGIRO",
+            "KAGADI",
+            "KAKUMIRO",
+            "KASESE",
+            "KASSANDA",
+            "KIKUUBE",
+            "KIRUHURA",
+            "KIRYANDONGO",
+            "KYEGEGWA",
+            "KYENJOJO",
+            "MITOOMA",
+            "NTOROKO",
+            "NTUNGAMO",
+            "RUBANDA",
+            "RUBIRIZI",
+            "RUKIGA",
+            "RUKUNGIRI",
+            "RWAMPARA",
+            "SSEMBABULE"
+          ],
+          "code": 4
+        },
+        {
+          "name": "CENTRAL",
+          "alpha_code": "CENTA",
+          "districts": [
+            "BUKOMANSIMBI",
+            "BUIKWE",
+            "BUTAMBALA",
+            "BUVUMA",
+            "GOMBA",
+            "KALANGALA",
+            "KALUNGU",
+            "KAMPALA",
+            "KIBOGA",
+            "KYANKWANZI",
+            "LWENGO",
+            "LYANTONDE",
+            "MASAKA",
+            "MASAKA CITY",
+            "MITYANA",
+            "MUKONO",
+            "NAMASEKE",
+            "NAKASONGOLA",
+            "NTUNGAMO",
+            "PALLISA",
+            "RAKAI"
+          ],
+          "code": 1
+        }
+      ],
+    "districts": [
+        {
+          "district": "ABIM",
+          "region": "NORTHERN",
+          "county": ["LABWOR COUNTY"],
+          "code": 70
+        },
+        {
+          "district": "ADJUMANI",
+          "region": "NORTHERN",
+          "county": ["ADJUMANI EAST COUNTY", "ADJUMANI WEST COUNTY"],
+          "code": 40
+        },
+        {
+          "district": "AGAGO",
+          "region": "NORTHERN",
+          "county": ["AGAGO COUNTY", "AGAGO NORTH COUNTY", "AGAGO WEST COUNTY"],
+          "code": 111
+        },
+        {
+          "district": "ALEBTONG",
+          "region": "NORTHERN",
+          "county": ["AJURI COUNTY", "MOROTO COUNTY"],
+          "code": 88
+        },
+        {
+          "district": "AMOLATAR",
+          "region": "NORTHERN",
+          "county": ["KIOGA COUNTY", "KIOGA NORTH COUNTY"],
+          "code": 57
+        },
+        {
+          "district": "AMUDAT",
+          "region": "NORTHERN",
+          "county": ["UPE COUNTY"],
+          "code": 81
+        },
+        {
+          "district": "AMURIA",
+          "region": "NORTHERN",
+          "county": ["AMURIA COUNTY", "ORUNGO COUNTY"],
+          "code": 58
+        },
+        {
+          "district": "AMURU",
+          "region": "NORTHERN",
+          "county": ["KILAK NORTH COUNTY", "KILAK SOUTH COUNTY"],
+          "code": 71
+        },
+        {
+          "district": "APAC",
+          "region": "NORTHERN",
+          "county": ["APAC MUNICIPALITY", "MARUZI COUNTY", "MARUZI NORTH COUNTY"],
+          "code": 1
+        },
+        {
+          "district": "ARUA",
+          "region": "NORTHERN",
+          "county": ["ARUA CENTRAL DIVISION", "AYIVU DIVISION EAST", "AYIVU DIVISION WEST"],
+          "code": 136
+        },
+        {
+          "district": "ARUA CITY",
+          "region": "NORTHERN",
+          "county": ["ARUA CITY"],
+          "code": 136
+        },
+        {
+          "district": "BUDAKA",
+          "region": "NORTHERN",
+          "county": ["BUDAKA COUNTY", "IKI-IKI COUNTY"],
+          "code": 72
+        },
+        {
+          "district": "BUDUDA",
+          "region": "NORTHERN",
+          "county": ["BUSHIGAI COUNTY", "LUTSESHE COUNTY", "MANJIYA COUNTY"],
+          "code": 78
+        },
+        {
+          "district": "BUGIRI",
+          "region": "NORTHERN",
+          "county": ["BUGIRI MUNICIPALITY", "BUKOOLI COUNTY CENTRAL", "BUKOOLI COUNTY NORTH"],
+          "code": 41
+        },
+        {
+          "district": "BUGWERI",
+          "region": "NORTHERN",
+          "county": ["BUGWERI COUNTY"],
+          "code": 123
+        },
+        {
+          "district": "DOKOLO",
+          "region": "NORTHERN",
+          "county": ["DOKOLO NORTH COUNTY", "DOKOLO SOUTH COUNTY"],
+          "code": 74
+        },
+        {
+          "district": "GULU",
+          "region": "NORTHERN",
+          "county": ["ASWA COUNTY"],
+          "code": 5
+        },
+        {
+          "district": "GULU CITY",
+          "region": "NORTHERN",
+          "county": ["BARDEGE-LAYIBI DIVISION", "LAROO-PECE DIVISION"],
+          "code": 137
+        },
+        {
+          "district": "KABONG",
+          "region": "NORTHERN",
+          "county": ["KABONG COUNTY"],
+          "code": 75
+        },
+        {
+          "district": "KOLE",
+          "region": "NORTHERN",
+          "county": ["KOLE COUNTY"],
+          "code": 102
+        },
+        {
+          "district": "KOTIDO",
+          "region": "NORTHERN",
+          "county": ["KOTIDO COUNTY"],
+          "code": 52
+        },
+        {
+          "district": "KWANIA",
+          "region": "NORTHERN",
+          "county": ["KWANIA COUNTY"],
+          "code": 76
+        },
+        {
+          "district": "MADI-OKOLLO",
+          "region": "NORTHERN",
+          "county": ["MADI-OKOLLO COUNTY"],
+          "code": 80
+        },
+        {
+          "district": "MARACHA",
+          "region": "NORTHERN",
+          "county": ["MARACHA COUNTY"],
+          "code": 110
+        },
+        {
+          "district": "NABILATUK",
+          "region": "NORTHERN",
+          "county": ["NABILATUK COUNTY"],
+          "code": 125
+        },
+        {
+          "district": "NAKAPIRIPIT",
+          "region": "NORTHERN",
+          "county": ["NAKAPIRIPIT COUNTY"],
+          "code": 121
+        },
+        {
+          "district": "NAPAK",
+          "region": "NORTHERN",
+          "county": ["NAPAK COUNTY"],
+          "code": 124
+        },
+        {
+          "district": "OTUKE",
+          "region": "NORTHERN",
+          "county": ["OTUKE COUNTY"],
+          "code": 126
+        },
+        {
+          "district": "OYAM",
+          "region": "NORTHERN",
+          "county": ["OYAM COUNTY NORTH", "OYAM COUNTY SOUTH"],
+          "code": 56
+        },
+        {
+          "district": "PADER",
+          "region": "NORTHERN",
+          "county": ["PADER COUNTY"],
+          "code": 97
+        },
+        {
+          "district": "PAKWACH",
+          "region": "NORTHERN",
+          "county": ["PAKWACH COUNTY"],
+          "code": 107
+        },
+        {
+          "district": "SHEEMA",
+          "region": "NORTHERN",
+          "county": ["SHEEMA MUNICIPALITY"],
+          "code": 66
+        },
+        {
+          "district": "YUMBE",
+          "region": "NORTHERN",
+          "county": ["ARAPI COUNTY", "ASSUMANI COUNTY", "KULUVA COUNTY"],
+          "code": 45
+        },
+        {
+          "district": "ZOMBO",
+          "region": "NORTHERN",
+          "county": ["ZOMBO COUNTY"],
+          "code": 90
+        },
+        {
+            "name": "JINJA CITY",
+            "region": "EASTERN",
+            "county": ["JINJA SOUTH DIVISION WEST"],
+            "code": 138
+        },
+        {
+            "name": "KAABONG",
+            "region": "NORTHERN",
+            "county": ["DODOTH EAST COUNTY", "DODOTH NORTH COUNTY", "IK COUNTY"],
+            "code": 63
+        },
+        {
+            "name": "KABALE",
+            "region": "WESTERN",
+            "county": ["KABALE MUNICIPALITY", "NDORWA COUNTY EAST", "NDORWA COUNTY WEST"],
+            "code": 9
+        },
+        {
+            "name": "KABAROLE",
+            "region": "WESTERN",
+            "county": ["BURAHYA COUNTY"],
+            "code": 10
+        },
+        {
+            "name": "KABERAMAIDO",
+            "region": "EASTERN",
+            "county": ["KABERAMAIDO COUNTY", "OCHERO COUNTY"],
+            "code": 54
+        },
+        {
+            "name": "KAGADI",
+            "region": "WESTERN",
+            "county": ["BUYAGA EAST COUNTY", "BUYAGA WEST COUNTY"],
+            "code": 113
+        },
+        {
+            "name": "KAKUMIRO",
+            "region": "WESTERN",
+            "county": ["BUGANGAIZI EAST COUNTY", "BUGANGAIZI SOUTH COUNTY", "BUGANGAIZI WEST COUNTY"],
+            "code": 114
+        },
+        {
+            "name": "KALAKI",
+            "region": "EASTERN",
+            "county": ["KALAKI COUNTY"],
+            "code": 129
+        },
+        {
+            "name": "KALANGALA",
+            "region": "CENTRAL",
+            "county": ["BUJUMBA COUNTY", "KYAMUSWA COUNTY"],
+            "code": 11
+        },
+        {
+            "name": "KALIRO",
+            "region": "EASTERN",
+            "county": ["BULAMOGI COUNTY", "BULAMOGI NORTH WEST COUNTY"],
+            "code": 64
+        },
+        {
+            "name": "KALUNGU",
+            "region": "CENTRAL",
+            "county": ["KALUNGU EAST COUNTY", "KALUNGU WEST COUNTY"],
+            "code": 100
+        },
+        {
+            "name": "KAMPALA",
+            "region": "CENTRAL",
+            "county": ["KAMPALA CENTRAL DIVISION", "KAWEMPE DIVISION NORTH", "KAWEMPE DIVISION SOUTH", "MAKINDYE DIVISION EAST", "MAKINDYE DIVISION WEST", "NAKAWA DIVISION EAST", "NAKAWA DIVISION WEST", "RUBAGA DIVISION NORTH", "RUBAGA DIVISION SOUTH"],
+            "code": 12
+        },
+        {
+            "name": "KAMULI",
+            "region": "EASTERN",
+            "county": ["BUGABULA COUNTY NORTH", "BUGABULA COUNTY SOUTH", "BUZAAYA COUNTY", "KAMULI MUNICIPALITY"],
+            "code": 13
+        },
+        {
+            "name": "KAMWENGE",
+            "region": "WESTERN",
+            "county": ["KIBALE COUNTY", "KIBALE EAST COUNTY"],
+            "code": 46
+        },
+        {
+            "name": "KANUNGU",
+            "region": "WESTERN",
+            "county": ["KINKIZI COUNTY EAST", "KINKIZI COUNTY WEST"],
+            "code": 55
+        },
+        {
+            "name": "KAPCHORWA",
+            "region": "EASTERN",
+            "county": ["KAPCHORWA MUNICIPALITY", "TINGEY COUNTY"],
+            "code": 14
+        },
+        {
+            "name": "KAPELEBYONG",
+            "region": "EASTERN",
+            "county": ["KAPELEBYONG COUNTY"],
+            "code": 124
+        },
+        {
+            "name": "KARENGA",
+            "region": "WESTERN",
+            "county": ["DODOTH WEST COUNTY", "NAPORE WEST COUNTY"],
+            "code": 130
+        },
+        {
+            "name": "KASESE",
+            "region": "WESTERN",
+            "county": ["BUKONJO COUNTY WEST", "BUKONZO COUNTY EAST", "BUSONGORA COUNTY NORTH", "BUSONGORA COUNTY SOUTH", "KASESE MUNICIPALITY"],
+            "code": 15
+        },
+        {
+            "name": "KASSANDA",
+            "region": "WESTERN",
+            "county": ["BUKUYA COUNTY", "KASSANDA COUNTY NORTH", "KASSANDA COUNTY SOUTH"],
+            "code": 125
+        },
+        {
+            "name": "KATAKWI",
+            "region": "EASTERN",
+            "county": ["NGARIAM COUNTY", "TOROMA COUNTY", "USUK COUNTY"],
+            "code": 43
+        },
+        {
+            "name": "KAYUNGA",
+            "region": "CENTRAL",
+            "county": ["BBALE COUNTY", "NTENJERU COUNTY NORTH", "NTENJERU COUNTY SOUTH"],
+            "code": 47
+        },
+        {
+            "name": "KAZO",
+            "region": "WESTERN",
+            "county": ["KAZO COUNTY"],
+            "code": 131
+          },
+          {
+            "name": "KIBAALE",
+            "region": "WESTERN",
+            "county": ["BUYANJA COUNTY", "BUYANJA EAST COUNTY"],
+            "code": 16
+          },
+          {
+            "name": "KIBOGA",
+            "region": "CENTRAL",
+            "county": ["KIBOGA EAST COUNTY", "KIBOGA WEST COUNTY"],
+            "code": 17
+          },
+          {
+            "name": "KIBUKU",
+            "region": "EASTERN",
+            "county": ["KABWERI COUNTY", "KIBUKU COUNTY"],
+            "code": 102
+          },
+          {
+            "name": "KIKUUBE",
+            "region": "WESTERN",
+            "county": ["BUHAGUZI COUNTY", "BUHAGUZI EAST COUNTY"],
+            "code": 126
+          },
+          {
+            "name": "KIRUHURA",
+            "region": "WESTERN",
+            "county": ["KASHONGI COUNTY", "NYABUSHOZI COUNTY"],
+            "code": 65
+          },
+          {
+            "name": "KIRYANDONGO",
+            "region": "WESTERN",
+            "county": ["KIBANDA NORTH COUNTY", "KIBANDA SOUTH COUNTY"],
+            "code": 92
+          },
+          {
+            "name": "KISORO",
+            "region": "WESTERN",
+            "county": ["BUFUMBIRA COUNTY EAST", "BUFUMBIRA COUNTY NORTH", "BUFUMBIRA COUNTY SOUTH", "BUKIMBIRI COUNTY", "KISORO MUNICIPALITY"],
+            "code": 18
+          },
+          {
+            "name": "KITAGWENDA",
+            "region": "WESTERN",
+            "county": ["KITAGWENDA COUNTY"],
+            "code": 132
+          },
+          {
+            "name": "KITGUM",
+            "region": "NORTHERN",
+            "county": ["CHUA EAST COUNTY", "CHUA WEST COUNTY", "KITGUM MUNICIPALITY"],
+            "code": 19
+          },
+          {
+            "name": "KOBOKO",
+            "region": "NORTHERN",
+            "county": ["KOBOKO COUNTY", "KOBOKO MUNICIPALITY", "KOBOKO NORTH COUNTY"],
+            "code": 66
+          },
+          {
+            "name": "KOLE",
+            "region": "NORTHERN",
+            "county": ["KOLE NORTH COUNTY", "KOLE SOUTH COUNTY"],
+            "code": 103
+          },
+          {
+            "name": "KOTIDO",
+            "region": "NORTHERN",
+            "county": ["JIE COUNTY", "KOTIDO MUNICIPALITY"],
+            "code": 20
+          },
+          {
+            "name": "KUMI",
+            "region": "EASTERN",
+            "county": ["BUKEDDE COUNTY SOUTH", "BULANGIRA COUNTY", "KUMI COUNTY", "KUMI MUNICIPALITY", "NYERO COUNTY"],
+            "code": 45
+          },
+          {
+            "name": "KWANIA",
+            "region": "NORTHERN",
+            "county": ["KWANIA COUNTY", "KWANIA WEST COUNTY"],
+            "code": 104
+          },
+          {
+            "name": "KWANZA",
+            "region": "WESTERN",
+            "county": ["KWANZA COUNTY"],
+            "code": 119
+          },
+          {
+            "name": "KYEGEGWA",
+            "region": "WESTERN",
+            "county": ["BUHAGUZI COUNTY", "BUHAGUZI EAST COUNTY"],
+            "code": 132
+          },
+          {
+            "name": "KYENJOJO",
+            "region": "WESTERN",
+            "county": ["BUSAIKU COUNTY", "BUHAGUZI COUNTY", "CENTRAL DIVISION", "EAST DIVISION", "WEST DIVISION"],
+            "code": 67
+          },
+          {
+            "name": "KYOTERA",
+            "region": "WESTERN",
+            "county": ["KYOTERA COUNTY", "KYOTERA EAST COUNTY"],
+            "code": 122
+          },
+          {
+            "name": "LAMWO",
+            "region": "NORTHERN",
+            "county": ["AGAGO NORTH COUNTY", "AGAGO SOUTH COUNTY", "AGAGO WEST COUNTY", "AGAGO MUNICIPALITY"],
+            "code": 21
+          },
+          {
+            "name": "LIRA",
+            "region": "NORTHERN",
+            "county": ["ADYELI COUNTY", "AMACH COUNTY", "CENTRAL DIVISION", "LIRA MUNICIPALITY"],
+            "code": 22
+          },
+          {
+            "name": "LUUKA",
+            "region": "EASTERN",
+            "county": ["BUNYA COUNTY", "BUNYA COUNTY EAST", "BUNYA COUNTY NORTH", "BUNYA COUNTY SOUTH", "BUNYA COUNTY WEST"],
+            "code": 23
+          },
+          {
+            "name": "LUWERO",
+            "region": "CENTRAL",
+            "county": ["BUVUMA COUNTY", "CENTRAL DIVISION", "KILAK COUNTY", "KIZIRANFUMBI COUNTY", "NABISUNSA"]
+          },
+          {
+            "name": "LYANTONDE",
+            "region": "CENTRAL",
+            "county": ["LYANTONDE COUNTY", "LYANTONDE MUNICIPALITY"]
+          },
+          {
+            "name": "MANAFWA",
+            "region": "EASTERN",
+            "county": ["BUBULO COUNTY EAST", "BUBULO COUNTY WEST", "MANAFWA COUNTY"]
+          },
+          {
+            "name": "MARACHA",
+            "region": "NORTHERN",
+            "county": ["MARACHA COUNTY", "MARACHA EAST COUNTY"]
+          },
+          {
+            "name": "MASAKA",
+            "region": "CENTRAL",
+            "county": ["BUKOTO COUNTY CENTRAL", "BUKOTO COUNTY EAST", "KIMAANYA-KABONERA DIVISION", "NYENDO-MUKUNGWE DIVISION"]
+          },
+          {
+            "name": "MASINDI",
+            "region": "WESTERN",
+            "county": ["BUJENJE COUNTY", "BURULI COUNTY", "MASINDI MUNICIPALITY"]
+          },
+          {
+            "name": "MAYUGE",
+            "region": "EASTERN",
+            "county": ["BUNYA COUNTY EAST", "BUNYA COUNTY SOUTH", "BUNYA COUNTY WEST"]
+          },
+          {
+            "name": "MBALE",
+            "region": "EASTERN",
+            "county": ["BUNGOKHO CENTRAL COUNTY", "BUNGOKHO COUNTY NORTH", "BUNGOKHO COUNTY SOUTH", "INDUSTRIAL DIVISION", "NORTHERN DIVISION"]
+          },
+          {
+            "name": "MBARARA",
+            "region": "WESTERN",
+            "county": ["KASHARI NORTH COUNTY", "KASHARI SOUTH COUNTY", "MBARARA NORTH DIVISION", "MBARARA SOUTH DIVISION"]
+          },
+          {
+            "name": "MITOOMA",
+            "region": "WESTERN",
+            "county": ["RUHINDA COUNTY", "RUHINDA NORTH COUNTY", "RUHINDA SOUTH COUNTY"]
+          },
+          {
+            "name": "MITYANA",
+            "region": "CENTRAL",
+            "county": ["BUSUJJU COUNTY", "MITYANA COUNTY NORTH", "MITYANA COUNTY SOUTH", "MITYANA MUNICIPALITY"]
+          },
+          {
+            "name": "MOROTO",
+            "region": "NORTHERN",
+            "county": ["MATHENIKO COUNTY", "MOROTO MUNICIPALITY", "TEPETH COUNTY"]
+          },
+          {
+            "name": "MOYO",
+            "region": "NORTHERN",
+            "county": ["WEST MOYO COUNTY"]
+          },
+          {
+            "name": "MPIGI",
+            "region": "CENTRAL",
+            "county": ["MAWOKOTA COUNTY NORTH", "MAWOKOTA COUNTY SOUTH"]
+          },
+          {
+            "name": "MUBENDE",
+            "region": "CENTRAL",
+            "county": ["BUWEKULA COUNTY", "BUWEKULA SOUTH COUNTY", "KASAMBYA COUNTY", "MUBENDE MUNICIPALITY"]
+          },
+          {
+            "name": "MUKONO",
+            "region": "CENTRAL",
+            "county": ["MUKONO COUNTY NORTH", "MUKONO COUNTY SOUTH", "MUKONO MUNICIPALITY", "NAKIFUMA COUNTY"]
+          },
+        {
+            "name": "NABILATUK",
+            "region": "NORTHERN",
+            "county": ["PIAN COUNTY"],
+            "code": 128
+        },
+        {
+            "name": "NAKAPIRIPIT",
+            "region": "NORTHERN",
+            "county": ["CHEKWII COUNTY (KADAM)", "CHEKWII EAST COUNTY"],
+            "code": 56
+        },
+        {
+            "name": "NAKASEKE",
+            "region": "CENTRAL",
+            "county": ["NAKASEKE CENTRAL COUNTY", "NAKASEKE NORTH COUNTY", "NAKASEKE SOUTH COUNTY"],
+            "code": 69
+        },
+        {
+            "name": "NAKASONGOLA",
+            "region": "CENTRAL",
+            "county": ["BUDYEBO COUNTY", "NAKASONGOLA COUNTY"],
+            "code": 44
+        },
+        {
+            "name": "NAMAYINGO",
+            "region": "EASTERN",
+            "county": ["BUKOOLI ISLAND COUNTY", "BUKOOLI SOUTH COUNTY", "NAMAYINGO SOUTH COUNTY"],
+            "code": 95
+        },
+        {
+            "name": "NAMISINDWA",
+            "region": "EASTERN",
+            "county": ["BUBULO EAST COUNTY", "NAMISINDWA COUNTY"],
+            "code": 120
+        },
+        {
+            "name": "NAMUTUMBA",
+            "region": "EASTERN",
+            "county": ["BUKONO COUNTY", "BUSIKI COUNTY", "BUSIKI NORTH COUNTY"],
+            "code": 75
+        },
+        {
+            "name": "NAPAK",
+            "region": "NORTHERN",
+            "county": ["BOKORA COUNTY", "BOKORA EAST COUNTY"],
+            "code": 107
+        },
+        {
+            "name": "NEBBI",
+            "region": "NORTHERN",
+            "county": ["NEBBI MUNICIPALITY", "PADYERE COUNTY"],
+            "code": 33
+        },
+        {
+            "name": "NGORA",
+            "region": "EASTERN",
+            "county": ["KAPIR COUNTY", "NGORA COUNTY"],
+            "code": 108
+        },
+        {
+            "name": "NTOROKO",
+            "region": "WESTERN",
+            "county": ["NTOROKO COUNTY"],
+            "code": 96
+        },
+        {
+            "name": "NTUNGAMO",
+            "region": "WESTERN",
+            "county": ["KAJARA COUNTY", "NTUNGAMO MUNICIPALITY", "RUHAAMA COUNTY", "RUHAAMA EAST COUNTY", "RUSHENYI COUNTY"],
+            "code": 34
+        },
+        {
+            "name": "NWOYA",
+            "region": "NORTHERN",
+            "county": ["NWOYA COUNTY", "NWOYA EAST COUNTY"],
+            "code": 110
+        },
+        {
+            "name": "OBONGI",
+            "region": "NORTHERN",
+            "county": ["OBONGI COUNTY"],
+            "code": 134
+        },
+        {
+            "name": "OMORO",
+            "region": "NORTHERN",
+            "county": ["OMORO COUNTY", "TOCHI COUNTY"],
+            "code": 115
+        },
+        {
+            "name": "OTUKE",
+            "region": "NORTHERN",
+            "county": ["OTUKE COUNTY", "OTUKE EAST COUNTY"],
+            "code": 86
+        },
+        {
+            "name": "OYAM",
+            "region": "NORTHERN",
+            "county": ["OYAM COUNTY NORTH", "OYAM COUNTY SOUTH"],
+            "code": 76
+        },
+        {
+            "name": "PADER",
+            "region": "NORTHERN",
+            "county": ["ARUU COUNTY", "ARUU NORTH COUNTY"],
+            "code": 50
+        },
+        {
+            "name": "PAKWACH",
+            "region": "NORTHERN",
+            "county": ["JONAM COUNTY"],
+            "code": 121
+        },
+        {
+            "name": "PALLISA",
+            "region": "EASTERN",
+            "county": ["AGULE COUNTY", "GOGONYO COUNTY", "KIBALE COUNTY", "PALLISA COUNTY"],
+            "code": 35
+        },
+        {
+            "name": "RAKAI",
+            "region": "EASTERN",
+            "county": ["BUYAMBA COUNTY", "KOOKI COUNTY"],
+            "code": 36
+        },
+        {
+            "name": "RUBANDA",
+            "region": "WESTERN",
+            "county": ["RUBANDA COUNTY EAST", "RUBANDA COUNTY WEST"],
+            "code": 116
+        },
+        {
+            "name": "RUBIRIZI",
+            "region": "WESTERN",
+            "county": ["BUNYARUGURU COUNTY", "KATERERA COUNTY"],
+            "code": 112
+        },
+        {
+            "name": "RUKIGA",
+            "region": "WESTERN",
+            "county": ["RUKIGA COUNTY"],
+            "code": 122
+        },
+        {
+            "name": "RUKUNGIRI",
+            "region": "WESTERN",
+            "county": ["RUBABO COUNTY", "RUJUMBURA COUNTY", "RUKUNGIRI MUNICIPALITY"],
+            "code": 37
+        },
+        {
+            "name": "RWAMPARA",
+            "region": "WESTERN",
+            "county": ["RWAMPARA COUNTY", "RWAMPARA EAST COUNTY"],
+            "code": 135
+        },
+        {
+            "name": "SERERE",
+            "region": "EASTERN",
+            "county": ["KASILO COUNTY", "PINGIRE COUNTY", "SERERE COUNTY"],
+            "code": 97
+        },
+        {
+            "name": "SHEEMA",
+            "region": "WESTERN",
+            "county": ["SHEEMA COUNTY NORTH", "SHEEMA COUNTY SOUTH", "SHEEMA MUNICIPALITY"],
+            "code": 101
+        },
+        {
+            "name": "SIRONKO",
+            "region": "EASTERN",
+            "county": ["BUDADIRI COUNTY EAST", "BUDADIRI COUNTY WEST"],
+            "code": 51
+        },
+        {
+            "name": "SOROTI",
+            "region": "EASTERN",
+            "county": ["DAKABELA COUNTY", "GWERI COUNTY", "SOROTI COUNTY"],
+            "code": 38
+        },
+        {
+            "name": "SOROTI CITY",
+            "region": "EASTERN",
+            "county": ["SOROTI EAST DIVISION", "SOROTI WEST DIVISION"],
+            "code": 146
+        },
+        {
+            "name": "SSEMBABULE",
+            "region": "WESTERN",
+            "county": ["LWEMIYAGA COUNTY", "MAWOGOLA COUNTY", "MAWOGOLA NORTH COUNTY", "MAWOGOLA WEST COUNTY"],
+            "code": 45
+        },
+        {
+            "name": "TEREGO",
+            "region": "WESTERN",
+            "county": ["TEREGO EAST COUNTY", "TEREGO WEST COUNTY"],
+            "code": 143
+        },
+        {
+            "name": "TORORO",
+            "region": "EASTERN",
+            "county": ["TORORO MUNICIPALITY", "TORORO NORTH COUNTY", "TORORO SOUTH COUNTY", "WEST BUDAMA CENTRAL COUNTY", "WEST BUDAMA COUNTY NORTH", "WEST BUDAMA COUNTY SOUTH", "WEST BUDAMA NORTH EAST COUNTY"],
+            "code": 39
+        },
+        {
+            "name": "WAKISO",
+            "region": "CENTRAL",
+            "county": ["BUSIRO COUNTY EAST", "BUSIRO COUNTY NORTH", "BUSIRO COUNTY SOUTH", "ENTEBBE MUNICIPALITY", "KIRA MUNICIPALITY", "KYADONDO COUNTY EAST", "MAKINDYE-SSABAGABO MUNICIPALITY", "NANSANA MUNICIPALITY"],
+            "code": 52
+        },
+        {
+            "name": "YUMBE",
+            "region": "NORTHERN",
+            "county": ["ARINGA COUNTY", "ARINGA EAST COUNTY", "ARINGA NORTH COUNTY", "ARINGA SOUTH COUNTY"],
+            "code": 53
+        },
+        {
+            "name": "ZOMBO",
+            "region": "NORTHERN",
+            "county": ["OKORO COUNTY", "ORA COUNTY"],
+            "code": 87
+        }  
+      ]
+      
+}

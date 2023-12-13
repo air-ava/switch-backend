@@ -253,10 +253,11 @@ export const Sanitizer = {
 
   sanitizeNoId(payload: ISponsorships): any {
     if (!payload) return null;
-    const { id, status, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, lga_cities, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      lga_cities: lga_cities ? lga_cities.split(',') : [],
     };
     return sanitized;
   },

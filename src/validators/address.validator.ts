@@ -13,6 +13,15 @@ export const createAddressValidator = joi.object().keys({
 
 export const getAddressValidator = joi.object().keys({
   reference: joi.string().optional(),
-  owner: joi.number().integer().optional(),
+  owner: joi.string().optional(),
   public: joi.boolean().optional(),
+});
+
+export const getStateDistrictsValidator = joi.object().keys({
+  state: joi.string().required(),
+  country: joi.string().valid('NIGERIA', 'UGANDA').required(),
+});
+
+export const getStatesValidator = joi.object().keys({
+  country: joi.string().valid('NIGERIA', 'UGANDA').required(),
 });
