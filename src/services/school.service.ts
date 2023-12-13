@@ -262,27 +262,33 @@ export const answerQuestionnaireService = async ({ answers, user }: { answers: a
 export const getSchoolDetails = async (data: any) => {
   const { user, session } = data;
 
-  try {
-    const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
-    if (!gottenSchool.success) return gottenSchool;
-    const { school, organisation } = gottenSchool.data;
+  const gottenSchool = await findSchoolWithOrganization({ owner: user.id });
+  if (!gottenSchool.success) return gottenSchool;
+  const { school, organisation } = gottenSchool.data;
 
-    const owner = await findIndividual({ school_id: school.id, is_owner: true }, [], ['phoneNumber']);
-    if (!owner) throw new NotFoundError('Owner');
-
-    const { isAlldocumentsSubmitted, documents } = await DocumentService.areAllRequiredDocumentsSubmitted({
-      ...(organisation.business_type && { tag: businessType[organisation.business_type] }),
-      process: 'onboarding',
-      country: school.country.toUpperCase(),
+  let owner = await findIndividual({ school_id: school.id, is_owner: true }, [], ['phoneNumber']);
+  if (!owner) {
+    const { first_name: firstName, last_name: lastName } = user;
+    const username = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+    owner = await saveIndividual({
+      ...(user.email && { email: user.email }),
+      ...(user.phone_number && { phone_number: user.phone_number }),
+      firstName,
+      lastName,
+      school_id: school.id,
+      username,
+      is_owner: true,
     });
-
-    return sendObjectResponse(
-      'School details retrieved successful',
-      Sanitizer.sanitizeSchool({ ...school, session, isAlldocumentsSubmitted, owner }),
-    );
-  } catch (e: any) {
-    return BadRequestException(e.message);
+    // throw new NotFoundError('Owner');
   }
+
+  const { isAlldocumentsSubmitted, documents } = await DocumentService.areAllRequiredDocumentsSubmitted({
+    ...(organisation.business_type && { tag: businessType[organisation.business_type] }),
+    process: 'onboarding',
+    country: school.country.toUpperCase(),
+  });
+
+  return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool({ ...school, session, isAlldocumentsSubmitted, owner }));
 };
 
 export const getPublicSchoolDetails = async (slug: string): Promise<any> => {

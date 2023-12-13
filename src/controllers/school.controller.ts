@@ -99,17 +99,11 @@ export const answerUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, 
 };
 
 export const getSchoolCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const { educationalSession } = req;
-    const payload = { user: req.user, session: educationalSession };
-    const response = await getSchoolDetails(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.schoolProfile, data: error });
-  }
+  const { educationalSession } = req;
+  const payload = { user: req.user, session: educationalSession };
+  const response = await getSchoolDetails(payload);
+  const { data, message, error } = response as any;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const listSchoolCONTROLLER: RequestHandler = async (req, res) => {
