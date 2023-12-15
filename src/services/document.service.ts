@@ -352,6 +352,7 @@ const Service: any = {
 
   async areAllRequiredDocumentsSubmitted(data: any): Promise<{
     isAlldocumentsSubmitted: boolean;
+    requiredDocuments: boolean;
     documents?: any;
     document_reference?: string;
   }> {
@@ -366,7 +367,7 @@ const Service: any = {
       },
       ['id'],
     );
-    if (requiredDocs.length === 0) return { isAlldocumentsSubmitted: true };
+    if (requiredDocs.length === 0) return { requiredDocuments: false, isAlldocumentsSubmitted: true };
 
     const requiredDocsIds = requiredDocs.map((req) => req.id);
     const documents = await DocumentREPO.listDocuments(
@@ -375,6 +376,7 @@ const Service: any = {
     );
 
     return {
+      requiredDocuments: true,
       isAlldocumentsSubmitted: documents.length === requiredDocs.length,
       documents,
     };

@@ -243,12 +243,12 @@ export const userAuth = async (data: any): Promise<theResponse> => {
       if (organisation) {
         const school = await getSchool({ organisation_id: organisation.id }, [], ['Logo']);
         if (school) {
-          const { isAlldocumentsSubmitted } = await DocumentService.areAllRequiredDocumentsSubmitted({
+          const { isAlldocumentsSubmitted, requiredDocuments } = await DocumentService.areAllRequiredDocumentsSubmitted({
             ...(organisation.business_type && { tag: businessType[organisation.business_type] }),
             process: 'onboarding',
             country: school.country.toUpperCase(),
           });
-          userAlreadyExist.School = { ...school, isAlldocumentsSubmitted };
+          userAlreadyExist.School = { ...school, requiredDocuments, isAlldocumentsSubmitted: requiredDocuments ? isAlldocumentsSubmitted : false };
         }
       }
     }
