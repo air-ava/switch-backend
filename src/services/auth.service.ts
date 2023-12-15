@@ -320,9 +320,9 @@ export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
   try {
     const { data: user, success, error } = await userAuth({ ...data, addPhone: true });
     if (!success) throw Error(error);
-    // if (user.status !== STATUSES.VERIFIED) throw new ValidationError('This account has not been verified');
+    if (user.status !== STATUSES.VERIFIED) throw new ValidationError('This account has not been verified');
     // Todo: [Urgency][Request][Medium]:[entity:users][title: Verification Request][body: { message: Email Verification Required }]
-    if (!user.email_verified_at) throw Error('This account has not been verified');
+    // if (!user.email_verified_at) throw Error('This account has not been verified');
 
     const token = generateToken(user);
 
