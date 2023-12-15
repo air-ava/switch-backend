@@ -282,13 +282,22 @@ export const getSchoolDetails = async (data: any) => {
     // throw new NotFoundError('Owner');
   }
 
-  const { isAlldocumentsSubmitted, documents } = await DocumentService.areAllRequiredDocumentsSubmitted({
+  const { isAlldocumentsSubmitted, requiredDocuments } = await DocumentService.areAllRequiredDocumentsSubmitted({
     ...(organisation.business_type && { tag: businessType[organisation.business_type] }),
     process: 'onboarding',
     country: school.country.toUpperCase(),
   });
 
-  return sendObjectResponse('School details retrieved successful', Sanitizer.sanitizeSchool({ ...school, session, isAlldocumentsSubmitted, owner }));
+  return sendObjectResponse(
+    'School details retrieved successful',
+    Sanitizer.sanitizeSchool({
+      ...school,
+      session,
+      requiredDocuments,
+      isAlldocumentsSubmitted: requiredDocuments ? isAlldocumentsSubmitted : false,
+      owner,
+    }),
+  );
 };
 
 export const getPublicSchoolDetails = async (slug: string): Promise<any> => {
