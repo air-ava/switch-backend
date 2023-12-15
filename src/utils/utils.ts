@@ -213,6 +213,10 @@ const Utils = {
   getDashboardURL() {
     return Utils.isProd() ? `https://app.joinsteward.com` : `https://steward-demo.netlify.app`;
   },
+  
+  getWebsiteURL() {
+    return Utils.isProd() ? `https://joinsteward.com` : `https://steward-website.netlify.app`;
+  },
 
   getAvatar() {
     return {

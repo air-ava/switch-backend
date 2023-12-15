@@ -171,7 +171,7 @@ const Service = {
         supportEmail: 'support@joinsteward.com',
         organisationName: organisation.name,
         firstName,
-        directorPageUrl: `${Utils.getDashboardURL()}/director/${organisation.slug}/${username}`,
+        directorPageUrl: `${Utils.getWebsiteURL()}/director/${organisation.slug}/${username}`,
       },
     });
 
@@ -180,14 +180,18 @@ const Service = {
       body: {
         name: `${firstName} ${lastName}`,
         organisation_name: organisation.name,
-        url: `${Utils.getDashboardURL()}/director/${organisation.slug}/${username}`,
+        url: `${Utils.getWebsiteURL()}/director/${organisation.slug}/${username}`,
         type,
         email,
       },
       feature: 'director_invite',
     });
 
-    return sendObjectResponse(`School ${type} has been successfully invited`);
+    return sendObjectResponse(`School ${type} has been successfully invited`, {
+      link: `${Utils.getWebsiteURL()}/director/${organisation.slug}/${username}`,
+      organisation_slug: organisation.slug,
+      officer_username: username,
+    });
   },
 
   async getInvitedOfficer(data: any): Promise<theResponse> {
