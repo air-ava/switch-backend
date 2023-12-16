@@ -152,6 +152,27 @@ export interface ICountryState {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface IReservedAccount {
+  id: number;
+  reserved_account_number: string;
+  reserved_account_name: string;
+  reserved_bank_name: string;
+  processor: string;
+  status: number;
+  entity: string;
+  entity_id: number;
+  wallet_id: number;
+  type: string;
+  country: string;
+  expired_at: Date | null;
+  deleted_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+  reserved_bank_code: string | null;
+  is_default: boolean;
+}
+
 export interface IPhoneNumber {
   id: number;
   countryCode: string;
