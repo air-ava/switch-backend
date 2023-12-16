@@ -60,6 +60,13 @@ export const BadRequestException = (error: string, data?: any): { success: boole
     data,
   };
 };
+export const invalidAccountResponse = (status = '07', message: string, data?: any): { status: string; status_desc: string; data?: any } => {
+  return {
+    status,
+    status_desc: message,
+    ...data,
+  };
+};
 
 export const catchErrors = (fn: any) => {
   return (req: any, res: any, next: any) => {

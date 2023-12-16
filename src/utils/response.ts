@@ -74,4 +74,11 @@ export = {
     if (config.data) payload.data = config.data;
     res.status(config.statusCode ?? config.code ?? 200).json(payload);
   },
+
+  invalid(res: Response, status = '07', message = 'Invalid authorization') {
+    res.status(401).json({
+      status,
+      status_desc: message,
+    });
+  },
 };

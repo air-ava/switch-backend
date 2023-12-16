@@ -1,6 +1,7 @@
 import randomstring from 'randomstring';
 import { MigrationInterface, QueryRunner, getRepository } from 'typeorm';
 import { Student } from '../models/student.model';
+import { WEMA_ACCOUNT_PREFIX } from '../../utils/secrets';
 
 export class PopulateReservedAccounts1702688808461 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -16,9 +17,10 @@ export class PopulateReservedAccounts1702688808461 implements MigrationInterface
       .leftJoin('Wallets', 'wallet', "wallet.entity = 'school' AND wallet.entity_id = school.id")
       .where('wallet.entity = :entity', { entity: 'school' })
       .getRawMany();
+
     // eslint-disable-next-line no-restricted-syntax
     for (const student of studentsWithWallets) {
-      const reservedAccountNumber = `721${randomstring.generate({ length: 7, charset: 'numeric' })}`; // Random 7 digit number
+      const reservedAccountNumber = `${WEMA_ACCOUNT_PREFIX}${randomstring.generate({ length: 7, charset: 'numeric' })}`;
 
       // eslint-disable-next-line no-await-in-loop
       await queryRunner.manager

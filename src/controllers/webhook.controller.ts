@@ -3,6 +3,7 @@ import logger from '../utils/logger';
 import { bayonicWebhookHandler } from '../webhooks/beyonic.webhook';
 import { completeTransaction } from '../webhooks/flutterwave.webhook';
 import SmileIdWebhook from '../webhooks/smileId.webhook';
+import WemaWebhook from '../webhooks/wema.webhook';
 import ResponseService from '../utils/response';
 
 export const flutterWaveWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
@@ -34,6 +35,19 @@ export const smileIdWEBHOOK: RequestHandler = async (req, res): Promise<void> =>
     console.log({ 'req.body': req.body });
     await SmileIdWebhook.basicKycResponseNew(req.body);
     // await SmileIdWebhook.basicKycResponse(req.body);
+  } catch (error) {
+    console.log(error);
+    res.status(200).json({ success: false, error }).end();
+  }
+};
+
+export const wemaWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    logger.info(req.body);
+    const response = await WemaWebhook.verifyAccountNumber(req.body);
+    console.log({ response });
+    if (response.status === '07') ResponseService.invalid(res, response.status);
+    res.status(200).json(response);
   } catch (error) {
     console.log(error);
     res.status(200).json({ success: false, error }).end();

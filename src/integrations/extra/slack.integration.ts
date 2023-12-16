@@ -410,6 +410,44 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
         channel: 'directorinvite',
         blocks: slackBlocks,
       };
+    case 'bank_transfer_failure':
+      slackBlocks.push({
+        type: 'section',
+        text: {
+          text: `A Bank Transfer error occurred. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *Processor Response*: ${body.processorResponse}`,
+          type: 'mrkdwn',
+        },
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: '*Bank Name*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.bankName}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Reference*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.reference}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: '*Amount*',
+          },
+          {
+            type: 'plain_text',
+            text: `${body.amount}`,
+          }
+        ],
+      });
+      return {
+        channel: 'failed_bank_transfer',
+        blocks: slackBlocks,
+      };
     default:
       throw new Error('slack channel not available');
   }
