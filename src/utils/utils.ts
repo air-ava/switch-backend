@@ -385,6 +385,10 @@ const Utils = {
   isFalsyOrUnknown(value: any) {
     return !value || value === 'unknown';
   },
+
+  convertCurrencyToSmallerUnit(amount: number, conversionFactor = 100) {
+    return amount * conversionFactor;
+  },
 };
 
 export default Utils;

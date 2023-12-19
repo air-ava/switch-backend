@@ -153,6 +153,24 @@ export interface ICountryState {
   updated_at: Date;
 }
 
+export interface IReservedAccountsTransaction {
+  id: number;
+  walletId: number;
+  transactionId: number;
+  amount: number;
+  originator_account_name: string;
+  originator_account_number: string;
+  bank_name: string;
+  bank_routing_number: string;
+  bank_code: string;
+  processor: string;
+  sessionId: string;
+  response: string;
+  narration: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface IReservedAccount {
   id: number;
   reserved_account_number: string;

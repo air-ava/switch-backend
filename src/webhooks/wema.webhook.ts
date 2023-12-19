@@ -5,6 +5,7 @@ import { Repo as WalletRepo } from '../database/repositories/wallet.repo';
 import ReservedAccount from '../database/repositories/reservedAccount.repo';
 import { invalidAccountResponse } from '../utils/errors';
 import { accountNumberValidator, incomingDepositValidator } from '../validators/webhook.validator';
+import ReservedAccountService from '../services/reservedAccount.service';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
 
 const Webhook = {
@@ -21,7 +22,7 @@ const Webhook = {
   },
 
   async incomingDeposit(data: any) {
-    const { accountnumber, bankname } = data;
+    const { accountnumber, bankname, originatorname } = data;
     let { originatoraccountnumber } = data;
 
     const validation = incomingDepositValidator.validate(data);
@@ -41,11 +42,24 @@ const Webhook = {
     }
 
     if (originatoraccountnumber.length > 10) originatoraccountnumber = originatoraccountnumber.substr(1, 10);
+    const bankName = bankname || (originatorname === 'PALMPAY LIMITED' ? 'PALMPAY LIMITED' : 'N/A');
 
-    const accountDetails = await ReservedAccount.getReservedAccount({ reservedAccountNumber: accountnumber }, ['reserved_account_name']);
-    if (!accountDetails) return invalidAccountResponse('07', 'Invalid account');
+    const creditWallet = await ReservedAccountService.creditWalletOnReservedAccountFunding({
+      originator_account_number: data.originatoraccountnumber || '0000000000',
+      amount: Number(data.amount),
+      originator_account_name: originatorname || bankName,
+      narration: data.narration,
+      reserved_account_name: data.craccountname,
+      reserved_account_number: data.craccount,
+      external_reference: data.paymentreference || data.sessionid,
+      bank_name: bankName,
+      session_id: data.sessionid,
+      bank_code: data.bankcode,
+    });
 
-    return invalidAccountResponse('00', 'Successfully retreived account', { accountname: accountDetails.reserved_account_name });
+    if (!creditWallet.success) return invalidAccountResponse('07', creditWallet.error);
+
+    return invalidAccountResponse('00', 'Successfully retreived account', { transactionreference: creditWallet.data.reference });
   },
 };
 

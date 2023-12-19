@@ -2,16 +2,17 @@
 /* eslint-disable no-console */
 // eslint-disable-next-line max-classes-per-file
 
+import { Channel, ConsumeMessage } from 'amqplib';
 import AuthenticationError from './authenticationError';
 import CustomError from './customError';
 import ExistsError from './existsError';
 import FailedDependencyError from './failedDependencyError';
-import failedDependencyError from './failedDependencyError';
 import ForbiddenError from './forbiddenError';
 import HttpStatus from './httpStatus';
 import { Log, log } from './logs';
 import NotFoundError from './notFounfError';
 import ValidationError from './validationError';
+import logger from './logger';
 
 export const BadRequestError = (error: string) => {
   console.log(error);
@@ -60,12 +61,29 @@ export const BadRequestException = (error: string, data?: any): { success: boole
     data,
   };
 };
+
 export const invalidAccountResponse = (status = '07', message: string, data?: any): { status: string; status_desc: string; data?: any } => {
   return {
     status,
     status_desc: message,
     ...data,
   };
+};
+
+export const consumerResponse = (message: string, channel: Channel, load: ConsumeMessage): void => {
+  logger.info(message);
+  channel.ack(load);
+  // eslint-disable-next-line no-useless-return
+  return;
+};
+export const consumerException = (message: string, queueLoad?: { channel: Channel, load: ConsumeMessage }): void => {
+  logger.error(message);
+  if (queueLoad) {
+    const { channel, load } = queueLoad;
+    channel.ack(load);
+  }
+  // eslint-disable-next-line no-useless-return
+  return;
 };
 
 export const catchErrors = (fn: any) => {

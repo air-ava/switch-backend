@@ -53,3 +53,16 @@ export const wemaWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
     res.status(200).json({ success: false, error }).end();
   }
 };
+
+export const wemaDepositWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    logger.info(req.body);
+    const response = await WemaWebhook.incomingDeposit(req.body);
+    console.log({ response });
+    if (response.status === '07') ResponseService.invalid(res, response.status);
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
+    res.status(200).json({ success: false, error }).end();
+  }
+};
