@@ -53,6 +53,7 @@ import { getStudentGuardian, listStudentGuardian } from '../database/repositorie
 import { getStudent } from '../database/repositories/student.repo';
 import { CURRENCIES } from '../database/models/currencies.model';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import ReservedAccountService from './reservedAccount.service';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -410,6 +411,7 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
         entity: 'school',
         entityId: school.id,
       });
+      ReservedAccountService.assignAccountNumber({ holder: 'school', holderId: String(school.id), school });
     }
 
     const token = generateToken(userAlreadyExist);

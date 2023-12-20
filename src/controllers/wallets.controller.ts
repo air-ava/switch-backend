@@ -105,7 +105,7 @@ export const fundWalletCONTROLLER: RequestHandler = async (req, res) => {
       feesNames,
       transactionAmount: amount,
       t,
-    });
+    });      
     if (!debitSuccess) throw debitError;
 
     await updateTransactionREPO(

@@ -41,7 +41,7 @@ const Service = {
   },
 
   async assignAccountNumber(data: assignAccountNumberDTO): Promise<theResponse> {
-    const { holder, holderId, user, school } = data;
+    const { holder, holderId, school } = data;
     let accountNumberHolder;
     let entity = 'student';
     let entity_id;
@@ -69,10 +69,10 @@ const Service = {
       }
     }
 
-    const wallet = await WalletREPO.findWallet({ userId: user.id, entity: 'school', entity_id: school.id, type: 'permanent' }, ['id', 'currency']);
+    const wallet = await WalletREPO.findWallet({ entity: 'school', entity_id: school.id, type: 'permanent' }, ['id', 'currency']);
     if (!wallet) throw new NotFoundError(`Wallet`);
 
-    const reservedAccountNumber = Service.createUniqueAccountNumber();
+    const reservedAccountNumber = await Service.createUniqueAccountNumber();
     await ReservedAccountREPO.createReservedAccount({
       entity,
       entity_id,
@@ -102,7 +102,7 @@ const Service = {
 
     const purpose = accountDetails.entity === 'student' ? 'Payment:School-Fees' : 'Funding:Wallet-Top-Up';
 
-    const wallet = await WalletREPO.findWallet({ id: accountDetails.Wallet.id }, ['id', 'currency'], ['User']);
+    const wallet = await WalletREPO.findWallet({ id: accountDetails.Wallet.id }, ['id', 'currency'], undefined, ['User']);
     if (!wallet) throw new ValidationError(`Not connected to a wallet`);
 
     const metadata = {

@@ -2,25 +2,23 @@ import randomstring from 'randomstring';
 import { MigrationInterface, QueryRunner, getRepository } from 'typeorm';
 import { WEMA_ACCOUNT_PREFIX } from '../../utils/secrets';
 
-export class PopulateReservedAccounts1702688808461 implements MigrationInterface {
+export class PopulateReservedAccountsForSchools1703069359372 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const studentsWithWallets = await queryRunner.manager
+    const schoolsWithWallets = await queryRunner.manager
       .createQueryBuilder()
-      .select('student.id', 'studentId')
-      .addSelect('wallet.id', 'walletId')
-      .addSelect("CONCAT(user.first_name, ' ', user.last_name)", 'userName')
-      .addSelect('school.name', 'schoolName')
-      .from('Student', 'student')
-      .leftJoin('student.User', 'user')
-      .leftJoin('student.School', 'school')
+      .select('school.id', 'entity_id')
+      .addSelect('wallet.id', 'wallet_id')
+      .addSelect('school.name', 'reserved_account_name')
+      .from('Schools', 'school')
       .leftJoin('Wallets', 'wallet', "wallet.entity = 'school' AND wallet.entity_id = school.id")
       .where('wallet.entity = :entity', { entity: 'school' })
       .getRawMany();
 
     // eslint-disable-next-line no-restricted-syntax
-    for (const student of studentsWithWallets) {
+    for (const school of schoolsWithWallets) {
       const reservedAccountNumber = `${WEMA_ACCOUNT_PREFIX}${randomstring.generate({ length: 7, charset: 'numeric' })}`;
 
+      console.log({ school });
       // eslint-disable-next-line no-await-in-loop
       await queryRunner.manager
         .createQueryBuilder()
@@ -28,18 +26,18 @@ export class PopulateReservedAccounts1702688808461 implements MigrationInterface
         .into('ReservedAccount')
         .values({
           reserved_account_number: reservedAccountNumber,
-          entity: 'student',
-          entity_id: student.studentId,
-          wallet_id: student.walletId,
-          reserved_account_name: `${student.userName}/${student.schoolName}`,
+          entity: 'school',
+          entity_id: school.entity_id,
+          wallet_id: school.wallet_id,
+          reserved_account_name: school.reserved_account_name,
           reserved_bank_code: '000017',
-          created_at: new Date(),
+          // Set other fields as required
         })
         .execute();
     }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Reverting logic (if applicable)
+    // Revert logic, if applicable
   }
 }

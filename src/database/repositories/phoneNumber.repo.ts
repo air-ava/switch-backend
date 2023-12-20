@@ -2,24 +2,25 @@ import { QueryRunner, getRepository, InsertResult, UpdateResult } from 'typeorm'
 import { IPhoneNumber } from '../modelInterfaces';
 import { PhoneNumbers } from '../models/phoneNumber.model';
 
+type QueryParam = Partial<IPhoneNumber> | any;
+type SelectOptions = Array<keyof IPhoneNumber>;
+type RelationOptions = any[];
+type Transaction = QueryRunner | undefined;
+
 export const getOnePhoneNumber = async ({
   queryParams,
   selectOptions = [],
   transaction,
 }: {
-  queryParams: Partial<IPhoneNumber | any>;
-  selectOptions?: Array<keyof IPhoneNumber>;
+  queryParams: QueryParam;
+  selectOptions?: SelectOptions;
   transaction?: QueryRunner;
 }): Promise<PhoneNumbers | undefined> => {
-  return transaction
-    ? transaction.manager.findOne(PhoneNumbers, {
-        where: queryParams,
-        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-      })
-    : getRepository(PhoneNumbers).findOne({
-        where: queryParams,
-        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-      });
+  const repository = transaction ? transaction.manager.getRepository(PhoneNumbers) : getRepository(PhoneNumbers);
+  return repository.findOne({
+    where: queryParams,
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+  });
 };
 
 export const createAPhoneNumber = async ({
@@ -29,8 +30,8 @@ export const createAPhoneNumber = async ({
   queryParams: Partial<IPhoneNumber>;
   transaction?: QueryRunner;
 }): Promise<InsertResult> => {
-  console.log({ queryParams });
-  return transaction ? transaction.manager.insert(PhoneNumbers, queryParams) : getRepository(PhoneNumbers).insert(queryParams);
+  const repository = transaction ? transaction.manager.getRepository(PhoneNumbers) : getRepository(PhoneNumbers);
+  return repository.insert(queryParams);
 };
 
 export const updatePhoneNumber = (
@@ -38,5 +39,6 @@ export const updatePhoneNumber = (
   updateFields: Partial<IPhoneNumber>,
   t?: QueryRunner,
 ): Promise<UpdateResult> => {
-  return t ? t.manager.update(PhoneNumbers, queryParams, updateFields) : getRepository(PhoneNumbers).update(queryParams, updateFields);
+  const repository = t ? t.manager.getRepository(PhoneNumbers) : getRepository(PhoneNumbers);
+  return repository.update(queryParams, updateFields);
 };

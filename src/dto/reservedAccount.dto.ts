@@ -1,9 +1,9 @@
-import { IUser, ISchools } from "../database/modelInterfaces";
+import { IUser, ISchools } from '../database/modelInterfaces';
 
 export interface assignAccountNumberDTO {
   holder: 'student' | 'school';
   holderId: string;
-  user: IUser;
+  user?: IUser;
   school: ISchools;
 }
 

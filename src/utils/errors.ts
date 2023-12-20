@@ -76,7 +76,7 @@ export const consumerResponse = (message: string, channel: Channel, load: Consum
   // eslint-disable-next-line no-useless-return
   return;
 };
-export const consumerException = (message: string, queueLoad?: { channel: Channel, load: ConsumeMessage }): void => {
+export const consumerException = (message: string, queueLoad?: { channel: Channel; load: ConsumeMessage }): void => {
   logger.error(message);
   if (queueLoad) {
     const { channel, load } = queueLoad;
@@ -94,6 +94,15 @@ export const catchErrors = (fn: any) => {
       res.status(status).json({ success: false, error: message, data });
     });
   };
+};
+
+export const catchErrorsWithLogs = async (fn: any, ...args: any[]) => {
+  try {
+    return fn(...args);
+  } catch (error: any) {
+    console.error('Error occurred:', error);
+    throw error;
+  }
 };
 
 export { AuthenticationError, CustomError, ValidationError, NotFoundError, ForbiddenError, HttpStatus, ExistsError, FailedDependencyError };

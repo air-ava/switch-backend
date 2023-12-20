@@ -52,6 +52,7 @@ import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
 import { sendEmail } from '../utils/mailtrap';
 import { CURRENCIES } from '../database/models/currencies.model';
+import ReservedAccountService from './reservedAccount.service';
 
 class StudentSetupBuilder {
   private classId: string | number;
@@ -178,7 +179,6 @@ const Service: ServiceInterface = {
 
     // Convert status to its corresponding numerical value
     const statusValue = STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'];
-    console.log({ payload, statusValue });
 
     // Check if user already exists
     const existingUser = await findUser(
@@ -233,15 +233,14 @@ const Service: ServiceInterface = {
     const existingStudentClass = await getStudentClass({ studentId: student.id, classId }, [], []);
     if (existingStudentClass) throw new CustomError('Student already exists in the class');
 
-    await saveStudentClassREPO({
-      studentId: student.id,
-      classId,
-      school_id: schoolId,
-      session: session.id,
-    });
+    await saveStudentClassREPO({ studentId: student.id, classId, school_id: schoolId, session: session.id });
 
+    // todo: Make this a queue for guardian
     await Service.addNonExistingGuardians({ school, guardians, student });
+    // todo: Make this a queue for adding Fees
     await Service.addFeesForStudent({ school, schoolClass: foundSchoolClass, student });
+    // todo: Make this a queue for assigning AccountNumber
+    await ReservedAccountService.assignAccountNumber({ holder: 'student', holderId: String(student.id), school });
 
     return sendObjectResponse('Student created successfully');
   },
@@ -263,6 +262,7 @@ const Service: ServiceInterface = {
       ],
       [],
     );
+    // todo: Make fees per student a queue
     if (classFees.length)
       await Promise.all(
         classFees.map(async (classFee: ISchoolProduct) => {
