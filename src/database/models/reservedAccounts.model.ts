@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, UpdateDateColumn, CreateDateColumn, JoinColumn, OneToOne } from 'typeorm';
-import { IWallets } from '../modelInterfaces';
+import { IStudent, IWallets } from '../modelInterfaces';
+import { Student } from './student.model';
+import { Wallets } from './wallets.model';
 
 @Entity('reserved_accounts')
 export class ReservedAccount {
@@ -57,4 +59,12 @@ export class ReservedAccount {
   @OneToOne('Wallets', 'transactions')
   @JoinColumn({ name: 'wallet_id', referencedColumnName: 'id' })
   Wallet: IWallets;
+
+  @ManyToOne(() => Student, (student) => student.ReservedAccounts)
+  @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
+  Students: IStudent;
+  
+  // @ManyToOne(() => Wallets, (wallet) => wallet.ReservedAccounts)
+  // @JoinColumn({ name: 'entity_id', referencedColumnName: 'entity_id' })
+  // Wallets: IWallets;
 }

@@ -1,8 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne, OneToMany } from 'typeorm';
 import { StudentGuardian } from './studentGuardian.model';
-import { IUser, ISchools, IBeneficiaryProductPayment, IPaymentType, IStudentClass } from '../modelInterfaces';
+import { IUser, ISchools, IBeneficiaryProductPayment, IPaymentType, IStudentClass, IReservedAccount } from '../modelInterfaces';
 import { StudentClass } from './studentClass.model';
 import { BeneficiaryProductPayment } from './beneficiaryProductPayment.model';
+import { ReservedAccount } from './reservedAccounts.model';
 
 @Entity('students')
 export class Student {
@@ -65,4 +66,7 @@ export class Student {
   @OneToOne('PaymentType', 'students')
   @JoinColumn({ name: 'paymentTypeId' })
   PaymentType: IPaymentType;
+
+  @OneToMany(() => ReservedAccount, (reservedAccount) => reservedAccount.Students)
+  ReservedAccounts: IReservedAccount[];
 }

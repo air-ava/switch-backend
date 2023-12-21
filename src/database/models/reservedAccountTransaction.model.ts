@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, UpdateDateColumn, CreateDateColumn } from 'typeorm';
 
-@Entity('reservedAccountsTransactions')
+@Entity('reserved_accounts_transactions')
 export class ReservedAccountsTransaction {
   @PrimaryGeneratedColumn('increment')
   id: number;

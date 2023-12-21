@@ -445,6 +445,7 @@ const Service: ServiceInterface = {
         'StudentGuardians',
         'StudentGuardians.Guardian',
         'StudentGuardians.Guardian.phoneNumber',
+        'ReservedAccounts',
       ],
     );
     if (!student) throw new NotFoundError('Student');

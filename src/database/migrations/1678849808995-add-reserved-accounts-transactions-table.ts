@@ -4,7 +4,7 @@ export class addReservedAccountsTransactionsTable1678849808995 implements Migrat
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'reservedAccountsTransactions',
+        name: 'reserved_accounts_transactions',
         columns: [
           {
             name: 'id',

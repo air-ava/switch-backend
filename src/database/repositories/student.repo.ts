@@ -9,16 +9,12 @@ export const getStudent = async (
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<Student | undefined> => {
-  return t
-    ? t.manager.findOne(Student, {
-        where: queryParam,
-        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-      })
-    : getRepository(Student).findOne({
-        where: queryParam,
-        ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-        ...(relationOptions && { relations: relationOptions }),
-      });
+  const repository = t ? t.manager.getRepository(Student) : getRepository(Student);
+  return repository.findOne({
+    where: queryParam,
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+    ...(relationOptions && { relations: relationOptions }),
+  });
 };
 
 export const listStudent = async (
