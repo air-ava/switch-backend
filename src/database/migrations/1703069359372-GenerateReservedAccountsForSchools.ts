@@ -12,6 +12,7 @@ export class PopulateReservedAccountsForSchools1703069359372 implements Migratio
       .from('Schools', 'school')
       .leftJoin('Wallets', 'wallet', "wallet.entity = 'school' AND wallet.entity_id = school.id")
       .where('wallet.entity = :entity', { entity: 'school' })
+      .andWhere('wallet.currency = :currency', { currency: 'NGN' })
       .getRawMany();
 
     // eslint-disable-next-line no-restricted-syntax

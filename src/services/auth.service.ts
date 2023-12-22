@@ -411,7 +411,7 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
         entity: 'school',
         entityId: school.id,
       });
-      ReservedAccountService.assignAccountNumber({ holder: 'school', holderId: String(school.id), school });
+      if (school.country === 'NIGERIA') ReservedAccountService.assignAccountNumber({ holder: 'school', holderId: String(school.id), school });
     }
 
     const token = generateToken(userAlreadyExist);

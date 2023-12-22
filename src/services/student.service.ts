@@ -240,7 +240,7 @@ const Service: ServiceInterface = {
     // todo: Make this a queue for adding Fees
     await Service.addFeesForStudent({ school, schoolClass: foundSchoolClass, student });
     // todo: Make this a queue for assigning AccountNumber
-    await ReservedAccountService.assignAccountNumber({ holder: 'student', holderId: String(student.id), school });
+    if (school.country === 'NIGERIA') await ReservedAccountService.assignAccountNumber({ holder: 'student', holderId: String(student.id), school });
 
     return sendObjectResponse('Student created successfully');
   },
