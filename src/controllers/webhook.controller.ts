@@ -32,11 +32,9 @@ export const smileIdWEBHOOK: RequestHandler = async (req, res): Promise<void> =>
   try {
     // logger.info(req.body);
     ResponseService.success(res, 'OK');
-    console.log({ 'req.body': req.body });
     await SmileIdWebhook.basicKycResponseNew(req.body);
     // await SmileIdWebhook.basicKycResponse(req.body);
   } catch (error) {
-    console.log(error);
     res.status(200).json({ success: false, error }).end();
   }
 };
@@ -45,11 +43,9 @@ export const wemaWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
   try {
     logger.info(req.body);
     const response = await WemaWebhook.verifyAccountNumber(req.body);
-    console.log({ response });
     if (response.status === '07') ResponseService.invalid(res, response.status);
     res.status(200).json(response);
   } catch (error) {
-    console.log(error);
     res.status(200).json({ success: false, error }).end();
   }
 };
@@ -58,11 +54,9 @@ export const wemaDepositWEBHOOK: RequestHandler = async (req, res): Promise<void
   try {
     logger.info(req.body);
     const response = await WemaWebhook.incomingDeposit(req.body);
-    console.log({ response });
     if (response.status === '07') ResponseService.invalid(res, response.status);
     res.status(200).json(response);
   } catch (error) {
-    console.log(error);
     res.status(200).json({ success: false, error }).end();
   }
 };
