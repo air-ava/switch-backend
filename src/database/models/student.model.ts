@@ -11,6 +11,9 @@ export class Student {
   id: number;
 
   @Column()
+  code: string;
+
+  @Column()
   schoolId: number;
 
   @Column()

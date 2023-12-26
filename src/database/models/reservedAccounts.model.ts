@@ -8,6 +8,9 @@ export class ReservedAccount {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  code: string;
+
   @Column({ type: 'varchar' })
   reserved_account_number: string;
 

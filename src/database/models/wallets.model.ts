@@ -8,6 +8,9 @@ export class Wallets {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  code: string;
+
   @Column({ unique: true })
   userId: string;
 

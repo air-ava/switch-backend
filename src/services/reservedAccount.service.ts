@@ -16,7 +16,7 @@ import { WEMA_ACCOUNT_PREFIX } from '../utils/secrets';
 import { Service as WalletService } from './wallet.service';
 import Utils from '../utils/utils';
 import { creditWalletOnReservedAccountFundingSCHEMA } from '../validators/reservedAccount.validator';
-import { getTransactionByExternalRef, getTransactionsREPO, updateTransactionREPO } from '../database/repositories/transaction.repo';
+import { getOneTransactionREPO, getTransactionByExternalRef, getTransactionsByExternalReference, getTransactionsREPO, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { dbTransaction, getQueryRunner } from '../database/helpers/db';
 import { publishMessage } from '../utils/amqpProducer';
 import Settings from './settings.service';
@@ -111,14 +111,15 @@ const Service = {
       ...(wallet.business_account_number_prefix && { inflow_account: reserved_account_number }),
     };
 
-    const completedDeposit = await dbTransaction(Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference });
+    console.log('funding:1', metadata, wallet, purpose, accountDetails);
+    const completedDeposit = await dbTransaction(await Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference });
 
     // todo: recording a reserved acccount funding should be a queue, same with mobi;e money funding
-    dbTransaction(Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
+    dbTransaction(await Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
 
     // ?for fee Charges
     // todo: put debit transaction fee into a queue
-    dbTransaction(Service.completeTransactionCharge, { ...data, purpose, wallet, metadata, amount, reference });
+    dbTransaction(await Service.completeTransactionCharge, { ...data, purpose, wallet, metadata, amount, reference });
 
     // todo: Notifications
     Service.completeTransactionNotification({ user: wallet.User, wallet, amount, reference, originator_account_name });
@@ -129,20 +130,22 @@ const Service = {
   async completeWalletDeposit(queryRunner: QueryRunner, data: any): Promise<theResponse> {
     const { purpose, wallet, amount, narration, external_reference, reference, metadata } = data;
 
-    const transaction = await getTransactionByExternalRef(external_reference, queryRunner);
+    const transaction = await getTransactionsByExternalReference(external_reference, queryRunner);
     if (transaction.length) throw new ValidationError(`Duplicate transaction`);
 
+    console.log('funding:2', data, transaction);
     const creditResult = await WalletService.creditWallet({
       amount,
-      user_mobile: wallet.user_mobile,
+      user: wallet.User,
       wallet_id: wallet.id,
       purpose,
-      description: narration,
       reference,
+      description: narration,
       t: queryRunner,
       metadata,
     });
 
+    console.log('funding:2:b', creditResult);
     if (!creditResult.success) {
       throw new ValidationError(creditResult.error);
       // todo: notify slack
@@ -210,7 +213,8 @@ const Service = {
       bank_routing_number,
     } = data;
 
-    const transaction = await getTransactionsREPO({ reference, purpose }, [], ['User', 'Wallet', 'Reciepts'], t);
+    const transaction = await getOneTransactionREPO({ reference, purpose }, [], ['User', 'Wallet', 'Reciepts'], t);
+    console.log('funding:4', transaction, data);
     if (!transaction) {
       // ?consumerException(`No transaction with reference ${reference}`);
       // todo: Add Slack Notification

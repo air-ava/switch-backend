@@ -1,4 +1,5 @@
 import { QueryRunner, getRepository, UpdateResult, InsertResult } from 'typeorm';
+import randomstring from 'randomstring';
 import Utils from '../../utils/utils';
 import { ReservedAccountsTransaction } from '../models/reservedAccountTransaction.model';
 import { IReservedAccountsTransaction } from '../modelInterfaces';
@@ -82,7 +83,11 @@ const ReservedAccountsTransactionRepository = {
     t?: Transaction,
   ): Promise<ReservedAccountsTransaction> {
     const repository = t ? t.manager.getRepository(ReservedAccountsTransaction) : getRepository(ReservedAccountsTransaction);
-    return repository.save(queryParams);
+    const payload = {
+      code: `rst_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+      ...queryParams,
+    };
+    return repository.save(payload);
   },
 
   async saveReservedAccountTransaction(
@@ -90,7 +95,11 @@ const ReservedAccountsTransactionRepository = {
     t?: Transaction,
   ): Promise<InsertResult> {
     const repository = t ? t.manager.getRepository(ReservedAccountsTransaction) : getRepository(ReservedAccountsTransaction);
-    return repository.insert(queryParams);
+    const payload = {
+      code: `rst_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+      ...queryParams,
+    };
+    return repository.insert(payload);
   },
 
   async updateReservedAccountTransaction(

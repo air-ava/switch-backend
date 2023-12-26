@@ -1,4 +1,5 @@
 import { QueryRunner, getRepository, UpdateResult } from 'typeorm';
+import randomstring from 'randomstring';
 import Utils from '../../utils/utils';
 import { IReservedAccount } from '../modelInterfaces';
 import { ReservedAccount } from '../models/reservedAccounts.model';
@@ -79,7 +80,11 @@ const ReservedAccountRepository = {
 
   async createReservedAccount(queryParams: Partial<ReservedAccount> | Partial<ReservedAccount>[] | any, t?: Transaction): Promise<ReservedAccount> {
     const repository = t ? t.manager.getRepository(ReservedAccount) : getRepository(ReservedAccount);
-    return repository.save(queryParams);
+    const payload = {
+      code: `rsa_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+      ...queryParams,
+    };
+    return repository.save(payload);
   },
 
   async updateReservedAccount(queryParams: Partial<ReservedAccount>, updateFields: QueryParam, t?: Transaction): Promise<UpdateResult> {

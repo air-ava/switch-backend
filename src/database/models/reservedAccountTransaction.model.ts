@@ -1,9 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, UpdateDateColumn, CreateDateColumn } from 'typeorm';
 
-@Entity('reserved_accounts_transactions')
+@Entity('reserved_account_transactions')
 export class ReservedAccountsTransaction {
   @PrimaryGeneratedColumn('increment')
   id: number;
+
+  @Column()
+  code: string;
 
   @Column({ type: 'int' })
   walletId: number;

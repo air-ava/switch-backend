@@ -1,4 +1,5 @@
 import { QueryRunner, getRepository, In, UpdateResult, LessThan, MoreThan } from 'typeorm';
+import randomstring from 'randomstring';
 import { IStudent } from '../modelInterfaces';
 import { Student } from '../models/student.model';
 import Utils from '../../utils/utils';
@@ -62,7 +63,12 @@ export const listStudent = async (
 };
 
 export const saveStudentREPO = (queryParams: Partial<IStudent> | Partial<IStudent>[] | any, transaction?: QueryRunner): Promise<any> => {
-  return transaction ? transaction.manager.save(Student, queryParams) : getRepository(Student).save(queryParams);
+  const repository = transaction ? transaction.manager.getRepository(Student) : getRepository(Student);
+  const payload = {
+    code: `std_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    ...queryParams,
+  };
+  return repository.save(payload);
 };
 
 export const updateStudent = (queryParams: Pick<IStudent, 'id'>, updateFields: Partial<IStudent>, t?: QueryRunner): Promise<UpdateResult> => {
