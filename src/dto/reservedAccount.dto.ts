@@ -16,6 +16,7 @@ export interface creditWalletOnReservedAccountFundingDTO {
   reserved_account_number: string;
   external_reference: string;
   session_id: string;
+  reference: string;
   bank_name: string;
   bank_code: string;
   amountInKobo?: boolean;

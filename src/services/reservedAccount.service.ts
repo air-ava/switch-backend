@@ -16,7 +16,13 @@ import { WEMA_ACCOUNT_PREFIX } from '../utils/secrets';
 import { Service as WalletService } from './wallet.service';
 import Utils from '../utils/utils';
 import { creditWalletOnReservedAccountFundingSCHEMA } from '../validators/reservedAccount.validator';
-import { getOneTransactionREPO, getTransactionByExternalRef, getTransactionsByExternalReference, getTransactionsREPO, updateTransactionREPO } from '../database/repositories/transaction.repo';
+import {
+  getOneTransactionREPO,
+  getTransactionByExternalRef,
+  getTransactionsByExternalReference,
+  getTransactionsREPO,
+  updateTransactionREPO,
+} from '../database/repositories/transaction.repo';
 import { dbTransaction, getQueryRunner } from '../database/helpers/db';
 import { publishMessage } from '../utils/amqpProducer';
 import Settings from './settings.service';
@@ -89,10 +95,10 @@ const Service = {
   },
 
   async creditWalletOnReservedAccountFunding(data: creditWalletOnReservedAccountFundingDTO): Promise<theResponse> {
-    const { amount: fixedAmount, originator_account_name, reserved_account_number, external_reference } = data;
+    const { reference, amount: fixedAmount, originator_account_name, reserved_account_number, external_reference } = data;
 
     const amount = Utils.convertCurrencyToSmallerUnit(fixedAmount);
-    const reference = v4();
+    // const reference = reference || v4();
 
     const validation = creditWalletOnReservedAccountFundingSCHEMA.validate({ ...data, amount });
     if (validation.error) throw new ValidationError(validation.error.message);
@@ -105,25 +111,30 @@ const Service = {
     const wallet = await WalletREPO.findWallet({ id: accountDetails.Wallet.id }, ['id', 'currency'], undefined, ['User']);
     if (!wallet) throw new ValidationError(`Not connected to a wallet`);
 
+    let school;
+    if (wallet.entity === 'school') {
+      school = await getSchool({ id: wallet.entity_id }, []);
+    }
+
     const metadata = {
       sender_name: originator_account_name,
       external_reference,
       ...(wallet.business_account_number_prefix && { inflow_account: reserved_account_number }),
     };
 
-    const completedDeposit = await dbTransaction(await Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference });
+    const completedDeposit = await dbTransaction(Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference });
 
     // todo: recording a reserved acccount funding should be a queue, same with mobi;e money funding
-    dbTransaction(await Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
+    dbTransaction(Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
 
     // ?for fee Charges
     // todo: put debit transaction fee into a queue
-    dbTransaction(await Service.completeTransactionCharge, { ...data, purpose, wallet, metadata, amount, reference });
+    dbTransaction(Service.completeTransactionCharge, { ...data, purpose, wallet, metadata, amount, reference });
 
     // todo: Notifications
     Service.completeTransactionNotification({ user: wallet.User, wallet, amount, reference, originator_account_name });
 
-    return completedDeposit;
+    return { ...completedDeposit, school, reference };
   },
 
   async completeWalletDeposit(queryRunner: QueryRunner, data: any): Promise<theResponse> {

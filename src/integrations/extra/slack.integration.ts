@@ -441,7 +441,7 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
           {
             type: 'plain_text',
             text: `${body.amount}`,
-          }
+          },
         ],
       });
       return {

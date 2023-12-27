@@ -129,7 +129,6 @@ const Service: any = {
 
   async listFeesInSchool(data: any): Promise<theResponse> {
     const { school, ...rest } = data;
-    // todo: repo for sum of students and a sum of expected tuition fee
     const response = await listSchoolProduct(
       { school_id: school.id, ...rest },
       [],
@@ -342,7 +341,6 @@ const Service: any = {
     if (schoolProduct) throw new ExistsError(`Fee for this school`);
     schoolProduct = await saveSchoolProduct({ description, amount, currency, image, ...findCriteria });
 
-    // todo: Create a fee per student for the class and school
     const students = foundClassLevel
       ? (
           await listStundentsInSchoolClass(

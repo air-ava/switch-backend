@@ -5,6 +5,8 @@ import { completeTransaction } from '../webhooks/flutterwave.webhook';
 import SmileIdWebhook from '../webhooks/smileId.webhook';
 import WemaWebhook from '../webhooks/wema.webhook';
 import ResponseService from '../utils/response';
+import { STEWARD_BASE_URL } from '../utils/secrets';
+import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 
 export const flutterWaveWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
   try {
@@ -47,9 +49,9 @@ export const wemaWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
 };
 
 export const wemaDepositWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
-  logger.info(req.body);
+  // logger.info(req.body);
+  console.log({ 'req.body:': req.body });
   const response = await WemaWebhook.incomingDeposit(req.body);
   const { status, status_desc, ...rest } = response;
   ResponseService.wemaSuccess(res, status, status_desc, rest);
-  // todo: add 3rd party logging
 };

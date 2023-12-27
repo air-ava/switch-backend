@@ -7,6 +7,9 @@ import { wemaAccountResponse } from '../utils/errors';
 import { accountNumberValidator, incomingDepositValidator } from '../validators/webhook.validator';
 import ReservedAccountService from '../services/reservedAccount.service';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
+import { STEWARD_BASE_URL } from '../utils/secrets';
+import { v4 } from 'uuid';
 
 const Webhook = {
   async verifyAccountNumber(data: any) {
@@ -25,22 +28,25 @@ const Webhook = {
     const { accountnumber, bankname, originatorname } = data;
     let { originatoraccountnumber } = data;
 
+    const reference = v4();
+
     const validation = incomingDepositValidator.validate(data);
     logger.info(JSON.stringify(data));
     if (validation.error) {
       logger.error(validation.error);
-      // todo: add Slack
-      // todo: stop the Deposit
-      //   sendSlackMessage({
-      //     body: {
-      //       processorResponse,
-      //       bankName,
-      //       accountName,
-      //       reference,
-      //       amount,
-      //     },
-      //     feature: 'bank_transfer_failure',
-      //   });
+      sendSlackMessage({
+        body: {
+          amount: Number(data.amount) || 0,
+          reference: data.paymentreference || data.sessionid || '',
+          bankName: bankname,
+          accountName: data.craccountname,
+          accountNumber: data.craccount,
+          processorResponse: JSON.stringify(data),
+        },
+        feature: 'bank_transfer_failure',
+      });
+      throw new ValidationError(`Invalid Account`);
+      // return wemaAccountResponse('00', 'Successfully credited account', { transactionreference: reference });
     }
 
     if (originatoraccountnumber.length > 10) originatoraccountnumber = originatoraccountnumber.substr(1, 10);
@@ -57,11 +63,26 @@ const Webhook = {
       bank_name: bankName,
       session_id: data.sessionid,
       bank_code: data.bankcode,
+      reference,
     });
-
     if (!creditWallet.success) throw new ValidationError(creditWallet.error);
 
-    return wemaAccountResponse('00', 'Successfully retreived account', { transactionreference: creditWallet.data.reference });
+    const { school, reference: transactionreference } = creditWallet.data;
+    // todo: add 3rd party logging
+    saveThirdPartyLogsREPO({
+      event: 'wema.deposit.notification',
+      message: `Wema-Deposit-Webhook:${data.paymentreference || data.sessionid}`,
+      endpoint: `${STEWARD_BASE_URL}/webhook/wema/deposit`,
+      school: school.id,
+      endpoint_verb: 'POST',
+      status_code: '200',
+      payload: JSON.stringify(data),
+      provider_type: 'payment-provider',
+      provider: 'WEMA',
+      reference: transactionreference,
+    });
+
+    return wemaAccountResponse('00', 'Successfully credited account', { transactionreference });
   },
 };
 
