@@ -40,23 +40,16 @@ export const smileIdWEBHOOK: RequestHandler = async (req, res): Promise<void> =>
 };
 
 export const wemaWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
-  try {
-    logger.info(req.body);
-    const response = await WemaWebhook.verifyAccountNumber(req.body);
-    if (response.status === '07') ResponseService.invalid(res, response.status);
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(200).json({ success: false, error }).end();
-  }
+  logger.info(req.body);
+  const response = await WemaWebhook.verifyAccountNumber(req.body);
+  const { status, status_desc, ...rest } = response;
+  ResponseService.wemaSuccess(res, status, status_desc, rest);
 };
 
 export const wemaDepositWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
-  try {
-    logger.info(req.body);
-    const response = await WemaWebhook.incomingDeposit(req.body);
-    if (response.status === '07') ResponseService.invalid(res, response.status);
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(200).json({ success: false, error }).end();
-  }
+  logger.info(req.body);
+  const response = await WemaWebhook.incomingDeposit(req.body);
+  const { status, status_desc, ...rest } = response;
+  ResponseService.wemaSuccess(res, status, status_desc, rest);
+  // todo: add 3rd party logging
 };

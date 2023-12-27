@@ -1,5 +1,6 @@
 import jwt, { SignOptions, sign } from 'jsonwebtoken';
-import { JWT_KEY } from './secrets';
+import { JWT_KEY, WEMA_ACCOUNT_PREFIX } from './secrets';
+import { ControllResponse } from './interface';
 
 export function signToken(payload: string | Record<string, string>, key: string): string {
   return jwt.sign(payload, key);
@@ -65,11 +66,23 @@ export function generateGuardianToken(data: any) {
   return sign(payload, JWT_KEY, signInOptions);
 }
 
-export function decodeToken(token: string, key: string): { success: boolean } {
+export function generateWemaToken() {
+  const payload = {
+    merchant_prefix: WEMA_ACCOUNT_PREFIX,
+    type: 'wema',
+  };
+  // generate JWT
+  return sign(payload, JWT_KEY);
+}
+
+export function decodeToken(token: string, key: string): ControllResponse & { data?: any }{
   try {
-    jwt.verify(token, key);
-    return { success: true };
-  } catch (error) {
-    return { success: false };
+    const data: any = jwt.verify(token, key);
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: any) {
+    return { success: false, error: (error.message === 'jwt must be provided' && error.message) || 'Invalid or expired token provided.' };
   }
 }

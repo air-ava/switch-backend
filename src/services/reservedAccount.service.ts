@@ -111,7 +111,6 @@ const Service = {
       ...(wallet.business_account_number_prefix && { inflow_account: reserved_account_number }),
     };
 
-    console.log('funding:1', metadata, wallet, purpose, accountDetails);
     const completedDeposit = await dbTransaction(await Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference });
 
     // todo: recording a reserved acccount funding should be a queue, same with mobi;e money funding
@@ -133,7 +132,6 @@ const Service = {
     const transaction = await getTransactionsByExternalReference(external_reference, queryRunner);
     if (transaction.length) throw new ValidationError(`Duplicate transaction`);
 
-    console.log('funding:2', data, transaction);
     const creditResult = await WalletService.creditWallet({
       amount,
       user: wallet.User,
@@ -145,7 +143,6 @@ const Service = {
       metadata,
     });
 
-    console.log('funding:2:b', creditResult);
     if (!creditResult.success) {
       throw new ValidationError(creditResult.error);
       // todo: notify slack
@@ -214,7 +211,6 @@ const Service = {
     } = data;
 
     const transaction = await getOneTransactionREPO({ reference, purpose }, [], ['User', 'Wallet', 'Reciepts'], t);
-    console.log('funding:4', transaction, data);
     if (!transaction) {
       // ?consumerException(`No transaction with reference ${reference}`);
       // todo: Add Slack Notification

@@ -62,7 +62,7 @@ export const BadRequestException = (error: string, data?: any): { success: boole
   };
 };
 
-export const invalidAccountResponse = (status = '07', message: string, data?: any): { status: string; status_desc: string; data?: any } => {
+export const wemaAccountResponse = (status = '07', message: string, data?: any): { status: string; status_desc: string; data?: any } => {
   return {
     status,
     status_desc: message,
@@ -92,6 +92,26 @@ export const catchErrors = (fn: any) => {
       console.log({ err });
       const { status = 500, message = 'Internal Server Error', data = null } = err;
       res.status(status).json({ success: false, error: message, data });
+    });
+  };
+};
+
+export const catchWemaWebhookErrors = (fn: any) => {
+  return (req: any, res: any, next: any) => {
+    fn(req, res, next).catch((err: { status?: number; message?: string; data?: any }) => {
+      console.log({ err });
+      const { status = 400, message = 'Internal Server Error', data = null } = err;
+      res.status(status).json({ status: '07', success: false, status_desc: message, data });
+    });
+  };
+};
+
+export const catchWebhookErrors = (fn: any) => {
+  return (req: any, res: any, next: any) => {
+    fn(req, res, next).catch((err: { status?: number; message?: string; data?: any }) => {
+      console.log({ 'Error occurred:': err });
+      const { status = 200 } = err;
+      res.status(status).json({ success: false, error: err }).end();
     });
   };
 };

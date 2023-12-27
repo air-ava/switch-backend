@@ -30,7 +30,7 @@ import {
 import { findUser, createAUser, updateUser, verifyUser, listUser } from '../database/repositories/user.repo';
 import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
-import { generateBackOfficeToken, generateGuardianToken, generateToken } from '../utils/jwt';
+import { generateBackOfficeToken, generateGuardianToken, generateToken, generateWemaToken } from '../utils/jwt';
 import { getBusinessesREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';

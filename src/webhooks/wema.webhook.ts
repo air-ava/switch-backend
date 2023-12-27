@@ -3,7 +3,7 @@ import logger from '../utils/logger';
 import ValidationError from '../utils/validationError';
 import { Repo as WalletRepo } from '../database/repositories/wallet.repo';
 import ReservedAccount from '../database/repositories/reservedAccount.repo';
-import { invalidAccountResponse } from '../utils/errors';
+import { wemaAccountResponse } from '../utils/errors';
 import { accountNumberValidator, incomingDepositValidator } from '../validators/webhook.validator';
 import ReservedAccountService from '../services/reservedAccount.service';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
@@ -13,12 +13,12 @@ const Webhook = {
     const { accountnumber } = data;
     const validation = accountNumberValidator.validate(data);
     logger.info(JSON.stringify(data));
-    if (validation.error) return invalidAccountResponse('07', 'Invalid account');
+    if (validation.error) throw new ValidationError('Invalid account');
 
     const accountDetails = await ReservedAccount.getReservedAccount({ reserved_account_number: accountnumber }, ['reserved_account_name']);
-    if (!accountDetails) return invalidAccountResponse('07', 'Invalid account');
+    if (!accountDetails) throw new ValidationError('Invalid account');
 
-    return invalidAccountResponse('00', 'Successfully retreived account', { accountname: accountDetails.reserved_account_name });
+    return wemaAccountResponse('00', 'Successfully retreived account', { accountname: accountDetails.reserved_account_name });
   },
 
   async incomingDeposit(data: any) {
@@ -29,6 +29,8 @@ const Webhook = {
     logger.info(JSON.stringify(data));
     if (validation.error) {
       logger.error(validation.error);
+      // todo: add Slack
+      // todo: stop the Deposit
       //   sendSlackMessage({
       //     body: {
       //       processorResponse,
@@ -57,9 +59,9 @@ const Webhook = {
       bank_code: data.bankcode,
     });
 
-    if (!creditWallet.success) return invalidAccountResponse('07', creditWallet.error);
+    if (!creditWallet.success) throw new ValidationError(creditWallet.error);
 
-    return invalidAccountResponse('00', 'Successfully retreived account', { transactionreference: creditWallet.data.reference });
+    return wemaAccountResponse('00', 'Successfully retreived account', { transactionreference: creditWallet.data.reference });
   },
 };
 
