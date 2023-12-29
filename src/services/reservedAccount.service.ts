@@ -12,7 +12,7 @@ import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import ReservedAccountREPO from '../database/repositories/reservedAccount.repo';
 import ReservedAccountTransactionREPO from '../database/repositories/reservedAccountTransaction.repo';
 import { theResponse } from '../utils/interface';
-import { WEMA_ACCOUNT_PREFIX } from '../utils/secrets';
+import { STEWARD_BASE_URL, WEMA_ACCOUNT_PREFIX } from '../utils/secrets';
 import { Service as WalletService } from './wallet.service';
 import Utils from '../utils/utils';
 import { creditWalletOnReservedAccountFundingSCHEMA } from '../validators/reservedAccount.validator';
@@ -28,6 +28,8 @@ import { publishMessage } from '../utils/amqpProducer';
 import Settings from './settings.service';
 import logger from '../utils/logger';
 import { IUser, IWallets } from '../database/modelInterfaces';
+import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
+import { sendSlackMessage } from '../integrations/extra/slack.integration';
 
 const Service = {
   generateRandomAccountNumber(): string {
@@ -95,12 +97,12 @@ const Service = {
   },
 
   async creditWalletOnReservedAccountFunding(data: creditWalletOnReservedAccountFundingDTO): Promise<theResponse> {
-    const { reference, amount: fixedAmount, originator_account_name, reserved_account_number, external_reference } = data;
+    const { amount: fixedAmount, originator_account_name, reserved_account_number, external_reference } = data;
 
     const amount = Utils.convertCurrencyToSmallerUnit(fixedAmount);
     // const reference = reference || v4();
-
-    const validation = creditWalletOnReservedAccountFundingSCHEMA.validate({ ...data, amount });
+    const { reference, ...rest } = data;
+    const validation = creditWalletOnReservedAccountFundingSCHEMA.validate({ ...rest, amount });
     if (validation.error) throw new ValidationError(validation.error.message);
 
     const accountDetails = await ReservedAccountREPO.getReservedAccount({ reserved_account_number }, ['reserved_account_name', 'entity'], ['Wallet']);
@@ -108,13 +110,11 @@ const Service = {
 
     const purpose = accountDetails.entity === 'student' ? 'Payment:School-Fees' : 'Funding:Wallet-Top-Up';
 
-    const wallet = await WalletREPO.findWallet({ id: accountDetails.Wallet.id }, ['id', 'currency'], undefined, ['User']);
+    const wallet = await WalletREPO.findWallet({ id: accountDetails.Wallet.id }, ['id', 'currency', 'entity', 'entity_id'], undefined, ['User']);
     if (!wallet) throw new ValidationError(`Not connected to a wallet`);
 
     let school;
-    if (wallet.entity === 'school') {
-      school = await getSchool({ id: wallet.entity_id }, []);
-    }
+    if (wallet.entity === 'school') school = await getSchool({ id: wallet.entity_id }, []);
 
     const metadata = {
       sender_name: originator_account_name,
@@ -122,7 +122,7 @@ const Service = {
       ...(wallet.business_account_number_prefix && { inflow_account: reserved_account_number }),
     };
 
-    const completedDeposit = await dbTransaction(Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference });
+    const completedDeposit = await dbTransaction(Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference, school });
 
     // todo: recording a reserved acccount funding should be a queue, same with mobi;e money funding
     dbTransaction(Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
@@ -134,11 +134,15 @@ const Service = {
     // todo: Notifications
     Service.completeTransactionNotification({ user: wallet.User, wallet, amount, reference, originator_account_name });
 
-    return { ...completedDeposit, school, reference };
+    return sendObjectResponse(`${completedDeposit.message}`, {
+      ...completedDeposit.data,
+      school,
+      reference,
+    });
   },
 
   async completeWalletDeposit(queryRunner: QueryRunner, data: any): Promise<theResponse> {
-    const { purpose, wallet, amount, narration, external_reference, reference, metadata } = data;
+    const { school, purpose, wallet, amount, narration, external_reference, reference, metadata } = data;
 
     const transaction = await getTransactionsByExternalReference(external_reference, queryRunner);
     if (transaction.length) throw new ValidationError(`Duplicate transaction`);
@@ -155,9 +159,31 @@ const Service = {
     });
 
     if (!creditResult.success) {
+      logger.error(creditResult.error);
+      sendSlackMessage({
+        body: {
+          amount: Number(amount) || 0,
+          reference: external_reference || '',
+          bankName: data.bank_name,
+          accountName: data.originator_account_name,
+          accountNumber: data.originator_account_name,
+          processorResponse: JSON.stringify(data),
+        },
+        feature: 'bank_transfer_failure',
+      });
+      saveThirdPartyLogsREPO({
+        event: 'wema.deposit.notification:failure',
+        message: `Wema-Deposit-Webhook:${external_reference}`,
+        endpoint: `${STEWARD_BASE_URL}/webhook/wema/deposit`,
+        school: school.id,
+        endpoint_verb: 'POST',
+        status_code: '200',
+        payload: JSON.stringify(data),
+        provider_type: 'payment-provider',
+        provider: 'WEMA',
+        reference: external_reference,
+      });
       throw new ValidationError(creditResult.error);
-      // todo: notify slack
-      // todo: save in thirdparty logs
     }
 
     return sendObjectResponse(`deposit process completed`, {
@@ -223,8 +249,19 @@ const Service = {
 
     const transaction = await getOneTransactionREPO({ reference, purpose }, [], ['User', 'Wallet', 'Reciepts'], t);
     if (!transaction) {
+      logger.error(data);
       // ?consumerException(`No transaction with reference ${reference}`);
-      // todo: Add Slack Notification
+      sendSlackMessage({
+        body: {
+          amount: Number(amount) || 0,
+          reference: reference || '',
+          bankName: bank_name,
+          accountName: originator_account_name,
+          accountNumber: originator_account_number,
+          processorResponse: JSON.stringify(data),
+        },
+        feature: 'bank_transfer_failure',
+      });
       throw new ValidationError(`No transaction with reference ${reference}`);
     }
 

@@ -50,7 +50,6 @@ export const wemaWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
 
 export const wemaDepositWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
   // logger.info(req.body);
-  console.log({ 'req.body:': req.body });
   const response = await WemaWebhook.incomingDeposit(req.body);
   const { status, status_desc, ...rest } = response;
   ResponseService.wemaSuccess(res, status, status_desc, rest);

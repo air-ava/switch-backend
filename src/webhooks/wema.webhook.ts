@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { v4 } from 'uuid';
 import logger from '../utils/logger';
 import ValidationError from '../utils/validationError';
 import { Repo as WalletRepo } from '../database/repositories/wallet.repo';
@@ -9,7 +10,6 @@ import ReservedAccountService from '../services/reservedAccount.service';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { STEWARD_BASE_URL } from '../utils/secrets';
-import { v4 } from 'uuid';
 
 const Webhook = {
   async verifyAccountNumber(data: any) {
@@ -46,7 +46,6 @@ const Webhook = {
         feature: 'bank_transfer_failure',
       });
       throw new ValidationError(`Invalid Account`);
-      // return wemaAccountResponse('00', 'Successfully credited account', { transactionreference: reference });
     }
 
     if (originatoraccountnumber.length > 10) originatoraccountnumber = originatoraccountnumber.substr(1, 10);
