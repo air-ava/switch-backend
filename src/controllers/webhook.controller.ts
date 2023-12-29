@@ -3,7 +3,10 @@ import logger from '../utils/logger';
 import { bayonicWebhookHandler } from '../webhooks/beyonic.webhook';
 import { completeTransaction } from '../webhooks/flutterwave.webhook';
 import SmileIdWebhook from '../webhooks/smileId.webhook';
+import WemaWebhook from '../webhooks/wema.webhook';
 import ResponseService from '../utils/response';
+import { STEWARD_BASE_URL } from '../utils/secrets';
+import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 
 export const flutterWaveWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
   try {
@@ -31,11 +34,23 @@ export const smileIdWEBHOOK: RequestHandler = async (req, res): Promise<void> =>
   try {
     // logger.info(req.body);
     ResponseService.success(res, 'OK');
-    console.log({ 'req.body': req.body });
     await SmileIdWebhook.basicKycResponseNew(req.body);
     // await SmileIdWebhook.basicKycResponse(req.body);
   } catch (error) {
-    console.log(error);
     res.status(200).json({ success: false, error }).end();
   }
+};
+
+export const wemaWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
+  logger.info(req.body);
+  const response = await WemaWebhook.verifyAccountNumber(req.body);
+  const { status, status_desc, ...rest } = response;
+  ResponseService.wemaSuccess(res, status, status_desc, rest);
+};
+
+export const wemaDepositWEBHOOK: RequestHandler = async (req, res): Promise<void> => {
+  // logger.info(req.body);
+  const response = await WemaWebhook.incomingDeposit(req.body);
+  const { status, status_desc, ...rest } = response;
+  ResponseService.wemaSuccess(res, status, status_desc, rest);
 };

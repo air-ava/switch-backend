@@ -23,3 +23,8 @@ export interface ControllerResponse {
   error?: string;
   message?: string;
 }
+
+export interface ControllResponse {
+  success: boolean;
+  error?: string;
+}

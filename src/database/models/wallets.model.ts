@@ -1,11 +1,15 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Unique, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
-import { ITransaction, IUser } from '../modelInterfaces';
+import { IReservedAccount, ITransaction, IUser } from '../modelInterfaces';
+import { ReservedAccount } from './reservedAccounts.model';
 
 @Entity('wallets')
 @Unique(['id', 'userId', 'currency', 'type', 'entity', 'entity_id'])
 export class Wallets {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  code: string;
 
   @Column({ unique: true })
   userId: string;

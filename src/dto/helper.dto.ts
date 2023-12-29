@@ -50,5 +50,5 @@ export interface jwtDecodedDTO {
   id: string;
   first_name: string;
   name: string;
-  type: 'user' | 'backOffice' | 'guardian';
+  type: 'user' | 'backOffice' | 'guardian' | 'wema';
 }

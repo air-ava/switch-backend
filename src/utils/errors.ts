@@ -2,16 +2,17 @@
 /* eslint-disable no-console */
 // eslint-disable-next-line max-classes-per-file
 
+import { Channel, ConsumeMessage } from 'amqplib';
 import AuthenticationError from './authenticationError';
 import CustomError from './customError';
 import ExistsError from './existsError';
 import FailedDependencyError from './failedDependencyError';
-import failedDependencyError from './failedDependencyError';
 import ForbiddenError from './forbiddenError';
 import HttpStatus from './httpStatus';
 import { Log, log } from './logs';
 import NotFoundError from './notFounfError';
 import ValidationError from './validationError';
+import logger from './logger';
 
 export const BadRequestError = (error: string) => {
   console.log(error);
@@ -61,6 +62,30 @@ export const BadRequestException = (error: string, data?: any): { success: boole
   };
 };
 
+export const wemaAccountResponse = (status = '07', message: string, data?: any): { status: string; status_desc: string; data?: any } => {
+  return {
+    status,
+    status_desc: message,
+    ...data,
+  };
+};
+
+export const consumerResponse = (message: string, channel: Channel, load: ConsumeMessage): void => {
+  logger.info(message);
+  channel.ack(load);
+  // eslint-disable-next-line no-useless-return
+  return;
+};
+export const consumerException = (message: string, queueLoad?: { channel: Channel; load: ConsumeMessage }): void => {
+  logger.error(message);
+  if (queueLoad) {
+    const { channel, load } = queueLoad;
+    channel.ack(load);
+  }
+  // eslint-disable-next-line no-useless-return
+  return;
+};
+
 export const catchErrors = (fn: any) => {
   return (req: any, res: any, next: any) => {
     fn(req, res, next).catch((err: { status?: number; message?: string; data?: any }) => {
@@ -69,6 +94,35 @@ export const catchErrors = (fn: any) => {
       res.status(status).json({ success: false, error: message, data });
     });
   };
+};
+
+export const catchWemaWebhookErrors = (fn: any) => {
+  return (req: any, res: any, next: any) => {
+    fn(req, res, next).catch((err: { status?: number; message?: string; data?: any }) => {
+      console.log({ err });
+      const { status = 400, message = 'Internal Server Error', data = null } = err;
+      res.status(status).json({ status: '07', success: false, status_desc: message, data });
+    });
+  };
+};
+
+export const catchWebhookErrors = (fn: any) => {
+  return (req: any, res: any, next: any) => {
+    fn(req, res, next).catch((err: { status?: number; message?: string; data?: any }) => {
+      console.log({ 'Error occurred:': err });
+      const { status = 200 } = err;
+      res.status(status).json({ success: false, error: err }).end();
+    });
+  };
+};
+
+export const catchErrorsWithLogs = async (fn: any, ...args: any[]) => {
+  try {
+    return fn(...args);
+  } catch (error: any) {
+    console.error('Error occurred:', error);
+    throw error;
+  }
 };
 
 export { AuthenticationError, CustomError, ValidationError, NotFoundError, ForbiddenError, HttpStatus, ExistsError, FailedDependencyError };

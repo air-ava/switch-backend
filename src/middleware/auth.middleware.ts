@@ -120,7 +120,6 @@ export const validateSession: RequestHandler = async (req, res, next) => {
       req.user = foundUser;
       req.organisation = foundOrganisation;
       req.school = foundSchool;
-      // Todo: Get current Educational Session Data
       req.educationalSession = await getSchoolSession({ country: 'UGANDA' || foundSchool.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
       // TODO: Get all running periods for the Schools across multiple education Levels
     }

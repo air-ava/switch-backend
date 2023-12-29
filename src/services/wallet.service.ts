@@ -9,6 +9,7 @@ import { findCurrency } from '../database/repositories/curencies.repo';
 import { BadRequestException, NotFoundError, sendObjectResponse } from '../utils/errors';
 import { ControllerResponse, theResponse } from '../utils/interface';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
+import ReservedAccountREPO from '../database/repositories/reservedAccount.repo';
 import { getQueryRunner } from '../database/helpers/db';
 import { getSchool } from '../database/repositories/schools.repo';
 import { IUser } from '../database/modelInterfaces';
@@ -163,6 +164,8 @@ export const Service: any = {
       t && t,
       relation,
     );
+    if (!t && type === 'fetchWallet')
+      wallet.ReservedAccount = await ReservedAccountREPO.getReservedAccount({ entity: 'school', entity_id: school.id }, []);
 
     // const ConvertedWalletCase = await Promise.all(wallets.map(async (wallet) => toCamelCase(await getFlutterwaveAccountWithWalletInfo(wallet))));
 
@@ -263,6 +266,7 @@ export const Service: any = {
     noTransaction: boolean;
   }): Promise<ControllerResponse> {
     const wallet = await WalletREPO.findWallet({ userId: user.id, id: wallet_id }, ['id', 'balance'], t);
+    console.log({ wallet });
     if (!wallet) {
       return {
         success: false,

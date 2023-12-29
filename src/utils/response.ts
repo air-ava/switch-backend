@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Response } from 'express';
 
 interface Payload {
@@ -73,5 +74,21 @@ export = {
     };
     if (config.data) payload.data = config.data;
     res.status(config.statusCode ?? config.code ?? 200).json(payload);
+  },
+
+  wemaInvalid(res: Response, status = '07', message = 'Invalid authorization') {
+    res.status(400).json({
+      status,
+      status_desc: message,
+    });
+  },
+
+  wemaSuccess(res: Response, status = '00', message = 'Successful', data: any = null) {
+    const payload: any = {
+      status,
+      status_desc: message,
+      ...data,
+    };
+    res.status(200).json(payload);
   },
 };

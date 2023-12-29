@@ -30,7 +30,7 @@ import {
 import { findUser, createAUser, updateUser, verifyUser, listUser } from '../database/repositories/user.repo';
 import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
-import { generateBackOfficeToken, generateGuardianToken, generateToken } from '../utils/jwt';
+import { generateBackOfficeToken, generateGuardianToken, generateToken, generateWemaToken } from '../utils/jwt';
 import { getBusinessesREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
@@ -53,6 +53,7 @@ import { getStudentGuardian, listStudentGuardian } from '../database/repositorie
 import { getStudent } from '../database/repositories/student.repo';
 import { CURRENCIES } from '../database/models/currencies.model';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import ReservedAccountService from './reservedAccount.service';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -410,6 +411,7 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
         entity: 'school',
         entityId: school.id,
       });
+      if (school.country === 'NIGERIA') ReservedAccountService.assignAccountNumber({ holder: 'school', holderId: String(school.id), school });
     }
 
     const token = generateToken(userAlreadyExist);

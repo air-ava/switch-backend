@@ -51,11 +51,6 @@ export const completeContactCreation = async (payload: any): Promise<any> => {
   try {
     // It's a good idea to log all received events.
     // logger.info(payload);
-    console.log({
-      payload,
-      "payload['hook.event']": payload.hook.event,
-    });
-
     let postmanRes;
     // WEBHOOK FOR CARD_TRANSACTION
     // if (payload.event === 'charge.completed' && payload['event.type'] === 'CARD_TRANSACTION') {

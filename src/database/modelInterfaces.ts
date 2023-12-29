@@ -35,57 +35,6 @@ export interface ISettings {
   updated_at?: Date;
 }
 
-// export interface IUser {
-//   id: string;
-//   email: string;
-//   password: string;
-//   code?: string;
-//   phone?: string;
-//   user_type: string;
-//   business_name: string;
-//   country: string;
-//   phone_number: number;
-//   first_name: string;
-//   last_name: string;
-//   image: string;
-//   title: string;
-//   employer: string;
-//   job_title: string;
-//   industry_skills: string;
-//   job_status: string;
-//   state: string;
-//   area: string;
-//   city: string;
-//   bio: string;
-//   provider: string;
-//   provider_id: string;
-//   facebook: string;
-//   linkedin: string;
-//   twitter: string;
-//   website: string;
-//   slug: string;
-//   address: string;
-//   instagram: string;
-//   logo: string;
-//   organisation_email: string;
-//   organisation_headline: string;
-//   organisation_bio: string;
-//   organisation_code: string;
-//   organisation_phone: string;
-//   organisation_address: string;
-//   organisation_country: string;
-//   organisation_state: string;
-//   organisation_area: string;
-//   organisation_city: string;
-//   organisation: number;
-//   remember_token: string | null;
-//   email_verified_at?: Date;
-//   created_at: Date;
-//   updated_at?: Date;
-//   address_id: number;
-//   avatar: number;
-// }
-
 export interface IUser {
   id: string;
   email: string;
@@ -152,6 +101,47 @@ export interface ICountryState {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface IReservedAccountsTransaction {
+  id: number;
+  code: string;
+  walletId: number;
+  transactionId: number;
+  amount: number;
+  originator_account_name: string;
+  originator_account_number: string;
+  bank_name: string;
+  bank_routing_number: string;
+  bank_code: string;
+  processor: string;
+  sessionId: string;
+  response: string;
+  narration: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IReservedAccount {
+  id: number;
+  code: string;
+  reserved_account_number: string;
+  reserved_account_name: string;
+  reserved_bank_name: string;
+  processor: string;
+  status: number;
+  entity: string;
+  entity_id: number;
+  wallet_id: number;
+  type: string;
+  country: string;
+  expired_at: Date | null;
+  deleted_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+  reserved_bank_code: string | null;
+  is_default: boolean;
+}
+
 export interface IPhoneNumber {
   id: number;
   countryCode: string;
@@ -302,6 +292,7 @@ export interface IScholarship {
 
 export interface IWallets {
   id: number;
+  code: string;
   userId: string;
   currency: string;
   type: 'temporary' | 'permanent';
@@ -420,21 +411,6 @@ export interface IProduct {
   created_at: Date;
   updated_at: Date;
 }
-
-// export interface ITransactions {
-//   id: number;
-//   user_id: string;
-//   reference: string;
-//   description?: string;
-//   purpose: string;
-//   response?: string;
-//   currency?: string;
-//   amount: number;
-//   txn_type: 'debit' | 'credit';
-//   metadata: { [key: string]: number | string };
-//   created_at: Date;
-//   updated_at: Date;
-// }
 
 export interface ITransactions {
   id: number;
@@ -741,6 +717,7 @@ export interface ITransaction {
 
 export interface IStudent {
   id: number;
+  code: string;
   schoolId: number;
   uniqueStudentId: string;
   userId: string;
@@ -753,6 +730,7 @@ export interface IStudent {
 
 export interface IStudentClass {
   id: number;
+  code: string;
   studentId: number;
   classId: number;
   status: number;

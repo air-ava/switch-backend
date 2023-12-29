@@ -340,3 +340,12 @@ export const getTransactionsByGroup = async (
 
   return transactions;
 };
+
+export const getTransactionsByExternalReference = async (external_reference: string, t?: QueryRunner): Promise<any[]> => {
+  const queryBuilder = t ? t.manager.createQueryBuilder(Transactions, 'transaction') : getRepository(Transactions).createQueryBuilder('transaction');
+
+  return queryBuilder
+    .select("transaction.metadata->>'$.external_reference'", 'external_reference')
+    .where("transaction.metadata->>'$.external_reference' = :external_reference", { external_reference })
+    .getMany();
+};

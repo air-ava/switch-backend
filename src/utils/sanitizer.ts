@@ -1,4 +1,3 @@
-import { IIndividual } from './../database/modelInterfaces';
 import {
   IBusiness,
   ICurrency,
@@ -13,6 +12,8 @@ import {
   IScholarshipRequirement,
   IStudentClass,
   ITransactions,
+  IIndividual,
+  IReservedAccount,
 } from '../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -101,7 +102,8 @@ export const Sanitizer = {
   },
 
   getStatusById(object: any, value: string): any {
-    return Object.keys(object).find((key) => object[key] === value);
+    const response = Object.keys(object).find((key) => object[key] === value);
+    return response?.toLowerCase();
   },
 
   sanitizeScholarship(payload: IScholarship, extra?: string) {
@@ -280,7 +282,7 @@ export const Sanitizer = {
 
   sanitizeWallet(payload: IScholarshipApplication, addUserId?: boolean): any {
     if (!payload) return null;
-    const { id, userId, User, status, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
+    const { id, userId, User, ReservedAccount, status, uniquePaymentId, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
       isPinSet: !!transaction_pin,
@@ -288,6 +290,8 @@ export const Sanitizer = {
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       ...(addUserId && { userId }),
       owner: User && Sanitizer.sanitizeUser(User),
+      uniquePaymentId: ReservedAccount.reserved_account_number || uniquePaymentId,
+      reservedAccount: ReservedAccount && Sanitizer.sanitizeReservedAccount(ReservedAccount),
     };
     return sanitized;
   },
@@ -336,18 +340,54 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizeReservedAccountLight(payload: any, entity: string): any {
+    if (!Array.isArray(payload)) return [];
+    const [account] = payload && payload.filter((value: IReservedAccount) => value.entity === entity && value.status === STATUSES.ACTIVE);
+    return account;
+  },
+  
+  sanitizeReservedAccount(payload: any): any {
+    if (!payload) return null;
+    const { id, entity, status, entity_id, wallet_id, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status),
+    };
+    return sanitized;
+  },
+
   sanitizeStudent(payload: any): any {
     if (!payload) return null;
-    const { id, StudentGuardians, status, User, paymentTypeId, userId, School, schoolId, Fees, uniqueStudentId, Classes, PaymentType, ...rest } =
-      Sanitizer.jsonify(payload);
+    const {
+      id,
+      StudentGuardians,
+      status,
+      User,
+      paymentTypeId,
+      userId,
+      School,
+      schoolId,
+      Fees,
+      uniqueStudentId,
+      Classes,
+      PaymentType,
+      ReservedAccounts,
+      ...rest
+    } = Sanitizer.jsonify(payload);
     const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+    // const [studentAccount] =
+    //   ReservedAccounts && ReservedAccounts.filter((value: IReservedAccount) => value.entity === 'student' && value.status === STATUSES.ACTIVE);
+    const studentAccount = Sanitizer.sanitizeReservedAccountLight(ReservedAccounts, 'student');
     const paymentFees = Fees && Sanitizer.mapAnArray(Fees, 'FeesHistory');
     const sanitized = {
       id,
       ...rest,
       partPayment: PaymentType && PaymentType.value === 'install-mental' ? PaymentType.value === 'install-mental' : false,
       blockPayment: PaymentType && PaymentType.value === 'no-payment' ? PaymentType.value === 'no-payment' : false,
-      studentId: uniqueStudentId,
+      studentId: studentAccount.reserved_account_number || uniqueStudentId,
+      reservedAccount: studentAccount && Sanitizer.sanitizeReservedAccount(studentAccount),
+      code: uniqueStudentId,
+      hasAccountNumber: !!studentAccount,
       status:
         status &&
         (Sanitizer.getStatusById(STATUSES, status).toLowerCase() === 'deleted'
