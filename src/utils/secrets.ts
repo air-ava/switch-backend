@@ -58,3 +58,6 @@ export const SMILEID_PARTNER_ID = throwIfUndefined('SMILEID_PARTNER_ID');
 export const SMILEID_URL = throwIfUndefined('SMILEID_URL');
 export const SMILEID_CALLBACK_URL = throwIfUndefined('SMILEID_CALLBACK_URL');
 export const SMILEID_ENV = throwIfUndefined('SMILEID_ENV');
+
+export const CRONJOB_URI = throwIfUndefined('CRONJOB_URI');
+export const MOMO_URI = throwIfUndefined('MOMO_URI');

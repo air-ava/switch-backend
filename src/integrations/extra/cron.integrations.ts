@@ -6,6 +6,8 @@ import axios from 'axios';
 import { ValidationError, NotFoundError, FailedDependencyError } from '../../utils/errors';
 import Utils from '../../utils/utils';
 
+const dependency = 'cron-job.org';
+
 export interface Schedule {
   day?: string;
   weekDay?: string;
@@ -92,7 +94,7 @@ const Service: any = {
           schedule: generateSchedule,
           requestMethod: method,
           extendedData: {
-            headers: { 
+            headers: {
               Authorization: `Bearer ${process.env.INTRA_SERVICE_TOKEN}`,
             },
             body: body && `data=${JSON.stringify(body)}`,
@@ -102,7 +104,7 @@ const Service: any = {
       return response;
     } catch (error: any) {
       console.log('424: Cron Integration Error: createAJob failed', error);
-      if (!error.name) throw new FailedDependencyError(error.message);
+      if (!error.name) throw new FailedDependencyError(error.message, dependency);
       if (error.response && error.response.status === 404) throw new NotFoundError('Cron job');
       throw error;
     }
@@ -126,7 +128,7 @@ const Service: any = {
     hour === 'every' ? (generateSchedule.hours = [-1]) : generateSchedule.hours.concat(hour);
 
     if (minute.every) {
-      const everyMinuteDuration = [];
+      const everyMinuteDuration: any[] = [];
       if (60 % minute.duration === 0) {
         let num = 0;
 
@@ -147,7 +149,7 @@ const Service: any = {
       return response;
     } catch (error: any) {
       console.log('424: Cron Integration Error: listJobs failed', error);
-      if (!error.name) throw new FailedDependencyError(error.message);
+      if (!error.name) throw new FailedDependencyError(error.message, dependency);
       if (error.response && error.response.status === 404) throw new NotFoundError('Cron job');
       throw error;
     }
@@ -159,7 +161,7 @@ const Service: any = {
       return response;
     } catch (error: any) {
       console.log('424: Cron Integration Error: fetchJob failed');
-      if (!error.name) throw new FailedDependencyError(error.message);
+      if (!error.name) throw new FailedDependencyError(error.message, dependency);
       if (error.response && error.response.status === 404) throw new NotFoundError('Cron job');
       throw error;
     }
@@ -171,7 +173,7 @@ const Service: any = {
       return response;
     } catch (error: any) {
       console.log('424: Cron Integration Error: deleteJob failed', error);
-      if (!error.name) throw new FailedDependencyError(error.message);
+      if (!error.name) throw new FailedDependencyError(error.message, dependency);
       if (error.response && error.response.status === 404) throw new NotFoundError('Cron job');
       throw error;
     }
@@ -183,7 +185,7 @@ const Service: any = {
       return response;
     } catch (error: any) {
       console.log('424: Cron Integration Error: updateJob failed', error);
-      if (!error.name) throw new FailedDependencyError(error.message);
+      if (!error.name) throw new FailedDependencyError(error.message, dependency);
       if (error.response && error.response.status === 404) throw new NotFoundError('Cron job');
       throw error;
     }
@@ -195,7 +197,7 @@ const Service: any = {
       return response;
     } catch (error: any) {
       console.log('424: Cron Integration Error: fetchJobHistory failed', error);
-      if (!error.name) throw new FailedDependencyError(error.message);
+      if (!error.name) throw new FailedDependencyError(error.message, dependency);
       if (error.response && error.response.status === 404) throw new NotFoundError('Cron job');
       throw error;
     }
@@ -207,14 +209,14 @@ const Service: any = {
       return response;
     } catch (error: any) {
       console.log('424: Cron Integration Error: fetchJobHistoryDetails failed', error);
-      if (!error.name) throw new FailedDependencyError(error.message);
+      if (!error.name) throw new FailedDependencyError(error.message, dependency);
       if (error.response && error.response.status === 404) throw new NotFoundError('Cron job');
       throw error;
     }
   },
 
   getSequence(sequence: string, sequenceNames: any, sortOrder = 'asc'): any {
-    const sequenceNumbers = [];
+    const sequenceNumbers: any[] = [];
     for (const sequenceName of sequenceNames) {
       sequenceNumbers.push(Service[sequence][sequenceName]);
     }

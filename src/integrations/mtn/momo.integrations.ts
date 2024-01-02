@@ -3,6 +3,8 @@ import https from 'https';
 import { ValidationError, NotFoundError, FailedDependencyError } from '../../utils/errors';
 import Utils from '../../utils/utils';
 
+const dependency = 'mtn.com';
+
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
@@ -24,7 +26,7 @@ const Service: any = {
       return response.data;
     } catch (error: any) {
       console.log({ error: error.config.headers, response: error.response });
-      throw new FailedDependencyError(error.response ? error.response.data.message || error.response.statusText : error.message);
+      throw new FailedDependencyError(error.response ? error.response.data.message || error.response.statusText : error.message, dependency);
     }
   },
 
@@ -47,7 +49,7 @@ const Service: any = {
       return response.data;
     } catch (error: any) {
       console.log({ errors: error, error: error.config.headers, response: error.response });
-      throw new FailedDependencyError(error.response ? error.response.data.message || error.response.statusText : error.message);
+      throw new FailedDependencyError(error.response ? error.response.data.message || error.response.statusText : error.message, dependency);
     }
   },
 
