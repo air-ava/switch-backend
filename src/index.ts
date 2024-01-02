@@ -3,6 +3,8 @@
 import * as Sentry from "@sentry/node";
 import { ProfilingIntegration } from "@sentry/profiling-node";
 import express, { Application, NextFunction, Request, Response } from 'express';
+import * as grpc from '@grpc/grpc-js';
+import { loadSync } from '@grpc/proto-loader';
 import { createConnection } from 'typeorm';
 
 import cors from 'cors';
@@ -11,9 +13,6 @@ import helmet from 'helmet';
 import useragent from 'express-useragent';
 
 import Settings from './services/settings.service';
-// import { jsonify } from './utils/sanitizer';
-// import User from './database/models/user.entity';
-// import { getOneUser } from './database/repositories/user.repository';
 import logger from './utils/logger';
 import router from './routes/api';
 import office from './routes/office/index';
@@ -21,12 +20,17 @@ import webhook from './routes/webhook.routes';
 import ussd from './routes/ussd.routes';
 import jobs from './routes/jobs';
 import guardian from './routes/guardian';
-import { PORT, BASE_URL } from './utils/secrets';
+import { PORT, BASE_URL, PROTO_LOCATION, SERVICE_IP, SERVICE_PORT } from './utils/secrets';
 import { Log, log } from './utils/logs';
-
+import Methods from "./protofuncts";
 
 dotenv.config();
 const port = PORT || '3000';
+
+const packageDefinition = loadSync(`${PROTO_LOCATION}/core.proto`);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pkg = grpc.loadPackageDefinition(packageDefinition).core as any;
 
 async function startServer(): Promise<void> {
   const app: Application = express();
@@ -95,18 +99,24 @@ async function startServer(): Promise<void> {
       logger.error('Database connection failed');
       logger.error(JSON.stringify(err));
       console.log({ err });
-
       process.exit(1);
     });
 
   app.listen(port, async () => {
     logger.info(`App is listening on port ${port} !`);
     Settings.init();
-    // eslint-disable-next-line import/no-named-as-default-member
-    // const newUser = await getOneUser({ queryParams: { id: '43e5f477-9541-42dc-8d93-cd025a7d2959' } });
-    // console.log({newUser: jsonify(newUser)})
   });
-
 }
 
+async function startGrpcServer(): Promise<void> {
+  const server = new grpc.Server();
+  server.addService(pkg.Core.service, Methods);
+  server.bindAsync(`${SERVICE_IP}:${SERVICE_PORT}`, grpc.ServerCredentials.createInsecure(), () => {
+    server.start();
+    logger.info(`Service started successfully on ${SERVICE_IP}:${SERVICE_PORT}`);
+  });
+}
+
+
 startServer();
+startGrpcServer();

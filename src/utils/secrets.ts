@@ -61,3 +61,11 @@ export const SMILEID_ENV = throwIfUndefined('SMILEID_ENV');
 
 export const CRONJOB_URI = throwIfUndefined('CRONJOB_URI');
 export const MOMO_URI = throwIfUndefined('MOMO_URI');
+// Core Proto Server Details
+export const PROTO_LOCATION = throwIfUndefined('PROTO_LOCATION');
+export const SERVICE_IP = throwIfUndefined('SERVICE_IP');
+export const SERVICE_PORT = throwIfUndefined('SERVICE_PORT');
+
+// Core Proto Payment Server Details
+export const PAYMENTS_SERVICE_IP = throwIfUndefined('PAYMENTS_SERVICE_IP');
+export const PAYMENTS_SERVICE_PORT = throwIfUndefined('PAYMENTS_SERVICE_PORT');

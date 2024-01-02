@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Response } from 'express';
+import { handleUnaryCall } from '@grpc/grpc-js';
 
 interface Payload {
   message: string;
@@ -90,5 +91,18 @@ export = {
       ...data,
     };
     res.status(200).json(payload);
+  },
+
+  wrapGrpcUnaryCall<TRequest, TControllerResponse>(
+    handler: (request: TRequest) => Promise<TControllerResponse>,
+  ): handleUnaryCall<TRequest, TControllerResponse> {
+    return async (call: any, callback: any) => {
+      try {
+        const response = await handler(call.request);
+        return callback(null, response);
+      } catch (error: any) {
+        return callback(error);
+      }
+    };
   },
 };
