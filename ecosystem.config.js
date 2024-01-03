@@ -3,9 +3,7 @@ module.exports = {
     {
       name: 'base-service',
       script: 'npm',
-      args: 'run start:dev',
-      exec_mode: 'cluster',
-      watch: true,
+      args: 'run start',
     },
     {
       script: 'build/consumer/reviewCustomer.consumer.js',
