@@ -529,6 +529,18 @@ export interface IQuestions {
   updated_at?: Date;
 }
 
+export interface IBanks {
+  id: number;
+  code: string;
+  name: string;
+  bank_code: string;
+  country: string;
+  wema_data: any;
+  logo_url: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface IQuestionnaireTitle {
   id: number;
   title: string;
@@ -763,7 +775,7 @@ export interface ILienTransaction {
   updated_at: Date;
 }
 
-export interface IBanks {
+export interface IBankAccounts {
   id: number;
   provider: string;
   country: string;

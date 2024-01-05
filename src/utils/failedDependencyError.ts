@@ -11,9 +11,9 @@ export default class FailedDependencyError extends Error {
 
   school?: any;
 
-  method: number;
+  method: string;
 
-  constructor(message: string, dependency?: string, data?: { method: number; school?: any; payload?: any; event?: string; endpoint?: string }) {
+  constructor(message: string, dependency?: string, data?: { method: string; school?: any; payload?: any; event?: string; endpoint?: string }) {
     super(message);
     this.name = 'FailedDependencyError';
     this.message = message;
@@ -23,6 +23,6 @@ export default class FailedDependencyError extends Error {
     this.endpoint = data ? data.endpoint : dependency || '';
     this.data = data?.payload || null;
     this.school = data?.school || null;
-    this.method = data ? data.method : 1;
+    this.method = data ? data.method : 'POST';
   }
 }

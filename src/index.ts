@@ -16,7 +16,7 @@ import Settings from './services/settings.service';
 import logger from './utils/logger';
 import router from './routes/api';
 import office from './routes/office/index';
-import webhook from './routes/webhook.routes';
+import webhook from './routes/webhook/webhook.routes';
 import ussd from './routes/ussd.routes';
 import jobs from './routes/jobs';
 import guardian from './routes/guardian';

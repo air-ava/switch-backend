@@ -2,8 +2,6 @@ import { validateAccountDetailsDTO, validateAccountDetailsRES } from '../dto/tra
 import { nameEnquiry } from '../integrations/wema/banks';
 import { catchIntegrationWithThirdPartyLogs, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
-import ValidationError from '../utils/validationError';
-import { verifyAccountDetailsValidator } from '../validators/transfer.validator';
 
 const Service = {
   async validateAccountDetails(payload: validateAccountDetailsDTO): Promise<theResponse> {

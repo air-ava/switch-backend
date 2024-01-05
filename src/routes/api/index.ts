@@ -11,7 +11,7 @@ import addressRouter from './address.routes';
 import cartRouter from './cart.routes';
 import checkoutRouter from './checkout.routes';
 import userRouter from './user.routes';
-import webhookRouter from '../webhook.routes';
+import webhookRouter from '../webhook/webhook.routes';
 import miscillaneousRouter from './miscillaneous.routes';
 import banksRouter from './bank.routes';
 import settlementsRouter from './settlements.routes';
@@ -24,8 +24,8 @@ import sessionRouter from './session.routes';
 import feesRouter from './fees.routes';
 import cashDepositsRouter from './cashDeposits.routes';
 import notificationRouter from './notification.routes';
+import transferRouter from './transfer.routes';
 import { validateSession } from '../../middleware/auth.middleware';
-import Settings from '../../services/settings.service';
 
 const router = express.Router();
 
@@ -42,6 +42,7 @@ router.use('/school', schoolRouter);
 router.use('/students', studentRouter);
 router.use('/scholarship', scholarshipRouter);
 router.use('/transactions', transactionsRouter);
+router.use('/transfer', transferRouter);
 router.use('/wallets', walletsRouter);
 router.use('/payments', paymentsRouter);
 router.use('/product', productRouter);

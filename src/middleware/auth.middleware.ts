@@ -16,6 +16,7 @@ import { jwtDecodedDTO, jwtDTO } from '../dto/helper.dto';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 import { findIndividual } from '../database/repositories/individual.repo';
 import { getStudentGuardian } from '../database/repositories/studentGuardian.repo';
+import Settings from '../services/settings.service';
 
 const decodeToken = (token: string): ControllerResponse & { data?: jwtDecodedDTO } => {
   try {
@@ -108,19 +109,31 @@ export const validateSession: RequestHandler = async (req, res, next) => {
       // New
       const { user: foundUser } = await sessionData.getBackOfficeSessionData(sessionDataPayload);
       req.backOfficeUser = foundUser;
+      Settings.set('USER', foundUser);
     } else if (extractedData.type === 'guardian') {
       const { individual, school, organisation, student } = await sessionData.getGuardianSessionData(sessionDataPayload);
       req.guardian = individual;
       req.school = school;
       req.organisation = organisation;
       req.student = student;
+
+      Settings.set('SCHOOL', school);
+      Settings.set('GUARDIAN', individual);
+      Settings.set('ORGANISATION', organisation);
+      Settings.set('STUDENT', student);
     } else {
       // New
       const { user: foundUser, school: foundSchool, organisation: foundOrganisation } = await sessionData.getDashboardSessionData(sessionDataPayload);
       req.user = foundUser;
       req.organisation = foundOrganisation;
       req.school = foundSchool;
-      req.educationalSession = await getSchoolSession({ country: 'UGANDA' || foundSchool.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
+      const session = await getSchoolSession({ country: 'UGANDA' || foundSchool.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
+      req.educationalSession = session;
+
+      Settings.set('SCHOOL', foundSchool);
+      Settings.set('SESSION', session);
+      Settings.set('ORGANISATION', foundOrganisation);
+      Settings.set('USER', foundUser);
       // TODO: Get all running periods for the Schools across multiple education Levels
     }
     return next();

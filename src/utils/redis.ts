@@ -11,12 +11,12 @@ import { REDIS_URL } from './secrets';
 const client = createClient({ url: REDIS_URL });
 export const redisClient = client;
 
-client.on('connect', () => {
-  logger.info('Redis client connected');
-});
-
 client.on('error', (err: any) => {
   logger.info(`Something went wrong ${err}`);
+});
+
+client.on('connect', () => {
+  logger.info('Redis client connected');
 });
 
 export const get = (key: string): Promise<string | null> => {

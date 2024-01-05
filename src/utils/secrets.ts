@@ -45,6 +45,7 @@ export const AMQP_CLIENT = throwIfUndefined('AMQP_CLIENT');
 export const WEMA_ACCOUNT_PREFIX = throwIfUndefined('WEMA_ACCOUNT_PREFIX');
 export const WEMA_BANK_BASE_URL = throwIfUndefined('WEMA_BANK_BASE_URL');
 export const WEMA_VENDOR_ID = throwIfUndefined('WEMA_VENDOR_ID');
+export const WEMA_AUTH_TOKEN = throwIfUndefined('WEMA_AUTH_TOKEN');
 export const WEMA_ENCRYPTION_KEY = throwIfUndefined('WEMA_ENCRYPTION_KEY');
 export const WEMA_ENCRYPTION_IV = throwIfUndefined('WEMA_ENCRYPTION_IV');
 export const WEMA_USERNAME = throwIfUndefined('WEMA_USERNAME');

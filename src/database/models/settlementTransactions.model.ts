@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
-import { IBanks, IStatus, ITransactions } from '../modelInterfaces';
+import { IBankAccounts, IStatus, ITransactions } from '../modelInterfaces';
 import { Transactions } from './transaction.model';
 
 @Entity('settlementTransactions')
@@ -41,9 +41,9 @@ export class SettlementTransactions {
   @JoinColumn({ name: 'status', referencedColumnName: 'id' })
   Status: IStatus;
 
-  @OneToOne('Banks', 'settlementTransactions')
+  @OneToOne('BankAccounts', 'settlementTransactions')
   @JoinColumn({ name: 'bankId', referencedColumnName: 'id' })
-  Bank: IBanks;
+  Bank: IBankAccounts;
 
   @OneToOne('Transactions', 'settlementTransactions')
   @JoinColumn({ name: 'tx_reference', referencedColumnName: 'reference' })

@@ -7,6 +7,7 @@ import { PaymentType } from '../database/models/paymentType.model';
 import { findSettingsREPO } from '../database/repositories/settings.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import Utils from '../utils/utils';
+import { STEWARD_BASE_URL, SMILEID_CALLBACK_URL, CRONJOB_URI, FLUTTERWAVE_BASE_URL, MOMO_URI } from '../utils/secrets';
 
 const settings: any = {
   TRANSACTION_FEES: {
@@ -84,6 +85,19 @@ const settings: any = {
       type: 'credit',
     },
   },
+  PROVIDERS: {
+    africastalking: { name: 'AFRICAS-TALKING', type: 'ussd-provider', endpoint: `${STEWARD_BASE_URL}/webhook/africastalking` },
+    beyonic: { name: 'BEYONIC', type: 'payment-provider', endpoint: `${STEWARD_BASE_URL}/webhook/beyonic` },
+    'smileidentity.com': { name: 'SMILEID', type: 'verifier', endpoint: SMILEID_CALLBACK_URL },
+    'wemabank.com': { name: 'WEMA', type: 'payment-provider', endpoint: `${STEWARD_BASE_URL}/webhook/wema` },
+    'cron-job.org': { name: 'CRON-JOB', type: 'utility-provider', endpoint: CRONJOB_URI },
+    'slack.com': { name: 'SLACK', type: 'notification-provider', endpoint: 'https://slack.com/api/chat.postMessage' },
+    'flutterwave.com': { name: 'FLUTTERWAVE', type: 'payment-provider', endpoint: FLUTTERWAVE_BASE_URL },
+    cloudinary: { name: 'CLOUDINARY', type: 'utility-provider', endpoint: 'FUNCTION: cloudinary.uploader.upload' },
+    'smtp.gmail.com': { name: 'GMAIL', type: 'notification-provider', endpoint: 'FUNCTION: nodeMailer.createTransport.sendMail' },
+    'smtp.mailtrap.io': { name: 'MAILTRAP', type: 'notification-provider', endpoint: 'FUNCTION: nodeMailer.createTransport.sendMail' },
+    'mtn.com': { name: 'MTN', type: 'payment-provider', endpoint: MOMO_URI },
+  }
 };
 
 // eslint-disable-next-line consistent-return
@@ -137,9 +151,14 @@ const Service = {
   async init(): Promise<void> {
     await Promise.all([loadSettings(), loadJobTitles(), loadPaymentTypes(), loadFeeTypes(), loadCurrencies()]);
   },
+
   get(key: string): any {
     loadSettings();
     return settings[key];
+  },
+
+  set(key: string, payload: any): void {
+    settings[key.toUpperCase()] = payload;
   },
 
   settings,

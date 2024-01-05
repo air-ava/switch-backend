@@ -6,7 +6,7 @@ import { STATUSES } from '../database/models/status.model';
 import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { Sanitizer } from '../utils/sanitizer';
-import BankRepo from '../database/repositories/bank.repo';
+import BankRepo from '../database/repositories/bankAccount.repo';
 import BankTransferRepo from '../database/repositories/bankTransfer.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';

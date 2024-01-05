@@ -7,7 +7,7 @@ import { getSettlementTransactionREPO, listSettlementTransactions, saveSettlemen
 import { getListOfTransactionsForSettlement, getTotalSuccessfulDebit, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
-import BankRepo from '../database/repositories/bank.repo';
+import BankRepo from '../database/repositories/bankAccount.repo';
 import { getQueryRunner } from '../database/helpers/db';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';

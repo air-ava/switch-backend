@@ -1,8 +1,14 @@
 import axios from 'axios';
-import { WEMA_VENDOR_ID, WEMA_BANK_BASE_URL, WEMA_USERNAME, WEMA_PASSWORD, NODE_ENV, ENVIRONMENT } from '../../utils/secrets';
+import { WEMA_VENDOR_ID, WEMA_BANK_BASE_URL, WEMA_USERNAME, WEMA_PASSWORD, NODE_ENV, ENVIRONMENT, WEMA_AUTH_TOKEN } from '../../utils/secrets';
 import { get, setex } from '../../utils/redis';
 import { decrypt, encrypt } from './encryption';
 import logger from '../../utils/logger';
+import FailedDependencyError from '../../utils/failedDependencyError';
+import Settings from '../../services/settings.service';
+import { saveThirdPartyLogsREPO } from '../../database/repositories/thirdParty.repo';
+import { catchIntegrationWithThirdPartyLogs } from '../../utils/errors';
+
+const dependency = 'wemabank.com';
 
 const authorize = async (): Promise<string> => {
   const authResponse = await axios.post(
@@ -21,7 +27,7 @@ const authorize = async (): Promise<string> => {
 };
 
 const confirmAuth = async (): Promise<string> => {
-  let authToken = await get('WEMA:AUTH:TOKEN');
+  let authToken = WEMA_AUTH_TOKEN || (await get('WEMA:AUTH:TOKEN'));
   if (!authToken) {
     authToken = await authorize();
     await setex('WEMA:AUTH:TOKEN', authToken, 23 * 60 * 60);
@@ -29,14 +35,18 @@ const confirmAuth = async (): Promise<string> => {
   return authToken;
 };
 
+const getBankCall = async (endpoint: string, payload: any): Promise<any> => {
+  const response = await axios.get(endpoint, payload);
+  return response.data;
+};
+
 export const getBankList = async (): Promise<{ name: string; code: string }[]> => {
   const token = await confirmAuth();
-  const { data } = await axios.get(`${WEMA_BANK_BASE_URL}/WMServices/GetNIPBanks`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      VendorID: WEMA_VENDOR_ID,
-    },
-  });
+  const endpoint = `${WEMA_BANK_BASE_URL}/WMServices/GetNIPBanks`;
+  const payload = { headers: { Authorization: `Bearer ${token}`, VendorID: WEMA_VENDOR_ID } };
+  // eslint-disable-next-line prettier/prettier
+  const errorPayload = { dependency, method: 'GET', school: Settings.get('SCHOOL'), provider: Settings.get('PROVIDERS'), payload, event: 'wema.get.bankList:failure', endpoint };
+  const data = await catchIntegrationWithThirdPartyLogs(getBankCall, errorPayload, endpoint, payload);
 
   const banks = data.map((record: string) => {
     const [name, code] = record.split('|');

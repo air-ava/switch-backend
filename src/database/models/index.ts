@@ -4,7 +4,7 @@ import { AuditLog } from './auditLogs.model';
 import { BackOfficeBanks } from './backOfficeBanks.model';
 import { BackOfficeUsers } from './backOfficeUser.model';
 import { BankTransfers } from './bankTransfer.model';
-import { Banks } from './banks.model';
+import { BankAccounts } from './bankAccount.model';
 import { BeneficiaryProductPayment } from './beneficiaryProductPayment.model';
 import { Business } from './business.model';
 import { CardTransactions } from './cardTransaction.model';
@@ -86,7 +86,7 @@ const Models: any = {
   image: Image,
   individual: Individual,
   bankTransfers: BankTransfers,
-  banks: Banks,
+  banks: BankAccounts,
   beneficiaryProductPayment: BeneficiaryProductPayment,
   business: Business,
   jobTitle: JobTitle,

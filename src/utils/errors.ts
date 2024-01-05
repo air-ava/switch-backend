@@ -16,28 +16,6 @@ import logger from './logger';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { CRONJOB_URI, FLUTTERWAVE_BASE_URL, MOMO_URI, SMILEID_CALLBACK_URL, STEWARD_BASE_URL } from './secrets';
 
-const provider: any = {
-  africastalking: { name: 'AFRICAS-TALKING', type: 'ussd-provider', endpoint: `${STEWARD_BASE_URL}/webhook/africastalking` },
-  beyonic: { name: 'BEYONIC', type: 'payment-provider', endpoint: `${STEWARD_BASE_URL}/webhook/beyonic` },
-  'smileidentity.com': { name: 'SMILEID', type: 'verifier', endpoint: SMILEID_CALLBACK_URL },
-  'wemabank.com': { name: 'WEMA', type: 'payment-provider', endpoint: `${STEWARD_BASE_URL}/webhook/wema` },
-  'cron-job.org': { name: 'CRON-JOB', type: 'utility-provider', endpoint: CRONJOB_URI },
-  'slack.com': { name: 'SLACK', type: 'notification-provider', endpoint: 'https://slack.com/api/chat.postMessage' },
-  'flutterwave.com': { name: 'FLUTTERWAVE', type: 'payment-provider', endpoint: FLUTTERWAVE_BASE_URL },
-  cloudinary: { name: 'CLOUDINARY', type: 'utility-provider', endpoint: 'FUNCTION: cloudinary.uploader.upload' },
-  'smtp.gmail.com': { name: 'GMAIL', type: 'notification-provider', endpoint: 'FUNCTION: nodeMailer.createTransport.sendMail' },
-  'smtp.mailtrap.io': { name: 'MAILTRAP', type: 'notification-provider', endpoint: 'FUNCTION: nodeMailer.createTransport.sendMail' },
-  'mtn.com': { name: 'MTN', type: 'payment-provider', endpoint: MOMO_URI },
-};
-
-const methods: any = {
-  0: 'GET',
-  1: 'POST',
-  2: 'PUT',
-  3: 'DELETE',
-  4: 'PATCH',
-};
-
 export const BadRequestError = (error: string) => {
   console.log(error);
   return {
@@ -149,29 +127,29 @@ export const catchErrorsWithLogs = async (fn: any, ...args: any[]) => {
   }
 };
 
-export const catchIntegrationWithThirdPartyLogs = async (fn: any, ...args: any[]) => {
+export const catchIntegrationWithThirdPartyLogs = async (fn: any, errorPayload: any, ...args: any[]) => {
   try {
-    console.log({ ...args });
-    return fn(...args);
+    const result = await fn(...args);
+    console.log('Function executed successfully', result);
+    return result;
   } catch (error: any) {
-    console.error('Error occurred response:', error.response);
-    console.error('Error occurred dependency:', error.dependency);
-    console.error('Error occurred message:', error.message);
-    console.error('Error occurred event:', error.event);
-    console.error('Error occurred school:', error.school);
-    console.error('Error occurred method:', error.method);
+    const { provider, dependency, event, endpoint, method, school, payload } = errorPayload;
+    const message = error.response ? error.response.statusText : error.message;
+    const status_code = error.response.status;
+
+    // ? record the bad response
     saveThirdPartyLogsREPO({
-      event: `${error.event}`,
-      message: `${error.dependency}:${error.message}`,
-      endpoint: `${error.endpoint ? error.endpoint : provider[error.dependency].endpoint}`,
-      school: error.school.id,
-      endpoint_verb: methods[error.method],
-      status_code: '200',
-      payload: JSON.stringify(error.payload),
-      provider_type: `${provider[error.dependency].type}`,
-      provider: `${provider[error.dependency].name}`,
+      event,
+      message: `${dependency}:${message}`,
+      endpoint,
+      school: school.id,
+      endpoint_verb: method,
+      status_code,
+      payload: JSON.stringify({ ...payload, error }),
+      provider_type: `${provider[dependency].type}`,
+      provider: `${provider[dependency].name}`,
     });
-    throw error;
+    throw new FailedDependencyError(message, dependency, { school: school.name, method, event, endpoint });
   }
 };
 

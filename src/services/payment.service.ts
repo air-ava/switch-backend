@@ -15,7 +15,7 @@ import { getSchoolDetails } from './school.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';
 import { getListOfTransactionsForSettlement, updateTransactionREPO } from '../database/repositories/transaction.repo';
-import BankRepo from '../database/repositories/bank.repo';
+import BankRepo from '../database/repositories/bankAccount.repo';
 import { saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
 import Settings from './settings.service';
 import { getQueryRunner } from '../database/helpers/db';
