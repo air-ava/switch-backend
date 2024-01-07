@@ -2,26 +2,32 @@
 import { v4 } from 'uuid';
 import logger from '../utils/logger';
 import ValidationError from '../utils/validationError';
-import { Repo as WalletRepo } from '../database/repositories/wallet.repo';
 import ReservedAccount from '../database/repositories/reservedAccount.repo';
-import { wemaAccountResponse } from '../utils/errors';
+import { sendObjectResponse, wemaAccountResponse } from '../utils/errors';
 import { accountNumberValidator, incomingDepositValidator } from '../validators/webhook.validator';
 import ReservedAccountService from '../services/reservedAccount.service';
 import { sendSlackMessage } from '../integrations/extra/slack.integration';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { STEWARD_BASE_URL } from '../utils/secrets';
+import Utils, { toCamel } from '../utils/utils';
 
 const Webhook = {
+  async getReservedAccount(accountnumber: string, gRPCConnection = false) {
+    const accountDetails = await ReservedAccount.getReservedAccount({ reserved_account_number: accountnumber }, ['reserved_account_name']);
+    if (!accountDetails) throw new ValidationError('Invalid account');
+
+    return sendObjectResponse('Successfully retreived account', !gRPCConnection ? accountDetails : toCamel(accountDetails));
+  },
+
   async verifyAccountNumber(data: any) {
     const { accountnumber } = data;
+
     const validation = accountNumberValidator.validate(data);
     logger.info(JSON.stringify(data));
     if (validation.error) throw new ValidationError('Invalid account');
 
-    const accountDetails = await ReservedAccount.getReservedAccount({ reserved_account_number: accountnumber }, ['reserved_account_name']);
-    if (!accountDetails) throw new ValidationError('Invalid account');
-
-    return wemaAccountResponse('00', 'Successfully retreived account', { accountname: accountDetails.reserved_account_name });
+    const accountDetails = await Webhook.getReservedAccount(accountnumber);
+    return wemaAccountResponse('00', accountDetails.message, { accountname: accountDetails.data.reserved_account_name });
   },
 
   async incomingDeposit(data: any) {

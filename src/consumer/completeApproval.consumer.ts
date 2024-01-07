@@ -3,7 +3,7 @@ import { Not, createConnection } from 'typeorm';
 import { getQueryRunner } from '../database/helpers/db';
 
 import { Consumer } from './Consumer';
-import { AMQP_CLIENT, WEMA_ACCOUNT_PREFIX } from '../utils/secrets';
+import { AMQP_CLIENT } from '../utils/secrets';
 // import { countWalletsWithAccountPrefix, addAccountPrefixToWallet } from '../database/repositories/wallet';
 import logger from '../utils/logger';
 import { findIndividual } from '../database/repositories/individual.repo';
@@ -30,7 +30,7 @@ const Service = {
   accountPrefixCreation: new Consumer(
     AMQP_CLIENT,
     'complete:school:approval',
-    async function (msg) {
+    async (msg) => {
       if (!Service.connectionExists) {
         await Service.initConnection();
       }

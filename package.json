@@ -13,7 +13,7 @@
     "migrate": "ts-node --transpile-only ./node_modules/typeorm/cli.js migration:run",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org steward-st --project node ./build && sentry-cli sourcemaps upload --org steward-st --project node ./build"
   },
-  "author": "",
+  "author": "Daniel Adegoke",
   "license": "ISC",
   "dependencies": {
     "@grpc/grpc-js": "^1.9.13",

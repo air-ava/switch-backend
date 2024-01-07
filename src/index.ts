@@ -23,6 +23,8 @@ import guardian from './routes/guardian';
 import { PORT, BASE_URL, PROTO_LOCATION, SERVICE_IP, SERVICE_PORT } from './utils/secrets';
 import { Log, log } from './utils/logs';
 import Methods from "./protofuncts";
+import { notifySlack } from "./protofuncts/notification.method";
+import { getReservedAccount } from "./protofuncts/reservedAccount.method";
 
 dotenv.config();
 const port = PORT || '3000';

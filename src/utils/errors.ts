@@ -127,10 +127,20 @@ export const catchErrorsWithLogs = async (fn: any, ...args: any[]) => {
   }
 };
 
+export const catchErrorsProto = async (fn: any, ...args: any[]) => {
+  try {
+    const result = await fn(...args);
+    return result;
+  } catch (error: any) {
+    console.error('Error occurred:', error);
+    return BadRequestException(error.message, error.data);
+  }
+};
+
+
 export const catchIntegrationWithThirdPartyLogs = async (fn: any, errorPayload: any, ...args: any[]) => {
   try {
     const result = await fn(...args);
-    console.log('Function executed successfully', result);
     return result;
   } catch (error: any) {
     const { provider, dependency, event, endpoint, method, school, payload } = errorPayload;

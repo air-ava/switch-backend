@@ -7,9 +7,8 @@ export class CreateBanksTable1704373279771 implements MigrationInterface {
         name: 'banks',
         columns: [
           { name: 'id', type: 'int', isPrimary: true, isGenerated: true, generationStrategy: 'increment' },
-          { name: 'code', type: 'varchar', isNullable: false },
           { name: 'name', type: 'varchar', isNullable: false },
-          { name: 'bank_code', type: 'varchar', isNullable: false },
+          { name: 'bank_code', type: 'varchar', isNullable: true },
           { name: 'country', type: 'varchar', default: "'NIGERIA'" },
           { name: 'created_at', type: 'datetime', default: 'CURRENT_TIMESTAMP' },
           { name: 'updated_at', type: 'datetime', isNullable: true },

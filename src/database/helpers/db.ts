@@ -40,3 +40,14 @@ export const consumerDbTransaction = async (callback: any, channel: Channel, msg
     await queryRunner.release();
   }
 };
+
+export const consumerFunction = async (callback: any, channel: Channel, msg: ConsumeMessage, data?: any): Promise<any> => {
+  try {
+    const result = await callback(data);
+    channel.ack(msg);
+    return result;
+  } catch (error) {
+    logger.error(JSON.stringify(error));
+    channel.nack(msg, false, true);
+  }
+};

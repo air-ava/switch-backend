@@ -1,4 +1,5 @@
 import { IUser, ISchools } from '../database/modelInterfaces';
+import { ControllerResponse } from '../utils/interface';
 
 export interface assignAccountNumberDTO {
   holder: 'student' | 'school';
@@ -22,3 +23,14 @@ export interface creditWalletOnReservedAccountFundingDTO {
   amountInKobo?: boolean;
   processor?: string;
 }
+
+export type getReservedAccountDTO = {
+  reservedAccountNumber: string;
+};
+
+export type getReservedAccounRES = ControllerResponse & {
+  data?: {
+    reservedAccountName: string;
+    id: number;
+  };
+};

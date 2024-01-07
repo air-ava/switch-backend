@@ -22,6 +22,7 @@ export interface ControllerResponse {
   success: boolean;
   error?: string;
   message?: string;
+  data?: any;
 }
 
 export interface ControllResponse {

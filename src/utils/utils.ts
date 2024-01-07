@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-lonely-if */
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
@@ -189,6 +190,36 @@ export const singleDayStartAndEnd = (date: any = new Date()): { startDate: Date;
   return { startDate, endDate };
 };
 
+const detectObject = (obj: any) => {
+  if (Object.prototype.toString.call(obj) === '[object Object]') {
+    return true;
+  }
+  return false;
+};
+
+const propertyNameConverter =
+  (converterFn: (s: string) => string) =>
+  (data: any): { [key: string]: any } => {
+    const recursive = (obj: any): any => {
+      if (!detectObject(data)) {
+        return data;
+      }
+      const keys = Object.keys(obj);
+      return keys.reduce((accum: { [key: string]: any }, propName: string) => {
+        const propValue = obj[propName];
+        return {
+          ...accum,
+          [converterFn(propName)]: Array.isArray(propValue)
+            ? propValue.map((x) => (detectObject(x) ? recursive(x) : x))
+            : detectObject(propValue)
+            ? recursive(propValue)
+            : propValue,
+        };
+      }, {});
+    };
+    return recursive(data);
+  };
+
 const Utils = {
   isProd() {
     return ENVIRONMENT === 'production';
@@ -213,7 +244,7 @@ const Utils = {
   getDashboardURL() {
     return Utils.isProd() ? `https://app.joinsteward.com` : `https://steward-demo.netlify.app`;
   },
-  
+
   getWebsiteURL() {
     return Utils.isProd() ? `https://joinsteward.com` : `https://steward-website.netlify.app`;
   },
@@ -393,6 +424,15 @@ const Utils = {
   convertCurrencyToSmallerUnit(amount: number, conversionFactor = 100) {
     return amount * conversionFactor;
   },
+  camel(str: string) {
+    return str.replace(/_+(.?)/g, (_, p1) => p1.toUpperCase());
+  },
+  snake(str: string) {
+    return str.replace(/(^[A-Z])/, (_, p1) => p1.toLowerCase()).replace(/([A-Z]+)/g, (_, p1) => `_${p1.toLowerCase()}`);
+  },
 };
+
+export const toSnake = propertyNameConverter(Utils.snake);
+export const toCamel = propertyNameConverter(Utils.camel);
 
 export default Utils;
