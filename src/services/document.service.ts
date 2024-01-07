@@ -14,7 +14,7 @@ import { saveLinkREPO } from '../database/repositories/link.repo';
 import { getSchool, updateSchool } from '../database/repositories/schools.repo';
 import { listDocuments, verifyDocument } from '../validators/document.validator';
 import { publishMessage } from '../utils/amqpProducer';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { ISchools } from '../database/modelInterfaces';
 
 const Service: any = {

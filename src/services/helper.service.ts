@@ -31,7 +31,7 @@ import { getOneOrganisationREPO, createOrganisationREPO } from '../database/repo
 import { getSchool } from '../database/repositories/schools.repo';
 import { listJobTitleREPO } from '../database/repositories/jobTitle.repo';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO, remember_token?: string): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);

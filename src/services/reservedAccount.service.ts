@@ -29,7 +29,7 @@ import Settings from './settings.service';
 import logger from '../utils/logger';
 import { IUser, IWallets } from '../database/modelInterfaces';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 
 const Service = {
   generateRandomAccountNumber(): string {

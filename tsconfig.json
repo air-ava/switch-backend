@@ -106,5 +106,5 @@
     "sourceRoot": "/"
   },
   // , "src/config/db.ts", ".sequelizerc"
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "pm2.state.js"]
 }

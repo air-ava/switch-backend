@@ -9,7 +9,7 @@ import logger from '../utils/logger';
 import { findIndividual } from '../database/repositories/individual.repo';
 import { STATUSES } from '../database/models/status.model';
 import { Repo as DocumentREPO } from '../database/repositories/documents.repo';
-import SmileIDIntegration from '../integrations/verifications/smileId.Integration';
+import SmileIDIntegration from '../integration/verifications/smileId.Integration';
 
 dotenv.config();
 

@@ -16,7 +16,7 @@ import {
   validateChargeRes,
   verifyWebhookChargeReq,
 } from '../dto/cards.dto';
-import { chargedTokenizedCard, initiateCharge, validateCharge, verifyCharge } from '../integrations/flutterwave/cards';
+import { chargedTokenizedCard, initiateCharge, validateCharge, verifyCharge } from '../integration/flutterwave/cards';
 import { BadRequestException, sendObjectResponse } from '../utils/errors';
 import { ControllerResponse } from '../utils/interface';
 import {

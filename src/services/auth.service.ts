@@ -40,7 +40,7 @@ import { getSchool, saveSchoolsREPO } from '../database/repositories/schools.rep
 import { findIndividual, saveIndividual } from '../database/repositories/individual.repo';
 import { Service as WalletService } from './wallet.service';
 import { countryMapping } from '../database/models/users.model';
-import { sendSms } from '../integrations/africasTalking/sms.integration';
+import { sendSms } from '../integration/africasTalking/sms.integration';
 import Settings from './settings.service';
 import Utils, { formatPhoneNumber } from '../utils/utils';
 import { getOnePhoneNumber, updatePhoneNumber } from '../database/repositories/phoneNumber.repo';
@@ -52,7 +52,7 @@ import { businessType } from '../database/models/organisation.model';
 import { getStudentGuardian, listStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { getStudent } from '../database/repositories/student.repo';
 import { CURRENCIES } from '../database/models/currencies.model';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 import ReservedAccountService from './reservedAccount.service';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {

@@ -1,6 +1,6 @@
 import { AMQP_CLIENT } from '../utils/secrets';
 import { Consumer } from './Consumer';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { consumerFunction } from '../database/helpers/db';
 
 interface ISlackMessage {

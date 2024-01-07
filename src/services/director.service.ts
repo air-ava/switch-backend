@@ -13,7 +13,7 @@ import Settings from './settings.service';
 import DocumentService from './document.service';
 import { sendEmail } from '../utils/mailtrap';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 import Utils from '../utils/utils';
 import { Sanitizer } from '../utils/sanitizer';
 import { Repo as DocumentRequirementREPO } from '../database/repositories/documentRequirement.repo';

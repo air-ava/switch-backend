@@ -6,7 +6,7 @@ import ReservedAccount from '../database/repositories/reservedAccount.repo';
 import { sendObjectResponse, wemaAccountResponse } from '../utils/errors';
 import { accountNumberValidator, incomingDepositValidator } from '../validators/webhook.validator';
 import ReservedAccountService from '../services/reservedAccount.service';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { STEWARD_BASE_URL } from '../utils/secrets';
 import Utils, { toCamel } from '../utils/utils';

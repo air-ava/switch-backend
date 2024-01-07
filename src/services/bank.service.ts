@@ -6,9 +6,9 @@ import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { BadRequestException, ResourceNotFoundError, catchIntegrationWithThirdPartyLogs, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { Sanitizer } from '../utils/sanitizer';
-import { listBanks } from '../integrations/bayonic/collection.integration';
+import { listBanks } from '../integration/bayonic/collection.integration';
 import { bankListValidator } from '../validators/banks.validator';
-import { getBankList } from '../integrations/wema/banks';
+import { getBankList } from '../integration/wema/banks';
 
 const Service = {
   async listBanks(data: any): Promise<theResponse> {

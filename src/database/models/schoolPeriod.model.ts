@@ -1,4 +1,4 @@
-import { Schedule } from './../../integrations/extra/cron.integrations';
+import { Schedule } from '../../integration/extra/cron.integrations';
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { IEducationPeriod, ISchoolSession } from '../modelInterfaces';
 

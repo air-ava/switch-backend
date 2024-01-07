@@ -10,7 +10,7 @@ import logger from '../utils/logger';
 import { findIndividual } from '../database/repositories/individual.repo';
 import { STATUSES } from '../database/models/status.model';
 import { Repo as DocumentREPO } from '../database/repositories/documents.repo';
-import SmileIDIntegration from '../integrations/verifications/smileId.Integration';
+import SmileIDIntegration from '../integration/verifications/smileId.Integration';
 import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import CustomError from '../utils/customError';
 import { log, Log } from '../utils/logs';

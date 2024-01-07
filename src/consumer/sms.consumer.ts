@@ -1,7 +1,7 @@
 import { AMQP_CLIENT } from '../utils/secrets';
 import { Consumer } from './Consumer';
 import { consumerFunction } from '../database/helpers/db';
-import { sendSms } from '../integrations/africasTalking/sms.integration';
+import { sendSms } from '../integration/africasTalking/sms.integration';
 
 interface ISmsMessage {
   phoneNumber: string;

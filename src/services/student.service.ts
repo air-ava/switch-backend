@@ -49,7 +49,7 @@ import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { listProductTransaction } from '../database/repositories/productTransaction.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { sendEmail } from '../utils/mailtrap';
 import { CURRENCIES } from '../database/models/currencies.model';
 import ReservedAccountService from './reservedAccount.service';

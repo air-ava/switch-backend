@@ -15,7 +15,7 @@ import { getOneTransactionREPO, updateTransactionREPO } from '../database/reposi
 import { completeBankTransfer, updateBankTransfer } from '../validators/payment.validator';
 import { findUser } from '../database/repositories/user.repo';
 import { createAsset } from './assets.service';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 
 const Service = {
   async recordBankTransfer(data: any): Promise<theResponse> {

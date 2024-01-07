@@ -1,5 +1,5 @@
 import { validateAccountDetailsDTO, validateAccountDetailsRES } from '../dto/transfer.dto';
-import { nameEnquiry } from '../integrations/wema/banks';
+import { nameEnquiry } from '../integration/wema/banks';
 import { catchIntegrationWithThirdPartyLogs, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 
