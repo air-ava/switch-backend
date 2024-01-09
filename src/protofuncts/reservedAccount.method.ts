@@ -8,6 +8,23 @@ import {
   creditWalletOnReservedAccountRES,
 } from '../dto/reservedAccount.dto';
 
+interface ICreditRes {
+  success: boolean;
+  error?: string;
+  message?: string;
+  data: { reference: string };
+  school: {
+    id: number;
+    code: string;
+    name: string;
+    status: number;
+    country: string;
+    slug: string;
+    organisationId: number;
+  };
+  reference: string;
+}
+
 export const getReservedAccount: handleUnaryCall<getReservedAccountDTO, getReservedAccounRES> = async (call, callback) => {
   try {
     const { reservedAccountNumber } = call.request;
@@ -19,17 +36,14 @@ export const getReservedAccount: handleUnaryCall<getReservedAccountDTO, getReser
   }
 };
 
-export const creditWalletOnReservedAccountFunding: handleUnaryCall<creditWalletOnReservedAccountDTO, creditWalletOnReservedAccountRES> = async (
-  call,
-  callback,
-) => {
+export const creditWalletOnReservedAccountFunding: handleUnaryCall<creditWalletOnReservedAccountDTO, ICreditRes> = async (call, callback) => {
   try {
     const {
       amount,
       bankName: bankname,
       bankCode: bankcode,
       sessionId: sessionid,
-      reference,
+      reference: incomingReference,
       narration,
       externalReference: paymentreference,
       reservedAccountName: craccountname,
@@ -38,8 +52,6 @@ export const creditWalletOnReservedAccountFunding: handleUnaryCall<creditWalletO
       originatorAccountNumber: originatoraccountnumber,
     } = call.request;
 
-    console.log({ 'call.request': call.request });
-
     const response = await catchErrorsProto(
       WemaWebhook.creditWalletOnReservedAccount,
       {
@@ -47,7 +59,7 @@ export const creditWalletOnReservedAccountFunding: handleUnaryCall<creditWalletO
         bankname,
         bankcode,
         sessionid,
-        reference,
+        reference: incomingReference,
         narration,
         paymentreference,
         craccountname,
@@ -58,9 +70,11 @@ export const creditWalletOnReservedAccountFunding: handleUnaryCall<creditWalletO
       true,
     );
 
-    console.log({ response });
-    return callback(null, response);
+    const { success, error, message, data, school, reference } = response;
+
+    return callback(null, { success, error, message, data, school, reference });
   } catch (error: any) {
+    console.log({ error });
     return callback(error);
   }
 };

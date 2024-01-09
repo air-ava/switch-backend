@@ -25,7 +25,7 @@ export interface creditWalletOnReservedAccountFundingDTO {
 }
 
 export interface creditWalletOnReservedAccountDTO {
-  amount: number;
+  amount: string;
   bankName: string;
   bankCode: string;
   sessionId: string;
@@ -50,9 +50,6 @@ export type getReservedAccounRES = ControllerResponse & {
 };
 
 export type creditWalletOnReservedAccountRES = ControllerResponse & {
-  data?: {
-    reference: string;
-  };
   school?: {
     id: number;
     code: string;

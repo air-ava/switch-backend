@@ -29,5 +29,9 @@ module.exports = {
       script: 'build/consumer/thirdpartyActivity.consumer.js',
       name: 'thirdparty-activity-logger-consumer',
     },
+    {
+      script: 'build/consumer/debitTransactionCharge.consumer.js',
+      name: 'debit-transaction-charge-consumer',
+    },
   ],
 };
