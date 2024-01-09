@@ -33,5 +33,9 @@ module.exports = {
       script: 'build/consumer/debitTransactionCharge.consumer.js',
       name: 'debit-transaction-charge-consumer',
     },
+    {
+      script: 'build/consumer/recordReservedAccountDeposit.consumer.js',
+      name: 'record-reserved-account-deposit-consumer',
+    },
   ],
 };

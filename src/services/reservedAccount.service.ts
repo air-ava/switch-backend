@@ -125,11 +125,10 @@ const Service = {
     const completedDeposit = await dbTransaction(Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference, school });
 
     // todo: recording a reserved acccount funding should be a queue, same with mobi;e money funding
-    dbTransaction(Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
+    // dbTransaction(Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
+    publishMessage('record:reserved:account:deposit', { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
 
     // ?for fee Charges
-    // todo: put debit transaction fee into a queue
-    // dbTransaction(Service.completeTransactionCharge, { ...data, feesNames: ['debit-fees'], purpose, wallet, metadata, amount, reference });
     publishMessage('debit:transaction:charge', { feesNames: ['debit-fees'], purpose, wallet, amount, narration, metadata, reference });
 
     // todo: Notifications

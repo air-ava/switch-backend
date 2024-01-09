@@ -6,11 +6,15 @@ import logger from '../utils/logger';
 import { consumerDbTransaction } from '../database/helpers/db';
 
 interface IMessage {
-  user_mobile: string;
-  type: string;
+  reciever_id: string; // can be 'user', 'índividual', 'ádmin', 'school', organisation'
+  display_type: 'BANNER' | 'ALERTS' | 'BADGES' | 'POP_UP' | 'MODAL';
+  action_type: 'SYSTEM' | 'REQUEST' | 'INFO' | 'REMINDER';
+  urgency_type: 'HIGH' | 'MEDIUM' | 'LOW';
+  reference_code?: string;
   title: string;
   body: string;
-  request_id: number;
+  for_admin?: boolean;
+  school?: any;
 }
 
 const Service = {
@@ -28,8 +32,8 @@ const Service = {
   },
 
   async saveNotification(content: IMessage) {
-    const { user_mobile, type, title, body, request_id } = content;
-    // await createNotificationREPO({ user_mobile, type, body, ...(title && { title }), ...(request_id && { request_id }) });
+    const { title, body } = content; // can be 'user', 'índividual', 'ádmin', 'school', organisation'
+    // await createNotificationREPO({ reciever_code, type, body, ...(title && { title }), ...(request_id && { request_id }) }); // can be 'user', 'índividual', 'ádmin', 'school', organisation'
   },
 
   appNotificationConsumer: new Consumer(

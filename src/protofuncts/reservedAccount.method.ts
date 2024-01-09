@@ -70,9 +70,8 @@ export const creditWalletOnReservedAccountFunding: handleUnaryCall<creditWalletO
       true,
     );
 
-    const { success, error, message, data, school, reference } = response;
-
-    return callback(null, { success, error, message, data, school, reference });
+    console.log({ response });
+    return callback(null, response);
   } catch (error: any) {
     console.log({ error });
     return callback(error);

@@ -15,10 +15,6 @@ interface IDebitTransactionCharge {
   feesNames: string[];
 }
 
-interface FeesConfig {
-  [feeName: string]: { purpose: string };
-}
-
 const Service = {
   connectionExists: false,
 
