@@ -266,7 +266,6 @@ export const Service: any = {
     noTransaction: boolean;
   }): Promise<ControllerResponse> {
     const wallet = await WalletREPO.findWallet({ userId: user.id, id: wallet_id }, ['id', 'balance'], t);
-    console.log({ wallet });
     if (!wallet) {
       return {
         success: false,

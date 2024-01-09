@@ -18,6 +18,27 @@ const Webhook = {
 
     return sendObjectResponse('Successfully retreived account', !gRPCConnection ? accountDetails : toCamel(accountDetails));
   },
+  
+  async creditWalletOnReservedAccount(data: any, gRPCConnection = false) {
+    const creditWallet = await ReservedAccountService.creditWalletOnReservedAccountFunding({
+      originator_account_number: data.originatoraccountnumber || '0000000000',
+      amount: Number(data.amount),
+      originator_account_name: data.originatorname || data.bankname,
+      narration: data.narration,
+      reserved_account_name: data.craccountname,
+      reserved_account_number: data.craccount,
+      external_reference: data.paymentreference || data.sessionid,
+      bank_name: data.bankname,
+      session_id: data.sessionid,
+      bank_code: data.bankcode,
+      reference: data.reference,
+    });
+    if (!creditWallet.success) throw new ValidationError(creditWallet.error);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { success, message, ...rest } = creditWallet.data;
+
+    return !gRPCConnection ? sendObjectResponse(creditWallet.message || 'Deposit process completed', creditWallet) : toCamel(creditWallet.data);
+  },
 
   async verifyAccountNumber(data: any) {
     const { accountnumber } = data;
@@ -57,20 +78,7 @@ const Webhook = {
     if (originatoraccountnumber.length > 10) originatoraccountnumber = originatoraccountnumber.substr(1, 10);
     const bankName = bankname || (originatorname === 'PALMPAY LIMITED' ? 'PALMPAY LIMITED' : 'N/A');
 
-    const creditWallet = await ReservedAccountService.creditWalletOnReservedAccountFunding({
-      originator_account_number: data.originatoraccountnumber || '0000000000',
-      amount: Number(data.amount),
-      originator_account_name: originatorname || bankName,
-      narration: data.narration,
-      reserved_account_name: data.craccountname,
-      reserved_account_number: data.craccount,
-      external_reference: data.paymentreference || data.sessionid,
-      bank_name: bankName,
-      session_id: data.sessionid,
-      bank_code: data.bankcode,
-      reference,
-    });
-    if (!creditWallet.success) throw new ValidationError(creditWallet.error);
+    const { data: creditWallet } = await Webhook.creditWalletOnReservedAccount({ ...data, bankname: bankName, reference });
 
     const { school, reference: transactionreference } = creditWallet.data;
     // todo: add 3rd party logging

@@ -24,6 +24,20 @@ export interface creditWalletOnReservedAccountFundingDTO {
   processor?: string;
 }
 
+export interface creditWalletOnReservedAccountDTO {
+  amount: number;
+  bankName: string;
+  bankCode: string;
+  sessionId: string;
+  reference: string;
+  narration: string;
+  externalReference: string;
+  reservedAccountName: string;
+  reservedAccountNumber: string;
+  originatorAccountName: string;
+  originatorAccountNumber: string;
+}
+
 export type getReservedAccountDTO = {
   reservedAccountNumber: string;
 };
@@ -33,4 +47,20 @@ export type getReservedAccounRES = ControllerResponse & {
     reservedAccountName: string;
     id: number;
   };
+};
+
+export type creditWalletOnReservedAccountRES = ControllerResponse & {
+  data?: {
+    reference: string;
+  };
+  school?: {
+    id: number;
+    code: string;
+    name: string;
+    status: number;
+    country: string;
+    slug: string;
+    organisationId: number;
+  };
+  reference?: string;
 };

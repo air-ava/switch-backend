@@ -414,7 +414,7 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `A Bank Transfer error occurred. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *Processor Response*: ${body.processorResponse}`,
+          text: `A Bank Transfer error occurred. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *Processor Response*: ${body.processorResponse} \n *Event At*: ${body.eventAt}`,
           type: 'mrkdwn',
         },
         fields: [

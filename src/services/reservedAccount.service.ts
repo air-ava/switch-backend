@@ -14,7 +14,7 @@ import ReservedAccountTransactionREPO from '../database/repositories/reservedAcc
 import { theResponse } from '../utils/interface';
 import { STEWARD_BASE_URL, WEMA_ACCOUNT_PREFIX } from '../utils/secrets';
 import { Service as WalletService } from './wallet.service';
-import Utils from '../utils/utils';
+import Utils, { toCamel } from '../utils/utils';
 import { creditWalletOnReservedAccountFundingSCHEMA } from '../validators/reservedAccount.validator';
 import {
   getOneTransactionREPO,
@@ -97,7 +97,7 @@ const Service = {
   },
 
   async creditWalletOnReservedAccountFunding(data: creditWalletOnReservedAccountFundingDTO): Promise<theResponse> {
-    const { amount: fixedAmount, originator_account_name, reserved_account_number, external_reference } = data;
+    const { amount: fixedAmount, originator_account_name, reserved_account_number, narration, external_reference } = data;
 
     const amount = Utils.convertCurrencyToSmallerUnit(fixedAmount);
     // const reference = reference || v4();
@@ -129,16 +129,13 @@ const Service = {
 
     // ?for fee Charges
     // todo: put debit transaction fee into a queue
-    dbTransaction(Service.completeTransactionCharge, { ...data, purpose, wallet, metadata, amount, reference });
+    // dbTransaction(Service.completeTransactionCharge, { ...data, feesNames: ['debit-fees'], purpose, wallet, metadata, amount, reference });
+    publishMessage('debit:transaction:charge', { feesNames: ['debit-fees'], purpose, wallet, amount, narration, metadata, reference });
 
     // todo: Notifications
     Service.completeTransactionNotification({ user: wallet.User, wallet, amount, reference, originator_account_name });
 
-    return sendObjectResponse(`${completedDeposit.message}`, {
-      ...completedDeposit.data,
-      school,
-      reference,
-    });
+    return sendObjectResponse(`${completedDeposit.message}`, { ...completedDeposit.data, school, reference });
   },
 
   async completeWalletDeposit(queryRunner: QueryRunner, data: any): Promise<theResponse> {
@@ -192,8 +189,17 @@ const Service = {
     });
   },
 
+  generateFeePurposeNames(
+    feesNames: string[],
+    feesConfig: {
+      [feeName: string]: { purpose: string };
+    },
+  ): string[] {
+    return feesNames.map((feeName) => feesConfig[feeName].purpose);
+  },
+
   async completeTransactionCharge(t: QueryRunner, data: any): Promise<theResponse> {
-    const { purpose, wallet, amount, narration, metadata, reference } = data;
+    const { purpose, wallet, amount, narration, metadata, reference, feesNames } = data;
 
     const {
       success: debitSuccess,
@@ -204,14 +210,15 @@ const Service = {
       reference,
       user: wallet.User,
       description: narration,
-      feesNames: ['debit-fees'],
+      feesNames,
       transactionAmount: amount,
       t,
     });
     if (!debitSuccess) throw debitError;
 
     const feesConfig = Settings.get('TRANSACTION_FEES');
-    const feesPurposeNames: string[] = [feesConfig['debit-fees'].purpose];
+    const feesPurposeNames: string[] = Service.generateFeePurposeNames(feesNames, feesConfig);
+    // const feesPurposeNames: string[] = [feesConfig['debit-fees'].purpose];
     await updateTransactionREPO(
       { reference, purpose: Not(In(feesPurposeNames)) },
       {

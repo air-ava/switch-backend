@@ -25,6 +25,7 @@ export const dbTransaction = async (callback: any, data?: any): Promise<any> => 
   }
 };
 
+// eslint-disable-next-line consistent-return
 export const consumerDbTransaction = async (callback: any, channel: Channel, msg: ConsumeMessage, data?: any): Promise<any> => {
   const queryRunner = await getQueryRunner();
   try {
