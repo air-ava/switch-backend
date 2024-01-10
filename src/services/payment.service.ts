@@ -1,8 +1,8 @@
-import { theResponse } from './../utils/interface';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import randomstring from 'randomstring';
 import { In, Not } from 'typeorm';
 import { v4 } from 'uuid';
+import { theResponse } from '../utils/interface';
 import { STATUSES } from '../database/models/status.model';
 import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import { findPendingPayment, findMultiplePendingPayments, savePendingPaymentsREPO } from '../database/repositories/payments.repo';
@@ -149,7 +149,7 @@ export const buildCollectionRequestPayload = async ({
         const message = 'Fee not active for this student';
         if (ussd) return { error: message };
         throw new ValidationError(message);
-      };
+      }
       studentTutition = studentTutitionFee;
     }
     reciever = student;
@@ -256,6 +256,5 @@ export const recordSettlementTransaction = async (data: any): Promise<any> => {
 
   return sendObjectResponse('Settlement completed successfully', withdrawal);
 };
-
 
 // todo: get pending payment

@@ -3,7 +3,11 @@ import { Not, In } from 'typeorm';
 import { v4 } from 'uuid';
 import Settings from './settings.service';
 import { STATUSES } from '../database/models/status.model';
-import { getSettlementTransactionREPO, listSettlementTransactions, saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
+import {
+  getSettlementTransactionREPO,
+  listSettlementTransactions,
+  saveSettlementTransaction,
+} from '../database/repositories/settlementTransactions.repo';
 import { getListOfTransactionsForSettlement, getTotalSuccessfulDebit, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';

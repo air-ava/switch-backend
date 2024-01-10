@@ -80,7 +80,7 @@ export const fetchUserProfile = async (data: any): Promise<any> => {
   // if (validation.error) return ResourceNotFoundError(validation.error);
 
   const { user } = data;
-  
+
   try {
     const userAlreadyExist = await findUser({ id: user.id }, [], ['phoneNumber', 'Address', 'Avatar', 'JobTitle']);
     if (!userAlreadyExist) throw Error('User not found');
