@@ -283,7 +283,6 @@ export const Sanitizer = {
   sanitizeWallet(payload: IScholarshipApplication, addUserId?: boolean): any {
     if (!payload) return null;
     const { id, userId, User, ReservedAccount, status, uniquePaymentId, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
-    console.log({ ReservedAccount });
     const sanitized = {
       id,
       isPinSet: !!transaction_pin,
@@ -328,7 +327,6 @@ export const Sanitizer = {
   },
   sanitizeLightTransaction(payload: any): any {
     if (!payload) return null;
-    // console.log({ payload });
     const { id, userId, User, status, Wallet, walletId, document_reference, Reciepts, metadata, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
@@ -337,7 +335,6 @@ export const Sanitizer = {
       recieptReference: document_reference,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
-    // console.log({ sanitized });
     return sanitized;
   },
 
