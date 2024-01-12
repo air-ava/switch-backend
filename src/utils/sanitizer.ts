@@ -377,6 +377,7 @@ export const Sanitizer = {
     //   ReservedAccounts && ReservedAccounts.filter((value: IReservedAccount) => value.entity === 'student' && value.status === STATUSES.ACTIVE);
     const studentAccount = Sanitizer.sanitizeReservedAccountLight(ReservedAccounts, 'student');
     const paymentFees = Fees && Sanitizer.mapAnArray(Fees, 'FeesHistory');
+
     const sanitized = {
       id,
       ...rest,
