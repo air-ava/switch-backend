@@ -30,6 +30,8 @@ import logger from '../utils/logger';
 import { IUser, IWallets } from '../database/modelInterfaces';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { sendSlackMessage } from '../integration/extra/slack.integration';
+import { createPaymentContacts, findOrCreatePaymentContacts } from '../database/repositories/paymentContact.repo';
+import { STATUSES } from '../database/models/status.model';
 
 const Service = {
   generateRandomAccountNumber(): string {
@@ -105,10 +107,19 @@ const Service = {
     const validation = creditWalletOnReservedAccountFundingSCHEMA.validate({ ...rest, amount });
     if (validation.error) throw new ValidationError(validation.error.message);
 
-    const accountDetails = await ReservedAccountREPO.getReservedAccount({ reserved_account_number }, ['reserved_account_name', 'entity'], ['Wallet']);
+    const accountDetails = await ReservedAccountREPO.getReservedAccount(
+      { reserved_account_number },
+      ['reserved_account_name', 'entity', 'entity_id'],
+      ['Wallet'],
+    );
     if (!accountDetails) throw new ValidationError(`Invalid Account`);
 
-    const purpose = accountDetails.entity === 'student' ? 'Payment:School-Fees' : 'Funding:Wallet-Top-Up';
+    let purpose = 'Funding:Wallet-Top-Up';
+    let student;
+    if (accountDetails.entity === 'student') {
+      purpose = 'Payment:School-Fees';
+      student = await getStudent({ id: accountDetails.entity_id }, [], ['Fees']);
+    }
 
     const wallet = await WalletREPO.findWallet({ id: accountDetails.Wallet.id }, ['id', 'currency', 'entity', 'entity_id'], undefined, ['User']);
     if (!wallet) throw new ValidationError(`Not connected to a wallet`);
@@ -123,13 +134,19 @@ const Service = {
     };
 
     const completedDeposit = await dbTransaction(Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference, school });
+    const paymentContact = await createPaymentContacts({
+      school: school?.id,
+      name: originator_account_name,
+      status: STATUSES.ACTIVE,
+    });
 
     // todo: recording a reserved acccount funding should be a queue, same with mobi;e money funding
     // dbTransaction(Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
     publishMessage('record:reserved:account:deposit', { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
-
     // ?for fee Charges
     publishMessage('debit:transaction:charge', { feesNames: ['debit-fees'], purpose, wallet, amount, narration, metadata, reference });
+    // ?for fee Charges
+    publishMessage('record:student:installmental:payment', { paymentContact, amount, metadata, reference, student });
 
     // todo: Notifications
     Service.completeTransactionNotification({ user: wallet.User, wallet, amount, reference, originator_account_name });
@@ -162,7 +179,7 @@ const Service = {
           reference: external_reference || '',
           bankName: data.bank_name,
           accountName: data.originator_account_name,
-          accountNumber: data.originator_account_name,
+          accountNumber: data.originator_account_number,
           processorResponse: JSON.stringify(data),
         },
         feature: 'bank_transfer_failure',

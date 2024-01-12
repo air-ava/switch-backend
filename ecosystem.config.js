@@ -37,5 +37,9 @@ module.exports = {
       script: 'build/consumer/recordReservedAccountDeposit.consumer.js',
       name: 'record-reserved-account-deposit-consumer',
     },
+    {
+      script: 'build/consumer/recordStudentInstallmentalPayment.consumer.js',
+      name: 'record-student-installmental-payment-consumer',
+    },
   ],
 };

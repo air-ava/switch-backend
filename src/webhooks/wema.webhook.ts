@@ -10,6 +10,7 @@ import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { STEWARD_BASE_URL } from '../utils/secrets';
 import Utils, { toCamel } from '../utils/utils';
+import { publishMessage } from '../utils/amqpProducer';
 
 const Webhook = {
   async getReservedAccount(accountnumber: string, gRPCConnection = false) {
@@ -61,7 +62,7 @@ const Webhook = {
     logger.info(JSON.stringify(data));
     if (validation.error) {
       logger.error(validation.error);
-      sendSlackMessage({
+      await publishMessage('slack:notification', {
         body: {
           amount: Number(data.amount) || 0,
           reference: data.paymentreference || data.sessionid || '',
@@ -69,6 +70,7 @@ const Webhook = {
           accountName: data.craccountname,
           accountNumber: data.craccount,
           processorResponse: JSON.stringify(data),
+          eventAt: new Date().getTime(),
         },
         feature: 'bank_transfer_failure',
       });
@@ -81,8 +83,7 @@ const Webhook = {
     const { data: creditWallet } = await Webhook.creditWalletOnReservedAccount({ ...data, bankname: bankName, reference });
 
     const { school, reference: transactionreference } = creditWallet.data;
-    // todo: add 3rd party logging
-    saveThirdPartyLogsREPO({
+    await publishMessage('thirdparty:activity:logger', {
       event: 'wema.deposit.notification',
       message: `Wema-Deposit-Webhook:${data.paymentreference || data.sessionid}`,
       endpoint: `${STEWARD_BASE_URL}/webhook/wema/deposit`,
