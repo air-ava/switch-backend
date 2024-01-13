@@ -7,6 +7,7 @@ import FailedDependencyError from '../../utils/failedDependencyError';
 import Settings from '../../services/settings.service';
 import { saveThirdPartyLogsREPO } from '../../database/repositories/thirdParty.repo';
 import { catchIntegrationWithThirdPartyLogs } from '../../utils/errors';
+import Utils from '../../utils/utils';
 
 const dependency = 'wemabank.com';
 
@@ -27,7 +28,7 @@ const authorize = async (): Promise<string> => {
 };
 
 const confirmAuth = async (): Promise<string> => {
-  let authToken = WEMA_AUTH_TOKEN || (await get('WEMA:AUTH:TOKEN'));
+  let authToken = await get('WEMA:AUTH:TOKEN');
   if (!authToken) {
     authToken = await authorize();
     await setex('WEMA:AUTH:TOKEN', authToken, 23 * 60 * 60);
@@ -59,7 +60,7 @@ export const getBankList = async (): Promise<{ name: string; code: string }[]> =
 };
 
 export const nameEnquiry = async (bankCode: string, accountNumber: string): Promise<string> => {
-  if (!(NODE_ENV === 'production' && ENVIRONMENT === 'PRODUCTION')) return 'OLALEKAN ADEWALE';
+  if (Utils.isStaging()) return 'OLALEKAN ADEWALE';
   const token = await confirmAuth();
 
   const nameEnquiryResponse = await axios.post(

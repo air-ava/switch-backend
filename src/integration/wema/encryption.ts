@@ -14,5 +14,6 @@ export const decrypt = (payload: string): string => {
     iv: enc.Latin1.parse(WEMA_ENCRYPTION_IV),
     mode: mode.CBC,
   });
+  console.log({ decryptedText });
   return decryptedText.toString(enc.Utf8);
 };

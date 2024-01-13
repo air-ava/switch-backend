@@ -145,6 +145,7 @@ export const catchIntegrationWithThirdPartyLogs = async (fn: any, errorPayload: 
   } catch (error: any) {
     const { provider, dependency, event, endpoint, method, school, payload } = errorPayload;
     const message = error.response ? error.response.statusText : error.message;
+    console.log({ error, 'error.response': error.response })
     const status_code = error.response.status;
 
     // ? record the bad response
