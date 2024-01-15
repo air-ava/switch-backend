@@ -38,9 +38,7 @@ export const publishMessage = async (
   queueOptions?: amqplib.Options.AssertQueue,
   messageOptions?: amqplib.Options.Publish,
 ): Promise<void> => {
-  if (!conn) {
-    await connectAMQP();
-  }
+  if (!conn) await connectAMQP();
 
   await channel.assertQueue(queue, { ...queueOptions, durable: true });
   channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { ...messageOptions, persistent: true });

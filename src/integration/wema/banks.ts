@@ -148,6 +148,9 @@ export const requeryTransaction = async (transactionReference: string): Promise<
     },
   });
   logger.info(data);
+  console.log({ data });
+  const decryptedData = decrypt(data);
+  console.log({ decryptedData });
   return data;
 };
 
