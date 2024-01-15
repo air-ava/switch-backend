@@ -28,7 +28,7 @@ const Service = {
     });
 
     // todo: queue: create a cron to check if transaction has been completed, conditionally when response isn't positive
-    publishMessage('bank:transfer:verification', { purpose, recipientEmail, templateInfo });
+    publishMessage('bank:transfer:verification', { reference });
     return sendObjectResponse('Successfully transfered account', { accountName });
   },
 };
