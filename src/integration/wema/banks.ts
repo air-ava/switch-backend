@@ -84,16 +84,7 @@ export const nameEnquiry = async (bankCode: string, accountNumber: string): Prom
   return accountName;
 };
 
-export const bankTransfer = async ({
-  bankCode,
-  recipientAccountNumber,
-  recipientAccountName,
-  originatorAccountNumber,
-  originatorAccountName,
-  narration,
-  reference,
-  amount,
-}: {
+export const bankTransfer = async (incomingPayload: {
   bankCode: string;
   recipientAccountNumber: string;
   recipientAccountName: string;
@@ -103,9 +94,21 @@ export const bankTransfer = async ({
   reference: string;
   amount: number;
 }): Promise<{ code: string; message: string }> => {
-  if (!(NODE_ENV === 'production' && ENVIRONMENT === 'PRODUCTION')) {
-    return { code: '00', message: '433755213456787654456798765432' };
-  }
+  // if (!Utils.isProd()) return { code: '00', message: '433755213456787654456798765432' };
+  const payload = Utils.isProd()
+    ? incomingPayload
+    : {
+        originatorAccountNumber: '1300005957',
+        originatorAccountName: 'Olga Best/Randall Aguirre',
+        amount: '660000',
+        narration: 'For 1st test',
+        recipientAccountName: 'SALAMI MURITALA OLAYIWOLA',
+        recipientAccountNumber: '0011678314',
+        bankCode: '000013',
+        reference: incomingPayload.reference,
+      };
+  const { bankCode, recipientAccountNumber, recipientAccountName, originatorAccountNumber, originatorAccountName, narration, reference, amount } =
+    payload;
 
   const token = await confirmAuth();
   const { data } = await axios.post(
@@ -130,11 +133,12 @@ export const bankTransfer = async ({
     },
   );
   logger.info(data);
-  if (data.code) {
-    return { code: data.code, message: data.message };
-  }
+
+  if (data.code) return { code: data.code, message: data.message };
   const [code, sessionId] = decrypt(data).split('|');
+
   logger.info(code);
+
   return { code, message: sessionId };
 };
 

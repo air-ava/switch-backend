@@ -7,6 +7,7 @@ import { getOneOrganisationREPO } from '../database/repositories/organisation.re
 import { getSchool } from '../database/repositories/schools.repo';
 import { findUser } from '../database/repositories/user.repo';
 import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
+import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { BadRequestException } from '../utils/errors';
 // eslint-disable-next-line prettier/prettier
 import { ControllerResponse } from '../utils/interface'
@@ -129,11 +130,15 @@ export const validateSession: RequestHandler = async (req, res, next) => {
       req.school = foundSchool;
       const session = await getSchoolSession({ country: 'UGANDA' || foundSchool.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
       req.educationalSession = session;
+      const wallet = await WalletREPO.findWallet({ userId: foundUser.id, entity: 'school', entity_id: foundSchool.id }, []);
+      if (wallet) Settings.set('WALLET', wallet);
 
       Settings.set('SCHOOL', foundSchool);
+      Settings.set('COUNTRY', foundSchool.country.toUpperCase());
       Settings.set('SESSION', session);
       Settings.set('ORGANISATION', foundOrganisation);
       Settings.set('USER', foundUser);
+
       // TODO: Get all running periods for the Schools across multiple education Levels
     }
     return next();

@@ -15,7 +15,7 @@ import { getSchoolDetails } from './school.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';
 import { getListOfTransactionsForSettlement, updateTransactionREPO } from '../database/repositories/transaction.repo';
-import BankRepo from '../database/repositories/bankAccount.repo';
+import BankAccountRepo from '../database/repositories/bankAccount.repo';
 import { saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
 import Settings from './settings.service';
 import { getQueryRunner } from '../database/helpers/db';
@@ -202,7 +202,7 @@ export const recordSettlementTransaction = async (data: any): Promise<any> => {
 
   const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
   const defaultBankDetails = { ...(bankId ? { id: bankId } : { ...coreBankDetails }), status: STATUSES.ACTIVE };
-  const foundBank = await BankRepo.findBank(defaultBankDetails, []);
+  const foundBank = await BankAccountRepo.findBank(defaultBankDetails, []);
   if (foundBank) return { success: false, error: 'Bank exists' };
 
   // todo: process payment handled here

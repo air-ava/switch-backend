@@ -38,8 +38,8 @@ const Service = {
     }
 
     if (country === 'NIGERIA') {
-      foundBanks = await BankRepo.listBanks({ country: 'NIGERIA' }, []);
-      // foundBanks = await getBankList();
+      const fromBankIntegrations = await getBankList();
+      foundBanks = fromBankIntegrations.length ? fromBankIntegrations : await BankRepo.listBanks({ country: 'NIGERIA' }, []);
       foundBanks = Sanitizer.sanitizeAllArray(foundBanks, Sanitizer.sanitizeBank);
     }
 

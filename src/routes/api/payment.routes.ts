@@ -10,12 +10,13 @@ import {
   updateBankTransferCONTROLLER,
 } from '../../controllers/payment.controller';
 import { fundWalletCONTROLLER, withdrawFromWalletCONTROLLER } from '../../controllers/wallets.controller';
+import { catchErrors } from '../../utils/errors';
 
 const router = express.Router();
 
 router.post('/', createPaymentCONTROLLER);
 router.post('/mobile-money/request', initiatePaymentCONTROLLER);
-router.post('/bank/record', recordBankTransferCONTROLLER);
+router.post('/bank/record', catchErrors(recordBankTransferCONTROLLER));
 // router.patch('/bank/update', updateBankTransferCONTROLLER);
 // router.patch('/bank/complete', completeBankTransferCONTROLLER);
 router.post('/top-up', fundWalletCONTROLLER);

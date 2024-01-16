@@ -241,6 +241,10 @@ const Utils = {
     return Utils.isProd() ? `https://steward-prod-rmq4b.ondigitalocean.app` : `https://king-prawn-app-ovupz.ondigitalocean.app`;
   },
 
+  getWemaPrefix() {
+    return Utils.isProd() ? `960` : `752`;
+  },
+
   getDashboardURL() {
     return Utils.isProd() ? `https://app.joinsteward.com` : `https://steward-demo.netlify.app`;
   },

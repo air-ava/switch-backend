@@ -7,6 +7,7 @@ import BankTransferService from '../services/bankTransfer.service';
 import { getStudent } from '../database/repositories/student.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { addDocumentToTransaction } from '../services/transaction.service';
+import ResponseService from '../utils/response';
 
 export const createPaymentCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -75,28 +76,16 @@ export const initiatePaymentCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const recordBankTransferCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const { user, school } = req;
-    const payload = {
-      user,
-      school,
-      ...req.body,
-    };
-    const { documents } = req.body;
-    const response = await BankTransferService.recordBankTransfer(payload);
+  const { user, school } = req;
+  const payload = { user, school, ...req.body };
+  const { documents } = req.body;
+  const response = await BankTransferService.recordBankTransfer(payload);
 
-    if (response.success) {
-      const { data } = response;
-      if (documents) addDocumentToTransaction({ user: req.user, id: data.id, documents: req.body.documents });
-    }
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    console.log({ error });
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
-  }
+  const { success, data, message, error } = response;
+
+  if (success && documents) addDocumentToTransaction({ user: req.user, id: data.id, documents: req.body.documents });
+
+  ResponseService.success(res, message || error, data);
 };
 
 export const updateBankTransferCONTROLLER: RequestHandler = async (req, res) => {

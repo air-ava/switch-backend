@@ -7,6 +7,7 @@ import { consumerDbTransaction } from '../database/helpers/db';
 
 interface IMessage {
   reciever_id: string; // can be 'user', 'índividual', 'ádmin', 'school', organisation'
+  reciever: 'user' | 'individual' | 'admin' | 'school' | 'organisation';
   display_type: 'BANNER' | 'ALERTS' | 'BADGES' | 'POP_UP' | 'MODAL';
   action_type: 'SYSTEM' | 'REQUEST' | 'INFO' | 'REMINDER';
   urgency_type: 'HIGH' | 'MEDIUM' | 'LOW';

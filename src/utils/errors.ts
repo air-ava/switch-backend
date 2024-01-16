@@ -145,17 +145,17 @@ export const catchIntegrationWithThirdPartyLogs = async (fn: any, errorPayload: 
   } catch (error: any) {
     const { provider, dependency, event, endpoint, method, school, payload } = errorPayload;
     const message = error.response ? error.response.statusText : error.message;
-    console.log({ error, 'error.response': error.response })
+    console.log({ error, 'error.response': error.response });
     const status_code = error.response.status;
 
     // ? record the bad response
     saveThirdPartyLogsREPO({
       event,
       message: `${dependency}:${message}`,
-      endpoint,
+      endpoint: endpoint || `${provider[dependency].endpoint}`,
       school: school.id,
       endpoint_verb: method,
-      status_code,
+      status_code: '400',
       payload: JSON.stringify({ ...payload, error }),
       provider_type: `${provider[dependency].type}`,
       provider: `${provider[dependency].name}`,

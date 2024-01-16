@@ -9,11 +9,13 @@ export interface bankTransferDTO {
   bankCode: string;
   recipientAccountNumber: string;
   recipientAccountName: string;
-  originatorAccountNumber: string;
-  originatorAccountName: string;
+  senderAccountNumber: string;
+  senderAccountName: string;
   narration: string;
   reference: string;
+  transactionPin: string;
   amount: number;
+  note?: string;
 }
 
 export type validateAccountDetailsRES = ControllerResponse & { data?: { accountName: string } };

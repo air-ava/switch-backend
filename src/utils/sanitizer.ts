@@ -856,9 +856,10 @@ export const Sanitizer = {
 
   sanitizeBank(payload: any): any {
     if (!payload) return null;
-    const { id, status, wema_data, country, created_at, updated_at, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, bank_code, wema_data, code, country, created_at, updated_at, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
+      code: code.length < 10 ? code : bank_code,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
   },
