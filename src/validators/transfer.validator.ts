@@ -9,11 +9,7 @@ const recipientAccountNumber = joi
   .string()
   .regex(/^\d{10}$/)
   .message('Invalid recipient account number');
-const bankCode = joi
-  .string()
-  .max(9)
-  .min(3)
-  .message('Invalid bank code');
+const bankCode = joi.string().max(9).min(3).message('Invalid bank code');
 
 const Validator = {
   verifyAccountDetails: joi.object({
@@ -30,8 +26,7 @@ const Validator = {
     bankCode: bankCode.required(),
     transactionPin: joi
       .string()
-      .regex(/^\d{5}$/)
-      .message('No Transaction Pin')
+      .regex(/^\d{6}$/)
       .required(),
     amount: joi.number().greater(10000).positive().required().messages({
       'number.positive': '"amount" should be a positive value.',
