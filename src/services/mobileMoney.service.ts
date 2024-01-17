@@ -38,6 +38,7 @@ import { NotificationHandler } from './helper.service';
 import { getSchool } from '../database/repositories/schools.repo';
 import { mobileMoneyPaymentDTO } from '../dto/mobileMoney.dto';
 import ValidationError from '../utils/validationError';
+import { publishMessage } from '../utils/amqpProducer';
 
 export const Service = {
   async initiateCollectionRequest(payload: any) {
@@ -693,13 +694,7 @@ export const Service = {
       if (transactionMetadata.studentTutition) {
         const { amount: reccordAmount, studentTutition, paymentContact, ...rest } = transactionMetadata;
         const { id: beneficiaryId, Fee, beneficiary_type: beneficiaryType } = studentTutition;
-        await FeesService.recordInstallment({
-          amount: reccordAmount,
-          reference,
-          paymentContact,
-          metadata: rest,
-          beneficiaryId,
-        });
+        publishMessage('record:student:installmental:payment', { paymentContact, amount, metadata: rest, reference, beneficiaryId });
       }
 
       // Notify EveryOne for Transaction Completion

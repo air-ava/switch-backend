@@ -140,12 +140,8 @@ const Service = {
       status: STATUSES.ACTIVE,
     });
 
-    // todo: recording a reserved acccount funding should be a queue, same with mobi;e money funding
-    // dbTransaction(Service.recordReservedAccountTransaction, { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
     publishMessage('record:reserved:account:deposit', { ...data, purpose, wallet, wallet_id: wallet.id, metadata, amount, reference });
-    // ?for fee Charges
     publishMessage('debit:transaction:charge', { feesNames: ['debit-fees'], purpose, wallet, amount, narration, metadata, reference });
-    // ?for fee Charges
     publishMessage('record:student:installmental:payment', { paymentContact, amount, metadata, reference, student });
 
     // todo: Notifications
