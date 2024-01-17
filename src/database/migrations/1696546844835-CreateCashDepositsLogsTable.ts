@@ -17,8 +17,8 @@ export class CreateCashDepositsLogsTable1696546844835 implements MigrationInterf
           { name: 'longitude', type: 'varchar', isNullable: true },
           { name: 'latitude', type: 'varchar', isNullable: true },
           { name: 'ip_address', type: 'varchar' },
-          { name: 'created_at', type: 'date', default: 'CURRENT_TIMESTAMP' },
-          { name: 'updated_at', type: 'date', isNullable: true },
+          { name: 'created_at', type: 'datetime', default: 'CURRENT_TIMESTAMP' },
+          { name: 'updated_at', type: 'datetime', isNullable: true },
         ],
       }),
     );

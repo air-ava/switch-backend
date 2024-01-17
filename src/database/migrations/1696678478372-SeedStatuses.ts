@@ -4,7 +4,7 @@ const seedData = [
   {
     name: 'statuses',
     column: '`value`',
-    rows: [`'LOGGED'`, `'RESOLVED'`, `'UNRESOLVED'`, `INCOMPLETE`],
+    rows: [`'LOGGED'`, `'RESOLVED'`, `'UNRESOLVED'`, `'INCOMPLETE'`],
   },
 ];
 

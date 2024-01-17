@@ -39,12 +39,12 @@ export class createSchoolSessionTable1685070181869 implements MigrationInterface
           },
           {
             name: 'start_date',
-            type: 'date',
+            type: 'datetime',
             isNullable: true,
           },
           {
             name: 'expiry_date',
-            type: 'date',
+            type: 'datdatetimee',
             isNullable: true,
           },
           {
