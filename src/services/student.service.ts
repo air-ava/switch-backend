@@ -53,6 +53,7 @@ import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { sendEmail } from '../utils/mailtrap';
 import { CURRENCIES } from '../database/models/currencies.model';
 import ReservedAccountService from './reservedAccount.service';
+import { publishMessage } from '../utils/amqpProducer';
 
 class StudentSetupBuilder {
   private classId: string | number;
@@ -240,7 +241,8 @@ const Service: ServiceInterface = {
     // todo: Make this a queue for adding Fees
     await Service.addFeesForStudent({ school, schoolClass: foundSchoolClass, student });
     // todo: Make this a queue for assigning AccountNumber
-    if (school.country === 'NIGERIA') await ReservedAccountService.assignAccountNumber({ holder: 'student', holderId: String(student.id), school });
+    // if (school.country === 'NIGERIA') await ReservedAccountService.assignAccountNumber({ holder: 'student', holderId: String(student.id), school });
+    if (school.country === 'NIGERIA') publishMessage('assign:account:number', { holder: 'student', holderId: String(student.id), school });
 
     return sendObjectResponse('Student created successfully');
   },

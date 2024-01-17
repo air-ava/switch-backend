@@ -45,5 +45,9 @@ module.exports = {
       script: 'build/consumer/bankTransferVerification.consumer.js',
       name: 'bank-transfer-verification-consumer',
     },
+    {
+      script: 'build/consumer/assignAccountNumberConsumer.consumer.js',
+      name: 'assign-account-number-consumer',
+    },
   ],
 };

@@ -12,6 +12,7 @@ interface IRecordInstallmentalPay {
   metadata: any;
   reference: string;
   student: any;
+  beneficiaryId?: number | string;
 }
 
 const Service = {
@@ -29,13 +30,13 @@ const Service = {
   },
 
   async recordInstallmentalPay(queryRunner: QueryRunner, content: IRecordInstallmentalPay) {
-    const { paymentContact, amount, metadata, reference, student } = content;
+    const { paymentContact, amount, metadata, reference, student, beneficiaryId } = content;
     await FeesService.recordInstallment({
       amount,
       reference,
       paymentContact,
       metadata,
-      beneficiaryId: student.id,
+      beneficiaryId: beneficiaryId || student.id,
     });
   },
 
