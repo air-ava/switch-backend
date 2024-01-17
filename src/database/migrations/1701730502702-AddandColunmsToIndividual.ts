@@ -22,7 +22,7 @@ const { nationality, is_owner, dob } = tableData;
 
 export class AddandColunmsToIndividual1701730502702 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.addColumns('individual', [nationality, is_owner, dob]);
+    // await queryRunner.addColumns('individual', [nationality, is_owner, dob]);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

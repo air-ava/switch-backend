@@ -14,6 +14,7 @@ const columnDetails = {
 
 export class AddandSeedToReservedAccountsTransactions1703203580897 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.renameTable('reservedAccountsTransactions', 'reserved_account_transactions');
     await queryRunner.addColumn(seedData[0].name, new TableColumn({ ...columnDetails, isNullable: false }));
     await queryRunner.query(`UPDATE ${seedData[0].name} SET code = CONCAT('${seedData[0].codePrefix}', SUBSTRING(REPLACE(UUID(), '-', ''), 1, 17))`);
     await queryRunner.changeColumns(seedData[0].name, [

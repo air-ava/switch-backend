@@ -14,8 +14,29 @@ const columnDetails = {
 };
 const inputLength = 6;
 
+const tableData = {
+  nationality: new TableColumn({
+    name: 'nationality',
+    type: 'varchar',
+    length: '255',
+    isNullable: true,
+  }),
+  is_owner: new TableColumn({
+    name: 'is_owner',
+    type: 'boolean',
+    default: false,
+  }),
+  dob: new TableColumn({
+    name: 'dob',
+    type: 'timestamp',
+    isNullable: true,
+  }),
+};
+const { nationality, is_owner, dob } = tableData;
+
 export class AddandSeedAuthenticationPinToStudentGuardian1701342652447 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.addColumns('individual', [nationality, is_owner, dob]);
     await queryRunner.addColumn(tableName, new TableColumn({ ...columnDetails, isNullable: false }));
 
     const studentGuardians = await queryRunner.manager.find(StudentGuardian, {
@@ -74,5 +95,6 @@ export class AddandSeedAuthenticationPinToStudentGuardian1701342652447 implement
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropColumn(tableName, columnDetails.name);
+    await queryRunner.dropColumns('individual', [nationality, is_owner, dob]);
   }
 }
