@@ -34,6 +34,7 @@ export const consumerDbTransaction = async (callback: any, channel: Channel, msg
     channel.ack(msg);
     return result;
   } catch (error) {
+    console.log({ error });
     await queryRunner.rollbackTransaction();
     logger.error(JSON.stringify(error));
     channel.nack(msg, false, true);

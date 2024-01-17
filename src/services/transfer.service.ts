@@ -1,5 +1,6 @@
 import { v4 } from 'uuid';
 import numeral from 'numeral';
+import { QueryRunner } from 'typeorm';
 import { bankTransferDTO, validateAccountDetailsDTO, validateAccountDetailsRES } from '../dto/transfer.dto';
 import { bankTransfer, nameEnquiry } from '../integration/wema/banks';
 import { publishMessage } from '../utils/amqpProducer';
@@ -17,7 +18,6 @@ import { STATUSES } from '../database/models/status.model';
 import { Service as WalletService } from './wallet.service';
 import { getOneTransactionREPO, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { sendSlackMessage } from '../integration/extra/slack.integration';
-import { QueryRunner } from 'typeorm';
 
 const dependency = 'wemabank.com';
 
@@ -111,7 +111,17 @@ const Service = {
     // const fees = Settings.get('TRANSACTION_FEES');
     const feesNames = ['debit-fees'];
     publishMessage('debit:transaction:charge', { feesNames, purpose, wallet, amount, narration, metadata, reference });
-    publishMessage('bank:transfer:verification', { reference, wallet, school, foundBank, user, amount, narration, transaction });
+    publishMessage('bank:transfer:verification', {
+      reference,
+      wallet,
+      school,
+      foundBank,
+      user,
+      amount,
+      narration,
+      transaction,
+      sessionId: bankTransferResponse.message,
+    });
 
     const successMessage = `Your transfer of NGN${numeral(amount / 100).format(
       '0,0.00',
@@ -167,6 +177,7 @@ const Service = {
 
     const wallet = await WalletREPO.findWallet({ userId: user.id, entity: 'school', entity_id: school.id }, ['id', 'currency', 'userId'], t);
     if (!wallet) throw new NotFoundError('Wallet');
+    wallet.User = user;
 
     const { data: foundBank } = await BankTransferService.findOrCreateBankAccount({
       bankDetails: {

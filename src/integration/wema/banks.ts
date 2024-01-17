@@ -152,10 +152,10 @@ export const requeryTransaction = async (transactionReference: string): Promise<
     },
   });
   logger.info(data);
-  console.log({ data });
-  const decryptedData = decrypt(data);
-  console.log({ decryptedData });
-  return data;
+  const decryptedData: any = decrypt(data);
+  const { TransactionReference, Response, TransactionType, DatePosted } = JSON.parse(decryptedData);
+  const [code, sessionId] = Response.split('|');
+  return { code, message: sessionId, TransactionType, DatePosted, TransactionReference };
 };
 
 export const requeryTransaction2 = async (): Promise<any> => {

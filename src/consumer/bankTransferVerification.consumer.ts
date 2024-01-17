@@ -10,9 +10,12 @@ import { STATUSES } from '../database/models/status.model';
 import { publishMessage } from '../utils/amqpProducer';
 import BankTransferRepo from '../database/repositories/bankTransfer.repo';
 import { updateTransactionREPO } from '../database/repositories/transaction.repo';
+import ValidationError from '../utils/validationError';
+import { NIPResponses } from '../integration/wema/nipResponse';
 
 interface IBankTransferVerification {
   reference: string;
+  sessionId: string;
   narration: string;
   wallet: any;
   school: any;
@@ -36,15 +39,26 @@ const Service = {
     }
   },
 
-  async bankTransferVerification(content: IBankTransferVerification) {
-    const { transaction, reference, wallet, school, foundBank, user, amount, narration } = content;
+  async bankTransferVerification(queryRunner: QueryRunner, content: IBankTransferVerification) {
+    const { transaction, reference, wallet, school, foundBank, user, amount, narration, sessionId } = content;
+
     const transactionResponse = await requeryTransaction(reference);
-    // todo: update transaction as successful
+    const { code } = transactionResponse;
+
     await BankTransferRepo.updateBankTransfer(
       { tx_reference: reference },
-      { updated_at: new Date(), response: 'Transfer successful', status: STATUSES.SUCCESS },
+      {
+        updated_at: new Date(),
+        response: String(code) === '00' ? 'Transfer successful' : NIPResponses[String(code)],
+        status: String(code) === '00' ? STATUSES.SUCCESS : STATUSES.FAILED,
+      },
+      queryRunner,
     );
-    await updateTransactionREPO({ id: transaction.id }, { updated_at: new Date(), status: STATUSES.SUCCESS });
+    await updateTransactionREPO(
+      { id: transaction.id },
+      { updated_at: new Date(), status: String(code) === '00' ? STATUSES.SUCCESS : STATUSES.FAILED },
+      queryRunner,
+    );
     await publishMessage('slack:notification', {
       body: {
         amount: `${wallet.currency}${Number(amount) / 100}`,

@@ -1,10 +1,10 @@
 module.exports = {
   apps: [
-    {
-      name: 'base-service',
-      script: 'npm',
-      args: 'run start',
-    },
+    // {
+    //   name: 'base-service',
+    //   script: 'npm',
+    //   args: 'run start',
+    // },
     {
       script: 'build/consumer/reviewCustomer.consumer.js',
       name: 'review-customer-consumer',
@@ -40,6 +40,10 @@ module.exports = {
     {
       script: 'build/consumer/recordStudentInstallmentalPayment.consumer.js',
       name: 'record-student-installmental-payment-consumer',
+    },
+    {
+      script: 'build/consumer/bankTransferVerification.consumer.js',
+      name: 'bank-transfer-verification-consumer',
     },
   ],
 };

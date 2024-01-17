@@ -134,7 +134,7 @@ function getSlackDetailsByFeature(feature: string, body: any): any {
       slackBlocks.push({
         type: 'section',
         text: {
-          text: `A Bank Transfer has been initiated. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
+          text: `${Utils.isProd() ? 'PRODUCTION' : 'STAGING'} A Bank Transfer has been initiated. Details are: \n\n *Account name*: ${body.accountName} \n *Account number*: ${body.accountNumber} \n *School Name*: ${body.schoolName} \n *Initiated On*: ${body.createdAt}`,
           type: 'mrkdwn',
         },
         fields: [

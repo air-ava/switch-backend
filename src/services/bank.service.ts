@@ -93,7 +93,10 @@ const Service = {
     const existingDefaultedBank = await BankAccountRepo.findDefaultBank({ walletId: wallet.id, currency: wallet.currency }, []);
     if (existingDefaultedBank && defaultBank === 'true') {
       if (existingDefaultedBank.id === foundBank.id) return { success: false, error: 'This bank is defaulted already' };
-      const defaultedBanks = await BankAccountRepo.findBanks({ walletId: wallet.id, currency: wallet.currency, status: STATUSES.ACTIVE, default: true }, []);
+      const defaultedBanks = await BankAccountRepo.findBanks(
+        { walletId: wallet.id, currency: wallet.currency, status: STATUSES.ACTIVE, default: true },
+        [],
+      );
       if (defaultedBanks.length === 1) {
         const [currentlyDefaulted] = defaultedBanks;
         await BankAccountRepo.unDefaultBank({ id: currentlyDefaulted.id });
