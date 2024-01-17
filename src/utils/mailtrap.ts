@@ -38,6 +38,8 @@ export function getTemplateAndSubjectFromPurpose(purpose: string): { subject: st
       return { subject: 'Thank you for your application', template: `${EMAIL_TEMPLATES_PATH}/application_sent.pug` };
     case 'director_invite':
       return { subject: 'Invite to complete owners verification', template: `${EMAIL_TEMPLATES_PATH}/director_invite.pug` };
+    case 'bank_transfer':
+      return { subject: 'Bank Transfer Completed', template: `${EMAIL_TEMPLATES_PATH}/director_invite.pug` };
     case 'payment_request':
       return { subject: 'Payment Request', template: `${EMAIL_TEMPLATES_PATH}/payment_request.pug` };
     case 'otp_validate':

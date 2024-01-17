@@ -49,6 +49,7 @@ export const consumerFunction = async (callback: any, channel: Channel, msg: Con
     channel.ack(msg);
     return result;
   } catch (error) {
+    console.log({ error })
     logger.error(JSON.stringify(error));
     channel.nack(msg, false, true);
   }
