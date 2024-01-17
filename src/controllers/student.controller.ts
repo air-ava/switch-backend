@@ -6,6 +6,8 @@ import { Sanitizer } from '../utils/sanitizer';
 import { getStudentsValidator, editStudentsValidator, editStudentFeeValidator } from '../validators/student.validator';
 import { STATUSES } from '../database/models/status.model';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
+import Utils from '../utils/utils';
+import Settings from '../services/settings.service';
 
 const errorMessages = {
   listClasses: 'Could not list classes',
@@ -13,6 +15,16 @@ const errorMessages = {
   schoolOwner: 'Could not add school Owner Details',
   useCase: 'Could not complete use case',
   schoolProfile: 'Could not get school profile',
+};
+
+const getActiveStudentId = async (code: string) => {
+  const country = Settings.get('COUNTRY');
+  let providers = Settings.get('PROVIDERS');
+  providers = Utils.groupObjectsInObjectsByKeyValue(providers, 'type');
+  providers = providers['payment-provider'];
+  const provider = Utils.searchInArray(providers, { country, status: STATUSES.ACTIVE });
+  const studentId = await StudentService.getStudentIdFromAccountNumber(code, provider.name);
+  return studentId;
 };
 
 export const listClassCONTROLLER: RequestHandler = async (req, res) => {
@@ -56,7 +68,9 @@ export const editStudentCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const getStudentCONTROLLER: RequestHandler = async (req, res) => {
-  const { code: studentId } = req.params;
+  const { code } = req.params;
+
+  const studentId = await getActiveStudentId(code);
   const response = await StudentService.getStudent({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeStudent(data));
@@ -71,14 +85,19 @@ export const getStudent_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) =
 };
 
 export const getStudentPaymentHistoryCONTROLLER: RequestHandler = async (req, res) => {
-  const { code: studentId } = req.params;
+  const { code } = req.params;
+  const studentId = await getActiveStudentId(code);
+
   const response = await StudentService.getStudentHistory({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };
 
 export const getStudentFeesCONTROLLER: RequestHandler = async (req, res) => {
-  const { code: studentId } = req.params;
+  const { code } = req.params;
+
+  const studentId = await getActiveStudentId(code);
+
   const response = await StudentService.getStudentFees({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
@@ -101,28 +120,38 @@ export const getStudentPaymentHistory_GUARDIAN_CONTROLLER: RequestHandler = asyn
 
 export const getStudentDetail_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
   const { school, organisation, student } = req;
-  const { uniqueStudentId: studentId } = student as any;
+  const { uniqueStudentId } = student as any;
+
+  const studentId = await getActiveStudentId(uniqueStudentId);
+
   const response = await StudentService.getStudentPaymentSummary({ studentId, school });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };
 
 export const getStudentFeesLightCONTROLLER: RequestHandler = async (req, res) => {
-  const { code: studentId } = req.params;
+  const { code } = req.params;
+
+  const studentId = await getActiveStudentId(code);
+
   const response = await StudentService.getStudentFeesLight({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };
 
 export const deactivateStudentFeeCONTROLLER: RequestHandler = async (req, res) => {
-  const { code: studentId, feeCode } = req.params;
+  const { code, feeCode } = req.params;
+
+  const studentId = await getActiveStudentId(code);
+
   const response = await StudentService.deactivateStudentFee({ studentId, feeCode });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };
 
 export const editStudentFeeCONTROLLER: RequestHandler = async (req, res) => {
-  const { code: studentId, feeCode } = req.params;
+  const { code, feeCode } = req.params;
+  const studentId = await getActiveStudentId(code);
   const payload = { studentId, feeCode, ...req.body };
 
   const validation = editStudentFeeValidator.validate({ code: studentId, feeCode, ...req.body });
@@ -134,7 +163,9 @@ export const editStudentFeeCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const deactivateStudentCONTROLLER: RequestHandler = async (req, res) => {
-  const { code: studentId } = req.params;
+  const { code } = req.params;
+  const studentId = await getActiveStudentId(code);
+
   const response = await StudentService.deactivateStudent({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);

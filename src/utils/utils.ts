@@ -434,6 +434,51 @@ const Utils = {
   snake(str: string) {
     return str.replace(/(^[A-Z])/, (_, p1) => p1.toLowerCase()).replace(/([A-Z]+)/g, (_, p1) => `_${p1.toLowerCase()}`);
   },
+
+  groupObjectsInObjectsByKeyValue(object: { [key: string]: { [key: string]: any } }, keyValue: string) {
+    const groupedObjects: any = {};
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const key in object) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (object.hasOwnProperty(key)) {
+        const objectValue = object[key];
+        const value = objectValue[keyValue];
+
+        if (!groupedObjects[value]) groupedObjects[value] = [];
+        groupedObjects[value].push(objectValue);
+      }
+    }
+    return groupedObjects;
+  },
+
+  findInArray(array: any[], key: string, value: any) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const item of array) {
+      if (item[key] === value) return item;
+    }
+    return null;
+  },
+
+  searchInArray(array: any[], searchObject: { [key: string]: any }) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const item of array) {
+      let isMatch = true;
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const key in searchObject) {
+        // eslint-disable-next-line no-prototype-builtins
+        if (searchObject.hasOwnProperty(key) && item[key] !== searchObject[key]) {
+          isMatch = false;
+          break;
+        }
+      }
+
+      if (isMatch) return item;
+    }
+
+    return null;
+  },
 };
 
 export const toSnake = propertyNameConverter(Utils.snake);

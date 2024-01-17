@@ -54,6 +54,7 @@ import { sendEmail } from '../utils/mailtrap';
 import { CURRENCIES } from '../database/models/currencies.model';
 import ReservedAccountService from './reservedAccount.service';
 import { publishMessage } from '../utils/amqpProducer';
+import ReservedAccountREPO from '../database/repositories/reservedAccount.repo';
 
 class StudentSetupBuilder {
   private classId: string | number;
@@ -967,6 +968,21 @@ const Service: ServiceInterface = {
     const classAnalytics = await getClassAnalytics({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: groupBy || 'daily' });
 
     return sendObjectResponse('Added Class to School Successfully', classAnalytics);
+  },
+
+  async getStudentIdFromAccountNumber(studentId, provider = 'WEMA') {
+    if (studentId.substr(0, 3) === Utils.getWemaPrefix() && provider === 'WEMA') {
+      const accountDetails = await ReservedAccountREPO.getReservedAccount(
+        { reserved_account_number: studentId },
+        ['reserved_account_name', 'reserved_account_number', 'entity', 'entity_id'],
+        ['Student'],
+      );
+      if (accountDetails) {
+        if (accountDetails.entity !== 'student') throw new ValidationError('Does not belong to a student');
+        return accountDetails.Student.uniqueStudentId;
+      }
+    }
+    return studentId;
   },
 };
 

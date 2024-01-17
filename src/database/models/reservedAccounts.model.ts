@@ -59,14 +59,18 @@ export class ReservedAccount {
   @Column({ type: 'tinyint' })
   is_default: boolean;
 
-  @OneToOne('Wallets', 'transactions')
+  @OneToOne('Wallets', 'reserved_accounts')
   @JoinColumn({ name: 'wallet_id', referencedColumnName: 'id' })
   Wallet: IWallets;
+
+  @OneToOne('Student', 'reserved_accounts')
+  @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
+  Student: IStudent;
 
   @ManyToOne(() => Student, (student) => student.ReservedAccounts)
   @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
   Students: IStudent;
-  
+
   // @ManyToOne(() => Wallets, (wallet) => wallet.ReservedAccounts)
   // @JoinColumn({ name: 'entity_id', referencedColumnName: 'entity_id' })
   // Wallets: IWallets;
