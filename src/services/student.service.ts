@@ -607,6 +607,7 @@ const Service: ServiceInterface = {
         'StudentGuardians',
         'StudentGuardians.Guardian',
         'StudentGuardians.Guardian.phoneNumber',
+        'ReservedAccounts',
       ],
     );
     // const gottenFees = await Promise.all(response.map(Service.addModelsToStudent));
