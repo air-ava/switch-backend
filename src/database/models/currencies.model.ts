@@ -43,3 +43,8 @@ export class Currency {
   @OneToMany(() => Scholarship, (scholarship) => scholarship.Currencies)
   Scholarships: IScholarship[];
 }
+
+export const CURRENCIES: any = {
+  NIGERIA: 'NGN',
+  UGANDA: 'UGX',
+};

@@ -38,4 +38,8 @@ export const STATUSES = {
   INITIATED: 20,
   COMPLETED: 21,
   NEW: 22,
+  LOGGED: 23,
+  RESOLVED: 24,
+  UNRESOLVED: 25,
+  INCOMPLETE: 26,
 };

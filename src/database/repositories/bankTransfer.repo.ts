@@ -1,6 +1,6 @@
 import { QueryRunner, InsertResult, getRepository, UpdateResult } from 'typeorm';
-import { IBanks, IBankTransfers } from '../modelInterfaces';
-import { Banks } from '../models/banks.model';
+import { IBankAccounts, IBankTransfers } from '../modelInterfaces';
+import { BankAccounts } from '../models/bankAccount.model';
 import { BankTransfers } from '../models/bankTransfer.model';
 import { STATUSES } from '../models/status.model';
 

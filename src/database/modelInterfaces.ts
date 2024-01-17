@@ -35,57 +35,6 @@ export interface ISettings {
   updated_at?: Date;
 }
 
-// export interface IUser {
-//   id: string;
-//   email: string;
-//   password: string;
-//   code?: string;
-//   phone?: string;
-//   user_type: string;
-//   business_name: string;
-//   country: string;
-//   phone_number: number;
-//   first_name: string;
-//   last_name: string;
-//   image: string;
-//   title: string;
-//   employer: string;
-//   job_title: string;
-//   industry_skills: string;
-//   job_status: string;
-//   state: string;
-//   area: string;
-//   city: string;
-//   bio: string;
-//   provider: string;
-//   provider_id: string;
-//   facebook: string;
-//   linkedin: string;
-//   twitter: string;
-//   website: string;
-//   slug: string;
-//   address: string;
-//   instagram: string;
-//   logo: string;
-//   organisation_email: string;
-//   organisation_headline: string;
-//   organisation_bio: string;
-//   organisation_code: string;
-//   organisation_phone: string;
-//   organisation_address: string;
-//   organisation_country: string;
-//   organisation_state: string;
-//   organisation_area: string;
-//   organisation_city: string;
-//   organisation: number;
-//   remember_token: string | null;
-//   email_verified_at?: Date;
-//   created_at: Date;
-//   updated_at?: Date;
-//   address_id: number;
-//   avatar: number;
-// }
-
 export interface IUser {
   id: string;
   email: string;
@@ -120,12 +69,19 @@ export interface IIndividual {
   id: number;
   firstName: string;
   lastName: string;
+  nationality: string;
+  dob?: Date;
   email: string;
   gender: 'male' | 'female' | 'others';
   type: string;
+  is_owner: boolean;
   avatar: number;
   job_title: number;
   status: number;
+  verification_status: number;
+  document_reference: string;
+  onboarding_reference: string;
+  username: string;
   metadata: string;
   school_id: number;
   phone_number: number;
@@ -133,6 +89,59 @@ export interface IIndividual {
   created_at: Date;
   updated_at: Date;
 }
+
+export interface ICountryState {
+  id: number;
+  code: string;
+  country: string;
+  state_district: string;
+  alpha_code: string;
+  postal_code: string;
+  lga_cities: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IReservedAccountsTransaction {
+  id: number;
+  code: string;
+  walletId: number;
+  transactionId: number;
+  amount: number;
+  originator_account_name: string;
+  originator_account_number: string;
+  bank_name: string;
+  bank_routing_number: string;
+  bank_code: string;
+  processor: string;
+  sessionId: string;
+  response: string;
+  narration: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IReservedAccount {
+  id: number;
+  code: string;
+  reserved_account_number: string;
+  reserved_account_name: string;
+  reserved_bank_name: string;
+  processor: string;
+  status: number;
+  entity: string;
+  entity_id: number;
+  wallet_id: number;
+  type: string;
+  country: string;
+  expired_at: Date | null;
+  deleted_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+  reserved_bank_code: string | null;
+  is_default: boolean;
+}
+
 export interface IPhoneNumber {
   id: number;
   countryCode: string;
@@ -196,7 +205,9 @@ export interface ISchools {
   email: string;
   description: string;
   document_reference: string;
+  onboarding_reference: string;
   website: string;
+  slug: string;
   status: number;
   logo: number;
   organisation_id?: number;
@@ -223,13 +234,16 @@ export interface IDocumentRequirement {
 export interface IDocuments {
   id: number;
   reference: string;
+  referenced_entity: string;
   type: string;
   metadata: string;
   status: number;
   number: string;
   asset_id: string;
   link_id: number;
+  school_id: number;
   processor: string;
+  tag: string;
   response: string;
   country: string;
   trigger: string;
@@ -278,6 +292,7 @@ export interface IScholarship {
 
 export interface IWallets {
   id: number;
+  code: string;
   userId: string;
   currency: string;
   type: 'temporary' | 'permanent';
@@ -312,10 +327,15 @@ export interface IThirdPartyLogs {
 
 export interface IOrganisation {
   id: number;
+  code: string;
   name: string;
+  business_type: string;
   email: string;
   bio: string;
   status: number;
+  onboarding_status: number;
+  onboarding_reference: string;
+  document_reference: string;
   logo: string;
   type: string;
   phone_number: string;
@@ -391,21 +411,6 @@ export interface IProduct {
   created_at: Date;
   updated_at: Date;
 }
-
-// export interface ITransactions {
-//   id: number;
-//   user_id: string;
-//   reference: string;
-//   description?: string;
-//   purpose: string;
-//   response?: string;
-//   currency?: string;
-//   amount: number;
-//   txn_type: 'debit' | 'credit';
-//   metadata: { [key: string]: number | string };
-//   created_at: Date;
-//   updated_at: Date;
-// }
 
 export interface ITransactions {
   id: number;
@@ -522,6 +527,18 @@ export interface IQuestions {
   title_id: number;
   created_at: Date;
   updated_at?: Date;
+}
+
+export interface IBanks {
+  id: number;
+  code: string;
+  name: string;
+  bank_code: string;
+  country: string;
+  wema_data: any;
+  logo_url: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface IQuestionnaireTitle {
@@ -712,6 +729,7 @@ export interface ITransaction {
 
 export interface IStudent {
   id: number;
+  code: string;
   schoolId: number;
   uniqueStudentId: string;
   userId: string;
@@ -724,6 +742,7 @@ export interface IStudent {
 
 export interface IStudentClass {
   id: number;
+  code: string;
   studentId: number;
   classId: number;
   status: number;
@@ -756,7 +775,7 @@ export interface ILienTransaction {
   updated_at: Date;
 }
 
-export interface IBanks {
+export interface IBankAccounts {
   id: number;
   provider: string;
   country: string;
@@ -853,6 +872,7 @@ export interface IStudentGuardian {
   id: number;
   code: string;
   relationship: string;
+  authentication_pin: string;
   studentId: number;
   individualId: number;
   status: number;
@@ -952,9 +972,11 @@ export interface IPaymentContacts {
   id: number;
   name?: string;
   school: number;
-  phone_number?: number;
+  phone_number?: string;
   address_id?: number;
   email?: string;
+  relationship?: string;
+  gender?: string;
   status: number;
   code: string;
   created_at: Date;
@@ -1052,4 +1074,56 @@ export interface IAuditLog {
   delta?: string;
   created_at: Date;
   updated_at?: Date;
+}
+
+export interface ICashDeposit {
+  id?: number;
+  code: string;
+  student_id: number;
+  recorded_by: number;
+  payer_id: number;
+  school_id: number;
+  currency: string; // Default: 'UGX'
+  amount: number; // Default: 0
+  class_id: number;
+  period_id?: number;
+  session_id: number;
+  beneficiary_product_id: number;
+  status: number;
+  approval_status: number;
+  notes?: string;
+  description?: string;
+  reciept_reference?: string;
+  transaction_reference?: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface ICashDepositLog {
+  id?: number;
+  code: string;
+  cash_deposits_id: number;
+  initiator_id: number;
+  device_id: number;
+  action: 'CREATED' | 'UPDATED' | 'DELETED';
+  state_before: string;
+  state_after: string;
+  longitude?: string;
+  latitude?: string;
+  ip_address?: string;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface IDevice {
+  id: number;
+  code: string;
+  isMobile: boolean;
+  os: string;
+  name: string;
+  model: string;
+  deviceType: string;
+  status: number;
+  schoolId: number;
+  ownerId: number;
 }

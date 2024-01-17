@@ -25,6 +25,12 @@ export class DocumentRequirement {
   @Column()
   process: string;
 
+  @Column()
+  tag: string;
+
+  @Column()
+  verification_type: 'MANUAL' | 'AUTO';
+
   @Column('varchar', { default: 'UGANDA', nullable: false })
   country: string;
 

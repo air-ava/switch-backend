@@ -1,4 +1,4 @@
-import { Schedule } from './../../integrations/extra/cron.integrations';
+import { Schedule } from '../../integration/extra/cron.integrations';
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { IEducationPeriod, ISchoolSession } from '../modelInterfaces';
 
@@ -28,10 +28,10 @@ export class SchoolPeriod {
   @Column()
   status: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'datetime' })
   start_date: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   expiry_date: Date;
 
   @Column({ unique: true })

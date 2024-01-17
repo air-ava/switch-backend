@@ -7,6 +7,7 @@ import { getOneOrganisationREPO } from '../database/repositories/organisation.re
 import { getSchool } from '../database/repositories/schools.repo';
 import { findUser } from '../database/repositories/user.repo';
 import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
+import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { BadRequestException } from '../utils/errors';
 // eslint-disable-next-line prettier/prettier
 import { ControllerResponse } from '../utils/interface'
@@ -14,6 +15,9 @@ import { ControllerResponse } from '../utils/interface'
 import { JWT_KEY } from '../utils/secrets';
 import { jwtDecodedDTO, jwtDTO } from '../dto/helper.dto';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
+import { findIndividual } from '../database/repositories/individual.repo';
+import { getStudentGuardian } from '../database/repositories/studentGuardian.repo';
+import Settings from '../services/settings.service';
 
 const decodeToken = (token: string): ControllerResponse & { data?: jwtDecodedDTO } => {
   try {
@@ -38,22 +42,29 @@ const sessionData = {
     return { user };
   },
 
+  async getGuardianSessionData(data: jwtDecodedDTO & { originalUrl: string }): Promise<any> {
+    const { id, originalUrl } = data;
+    if (!originalUrl.includes('/guardians/')) throw Error(`Invalid token provided`);
+
+    const studentGuardian = await getStudentGuardian(
+      { id },
+      [],
+      ['Guardian', 'student', 'student.School', 'student.School.Organisation', 'Guardian.phoneNumber'],
+    );
+    if (!studentGuardian) throw Error(`Guardian does not exist`);
+    const { student, Guardian } = studentGuardian;
+    if (Guardian.type !== 'guardian') throw Error(`Guardian does not exist`);
+    const { School: school } = student as any;
+    const { Organisation: organisation } = school as any;
+    const payload = { individual: Guardian, school, organisation };
+    delete (student as any).School;
+    return { ...payload, student };
+  },
+
   async getDashboardSessionData(data: jwtDecodedDTO & { originalUrl: string }): Promise<any> {
     const { id, originalUrl } = data;
     if (!originalUrl.includes('/api/')) throw Error(`Invalid token provided`);
 
-    // const user = await findUser({ id }, []);
-    // if (!user) throw Error(`User doesn't exists`);
-    // const organisation = await getOneOrganisationREPO({ id: (user as IUser).organisation }, []);
-    // let school;
-    // if (organisation) {
-    //   if (organisation) {
-    //     school = await getSchool({ organisation_id: organisation.id }, [], ['Logo']);
-    //     if (school) school = school as any;
-    //   }
-    // }
-
-    // return { user, organisation, school };
     return sessionData.getDashboardData({ id });
   },
 
@@ -85,28 +96,49 @@ export const validateSession: RequestHandler = async (req, res, next) => {
     }
     const [, token] = Authorization.split('Bearer ');
     const decodeResponse = decodeToken(token);
-    if (!decodeResponse.success) {
-      return res.status(401).json(decodeResponse);
-    }
+    if (!decodeResponse.success) return res.status(401).json(decodeResponse);
 
     const { data } = decodeResponse;
     const extractedData = data as jwtDecodedDTO;
 
     req.userId = String(extractedData.id);
+    req.deviceInfo = req.useragent;
+    req.ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip;
 
     const sessionDataPayload = { ...extractedData, originalUrl: req.originalUrl };
     if (extractedData.type === 'backOffice') {
       // New
       const { user: foundUser } = await sessionData.getBackOfficeSessionData(sessionDataPayload);
       req.backOfficeUser = foundUser;
+      Settings.set('USER', foundUser);
+    } else if (extractedData.type === 'guardian') {
+      const { individual, school, organisation, student } = await sessionData.getGuardianSessionData(sessionDataPayload);
+      req.guardian = individual;
+      req.school = school;
+      req.organisation = organisation;
+      req.student = student;
+
+      Settings.set('SCHOOL', school);
+      Settings.set('GUARDIAN', individual);
+      Settings.set('ORGANISATION', organisation);
+      Settings.set('STUDENT', student);
     } else {
       // New
       const { user: foundUser, school: foundSchool, organisation: foundOrganisation } = await sessionData.getDashboardSessionData(sessionDataPayload);
       req.user = foundUser;
       req.organisation = foundOrganisation;
       req.school = foundSchool;
-      // Todo: Get current Educational Session Data
-      req.educationalSession = await getSchoolSession({ country: 'UGANDA' || foundSchool.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
+      const session = await getSchoolSession({ country: 'UGANDA' || foundSchool.country.toUpperCase(), status: STATUSES.ACTIVE }, []);
+      req.educationalSession = session;
+      const wallet = await WalletREPO.findWallet({ userId: foundUser.id, entity: 'school', entity_id: foundSchool.id }, []);
+      if (wallet) Settings.set('WALLET', wallet);
+
+      Settings.set('SCHOOL', foundSchool);
+      Settings.set('COUNTRY', foundSchool.country.toUpperCase());
+      Settings.set('SESSION', session);
+      Settings.set('ORGANISATION', foundOrganisation);
+      Settings.set('USER', foundUser);
+
       // TODO: Get all running periods for the Schools across multiple education Levels
     }
     return next();

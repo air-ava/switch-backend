@@ -2,7 +2,7 @@ import randomstring from 'randomstring';
 import { sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { v4 } from 'uuid';
-import MoMoIntegrator from '../integrations/mtn/momo.integrations';
+import MoMoIntegrator from '../integration/mtn/momo.integrations';
 
 const Service = {
   async requestPayment(data: any): Promise<theResponse> {

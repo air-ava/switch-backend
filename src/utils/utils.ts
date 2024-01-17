@@ -1,3 +1,5 @@
+/* eslint-disable no-nested-ternary */
+/* eslint-disable no-lonely-if */
 /* eslint-disable no-param-reassign */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { parsePhoneNumber } from 'libphonenumber-js';
@@ -30,16 +32,22 @@ export const findObjectValue = (object: any, path: string) => {
   let sanitizedObject = jsonify(object);
   // eslint-disable-next-line no-plusplus
   for (let index = 0; index < args.length; index++) {
-    // eslint-disable-next-line no-prototype-builtins
-    if (!sanitizedObject.hasOwnProperty(args[index])) return;
+    if (!Object.prototype.hasOwnProperty.call(sanitizedObject, args[index])) return;
     sanitizedObject = sanitizedObject[args[index]];
   }
   // eslint-disable-next-line consistent-return
   return sanitizedObject;
 };
 
-export const formatPhoneNumber = (localFormat: string): string => {
-  const { number: newInternationalFormat } = parsePhoneNumber(localFormat, 'UG');
+export const ensurePlusPrefix = (countryCode: string): string => {
+  // Remove all occurrences of '+'
+  const sanitizedCode = countryCode.replace(/\+/g, '');
+  // Prepend a single '+'
+  return `+${sanitizedCode}`;
+};
+
+export const formatPhoneNumber = (localFormat: string, countryCode: string): string => {
+  const { number: newInternationalFormat } = parsePhoneNumber(`${ensurePlusPrefix(countryCode || '256')}${localFormat}`);
   return newInternationalFormat;
 };
 
@@ -98,16 +106,19 @@ export const mapAnArray = (arr: any[], key: string) => {
   });
 };
 
-export const createObjectFromArray = (payload: any, key: string, value: any, path?: string) => {
+export const createObjectFromArray = (payload: any, key: string, value?: any, path?: string) => {
   if (!Array.isArray(payload)) return null;
   const response: { [key: string]: any } = {};
   payload.forEach((item) => {
     const data = path ? findObjectValue(item, path) : jsonify(item);
-    if (Array.isArray(value)) {
-      value.forEach((element) => {
-        response[data[key]][element] = data[element];
-      });
-    } else response[data[key]] = data[value];
+    if (!value) response[data[key]] = data;
+    else {
+      if (Array.isArray(value)) {
+        value.forEach((element) => {
+          response[data[key]][element] = data[element];
+        });
+      } else response[data[key]] = data[value];
+    }
   });
   return response;
 };
@@ -179,6 +190,36 @@ export const singleDayStartAndEnd = (date: any = new Date()): { startDate: Date;
   return { startDate, endDate };
 };
 
+const detectObject = (obj: any) => {
+  if (Object.prototype.toString.call(obj) === '[object Object]') {
+    return true;
+  }
+  return false;
+};
+
+const propertyNameConverter =
+  (converterFn: (s: string) => string) =>
+  (data: any): { [key: string]: any } => {
+    const recursive = (obj: any): any => {
+      if (!detectObject(data)) {
+        return data;
+      }
+      const keys = Object.keys(obj);
+      return keys.reduce((accum: { [key: string]: any }, propName: string) => {
+        const propValue = obj[propName];
+        return {
+          ...accum,
+          [converterFn(propName)]: Array.isArray(propValue)
+            ? propValue.map((x) => (detectObject(x) ? recursive(x) : x))
+            : detectObject(propValue)
+            ? recursive(propValue)
+            : propValue,
+        };
+      }, {});
+    };
+    return recursive(data);
+  };
+
 const Utils = {
   isProd() {
     return ENVIRONMENT === 'production';
@@ -198,6 +239,27 @@ const Utils = {
 
   getApiURL() {
     return Utils.isProd() ? `https://steward-prod-rmq4b.ondigitalocean.app` : `https://king-prawn-app-ovupz.ondigitalocean.app`;
+  },
+
+  getWemaPrefix() {
+    return Utils.isProd() ? `960` : `752`;
+  },
+
+  getDashboardURL() {
+    return Utils.isProd() ? `https://app.joinsteward.com` : `https://steward-demo.netlify.app`;
+  },
+
+  getWebsiteURL() {
+    return Utils.isProd() ? `https://joinsteward.com` : `https://steward-website.netlify.app`;
+  },
+
+  getAvatar() {
+    return {
+      student: `https://cdn-icons-png.flaticon.com/512/67/67902.png`,
+      school: `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzkowCIjVkz8P95hG7DW_WuN26wwl5KQpnms1u_7tkini5Rp-S2Di24zdJexNLgwU2Cek&usqp=CAU`,
+      user: `https://e7.pngegg.com/pngimages/753/432/png-clipart-user-profile-2018-in-sight-user-conference-expo-business-default-business-angle-service-thumbnail.png`,
+      officer: `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiS6Oz_n8UzBVIxQW4S6pUw8aqmJ9bgM2TfXK2EE5Z5YfgWGu9VVkaTLlr3zxJKQj2xew&usqp=CAU`,
+    };
   },
 
   getMoMoURL() {
@@ -358,6 +420,23 @@ const Utils = {
     if (typeof string !== 'string') throw new ValidationError('Wrong data type passed');
     return string.replace(/\s/g, '');
   },
+
+  isFalsyOrUnknown(value: any) {
+    return !value || value === 'unknown';
+  },
+
+  convertCurrencyToSmallerUnit(amount: number, conversionFactor = 100) {
+    return amount * conversionFactor;
+  },
+  camel(str: string) {
+    return str.replace(/_+(.?)/g, (_, p1) => p1.toUpperCase());
+  },
+  snake(str: string) {
+    return str.replace(/(^[A-Z])/, (_, p1) => p1.toLowerCase()).replace(/([A-Z]+)/g, (_, p1) => `_${p1.toLowerCase()}`);
+  },
 };
+
+export const toSnake = propertyNameConverter(Utils.snake);
+export const toCamel = propertyNameConverter(Utils.camel);
 
 export default Utils;

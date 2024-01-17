@@ -21,17 +21,23 @@ export const updateUserCONTROLLER: RequestHandler = async (req, res) => {
   }
 };
 
+// export const fetchUserCONTROLLER: RequestHandler = async (req, res) => {
+//   try {
+//     const payload = { ...req.body, user: req.user };
+//     const response = await fetchUserProfile(payload);
+//     const responseCode = response.success === true ? 200 : 400;
+//     return res.status(responseCode).json(response);
+//   } catch (error: any) {
+//     return error.message
+//       ? res.status(400).json({ success: false, error: error.message })
+//       : res.status(500).json({ success: false, error: errorMessages.userDetails, data: error });
+//   }
+// };
 export const fetchUserCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const payload = { ...req.body, user: req.user };
-    const response = await fetchUserProfile(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.userDetails, data: error });
-  }
+  const payload = { ...req.body, user: req.user };
+  const response = await fetchUserProfile(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const listUsersCONTROLLER: RequestHandler = async (req, res) => {

@@ -1,3 +1,4 @@
+import { listDirectors } from './../database/repositories/individual.repo';
 import { RequestHandler } from 'express';
 import SchoolService, {
   answerQuestionnaireService,
@@ -10,14 +11,26 @@ import SchoolService, {
   updateSchoolDetails,
   updateSchoolInfo,
 } from '../services/school.service';
-// import SchoolService from '../services/school.service';
+import DirectorService from '../services/director.service';
 import DocumentService from '../services/document.service';
 import StudentService from '../services/student.service';
 import AuditLogsService from '../services/auditLogs.service';
 import ResponseService from '../utils/response';
 import { Sanitizer } from '../utils/sanitizer';
-import { addClass, addClassAdmin, getClassLevel } from '../validators/schools.validator';
+import {
+  addClass,
+  addClassAdmin,
+  addSchoolOfficerValidator,
+  getClassLevel,
+  getQuestionnaire,
+  schoolContact,
+  schoolInfo,
+  schoolOwnerValidator,
+  updateSchoolOfficerValidator,
+} from '../validators/schools.validator';
 import ValidationError from '../utils/validationError';
+import { createBusinessValidator } from '../validators/business.validator';
+import { STATUSES } from '../database/models/status.model';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
@@ -29,36 +42,36 @@ const errorMessages = {
 };
 
 export const schoolInfoCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
-    const response = await updateSchoolInfo(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return res.status(500).json({ success: false, error: error.message || errorMessages.schoolInfo, data: error });
-  }
+  const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
+
+  const validation = schoolInfo.validate({ ...req.body, country: payload.user.country || req.body.country });
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await updateSchoolInfo(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const schoolContactCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const payload = { ...req.body, user: req.user };
-    const response = await updateSchoolContact(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error) {
-    return res.status(500).json({ success: false, error: errorMessages.schoolContact, data: error });
-  }
+  const payload = { ...req.body, user: req.user };
+
+  const validation = schoolContact.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await updateSchoolContact(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const schoolOwnerCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
-    const response = await updateOrganisationOwner(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error) {
-    return res.status(500).json({ success: false, error: errorMessages.schoolOwner, data: error });
-  }
+  const payload = { ...req.body, user: req.user, organisation: req.user.organisation };
+
+  const validation = schoolOwnerValidator.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await updateOrganisationOwner(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const accountUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, res) => {
@@ -86,17 +99,11 @@ export const answerUseCaseQuestionnaireCONTROLLER: RequestHandler = async (req, 
 };
 
 export const getSchoolCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const { educationalSession } = req;
-    const payload = { user: req.user, session: educationalSession };
-    const response = await getSchoolDetails(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.schoolProfile, data: error });
-  }
+  const { educationalSession } = req;
+  const payload = { user: req.user, session: educationalSession };
+  const response = await getSchoolDetails(payload);
+  const { data, message, error } = response as any;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const listSchoolCONTROLLER: RequestHandler = async (req, res) => {
@@ -139,29 +146,27 @@ export const updateSchoolAdminCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const getDocumentRequirementCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const payload = req.query;
-    const response = await DocumentService.listDocumentRequirements(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.schoolProfile, data: error });
-  }
+  const { process, country = 'UGANDA', tag } = req.query;
+  const payload = { process, country, tag };
+
+  const validation = getQuestionnaire.validate(payload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await DocumentService.listDocumentRequirements(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const addOnboardingDocumentsCONTROLLER: RequestHandler = async (req, res) => {
-  try {
-    const payload = { ...req.body, user: req.user };
-    const response = await DocumentService.addOnboardingDocument(payload);
-    const responseCode = response.success === true ? 200 : 400;
-    return res.status(responseCode).json(response);
-  } catch (error: any) {
-    return error.message
-      ? res.status(400).json({ success: false, error: error.message })
-      : res.status(500).json({ success: false, error: errorMessages.schoolProfile, data: error });
-  }
+  const payload = { ...req.body, user: req.user, organisation: req.organisation, school: req.school };
+
+  // const validation = schoolOwnerValidator.validate(req.body);
+  // if (validation.error) throw new ValidationError(validation.error.message);
+  // const response = await DocumentService.addOnboardingDocument(payload);
+
+  const response = await DocumentService.addMultipleDocuments(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };
 
 export const verifySchoolCONTROLLER: RequestHandler = async (req, res) => {
@@ -247,6 +252,58 @@ export const listClassLevelByEducationLevelCONTROLLER: RequestHandler = async (r
 
 export const listEducationLevelCONTROLLER: RequestHandler = async (req, res) => {
   const response = await SchoolService.educationLevel();
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};
+
+export const listDirectorsCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { school: req.school, ...req.query };
+  const response = await DirectorService.listSchoolDirectors(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
+};
+
+export const addOfficerCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { organisation: req.organisation, school: req.school, user: req.user, ...req.body };
+
+  const validation = addSchoolOfficerValidator.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await DirectorService.addOrganisationOfficer(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
+};
+
+export const inviteOfficerCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = { organisation: req.organisation, school: req.school, user: req.user, ...req.body };
+
+  // const validation = addSchoolOfficerValidator.validate(req.body);
+  // if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await DirectorService.sendInviteToOfficer(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
+};
+
+export const updateOfficerCONTROLLER: RequestHandler = async (req, res) => {
+  const validatingPayload = { ...req.body, officerCode: req.params.code };
+  const payload = { organisation: req.organisation, school: req.school, user: req.user, ...validatingPayload };
+
+  const validation = updateSchoolOfficerValidator.validate(validatingPayload);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await DirectorService.updateOrganisationOfficer(payload);
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
+};
+
+export const listRejectedDocumentsCONTROLLER: RequestHandler = async (req, res) => {
+  const payload = {
+    school: req.school,
+    status: STATUSES.REJECTED,
+    ...req.query,
+  };
+  const response = await DocumentService.listDocuments(payload);
   const { data, message, error } = response;
   return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeNoId));
 };

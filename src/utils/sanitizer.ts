@@ -12,6 +12,8 @@ import {
   IScholarshipRequirement,
   IStudentClass,
   ITransactions,
+  IIndividual,
+  IReservedAccount,
 } from '../database/modelInterfaces';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -100,7 +102,8 @@ export const Sanitizer = {
   },
 
   getStatusById(object: any, value: string): any {
-    return Object.keys(object).find((key) => object[key] === value);
+    const response = Object.keys(object).find((key) => object[key] === value);
+    return response?.toLowerCase();
   },
 
   sanitizeScholarship(payload: IScholarship, extra?: string) {
@@ -230,7 +233,7 @@ export const Sanitizer = {
     };
     return sanitized;
   },
-  
+
   sanitizeAdmin(payload: any): any {
     if (!payload) return null;
     const { id, ...rest } = Sanitizer.sanitizeAdminUser(payload);
@@ -252,10 +255,11 @@ export const Sanitizer = {
 
   sanitizeNoId(payload: ISponsorships): any {
     if (!payload) return null;
-    const { id, status, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, lga_cities, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      lga_cities: lga_cities ? lga_cities.split(',') : [],
     };
     return sanitized;
   },
@@ -278,7 +282,7 @@ export const Sanitizer = {
 
   sanitizeWallet(payload: IScholarshipApplication, addUserId?: boolean): any {
     if (!payload) return null;
-    const { id, userId, User, status, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
+    const { id, userId, User, ReservedAccount, status, uniquePaymentId, transaction_pin, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
       isPinSet: !!transaction_pin,
@@ -286,6 +290,8 @@ export const Sanitizer = {
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
       ...(addUserId && { userId }),
       owner: User && Sanitizer.sanitizeUser(User),
+      uniquePaymentId: ReservedAccount ? ReservedAccount.reserved_account_number : uniquePaymentId,
+      reservedAccount: ReservedAccount && Sanitizer.sanitizeReservedAccount(ReservedAccount),
     };
     return sanitized;
   },
@@ -321,7 +327,6 @@ export const Sanitizer = {
   },
   sanitizeLightTransaction(payload: any): any {
     if (!payload) return null;
-    // console.log({ payload });
     const { id, userId, User, status, Wallet, walletId, document_reference, Reciepts, metadata, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       id,
@@ -330,22 +335,58 @@ export const Sanitizer = {
       recieptReference: document_reference,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
     };
-    // console.log({ sanitized });
+    return sanitized;
+  },
+
+  sanitizeReservedAccountLight(payload: any, entity: string): any {
+    if (!Array.isArray(payload)) return [];
+    const [account] = payload && payload.filter((value: IReservedAccount) => value.entity === entity && value.status === STATUSES.ACTIVE);
+    return account;
+  },
+
+  sanitizeReservedAccount(payload: any): any {
+    if (!payload) return null;
+    const { id, entity, status, entity_id, wallet_id, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status),
+    };
     return sanitized;
   },
 
   sanitizeStudent(payload: any): any {
     if (!payload) return null;
-    const { id, StudentGuardians, status, User, paymentTypeId, userId, School, schoolId, Fees, uniqueStudentId, Classes, PaymentType, ...rest } =
-      Sanitizer.jsonify(payload);
+    const {
+      id,
+      StudentGuardians,
+      status,
+      User,
+      paymentTypeId,
+      userId,
+      School,
+      schoolId,
+      Fees,
+      uniqueStudentId,
+      Classes,
+      PaymentType,
+      ReservedAccounts,
+      ...rest
+    } = Sanitizer.jsonify(payload);
     const studentCurrentClass = Classes && Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+    // const [studentAccount] =
+    //   ReservedAccounts && ReservedAccounts.filter((value: IReservedAccount) => value.entity === 'student' && value.status === STATUSES.ACTIVE);
+    const studentAccount = Sanitizer.sanitizeReservedAccountLight(ReservedAccounts, 'student');
     const paymentFees = Fees && Sanitizer.mapAnArray(Fees, 'FeesHistory');
+
     const sanitized = {
       id,
       ...rest,
       partPayment: PaymentType && PaymentType.value === 'install-mental' ? PaymentType.value === 'install-mental' : false,
       blockPayment: PaymentType && PaymentType.value === 'no-payment' ? PaymentType.value === 'no-payment' : false,
-      studentId: uniqueStudentId,
+      studentId: studentAccount.reserved_account_number || uniqueStudentId,
+      reservedAccount: studentAccount && Sanitizer.sanitizeReservedAccount(studentAccount),
+      code: uniqueStudentId,
+      hasAccountNumber: !!studentAccount,
       status:
         status &&
         (Sanitizer.getStatusById(STATUSES, status).toLowerCase() === 'deleted'
@@ -417,6 +458,58 @@ export const Sanitizer = {
       feeHistory: FeesHistory && Sanitizer.sanitizeAllArray(FeesHistory, Sanitizer.sanitizeFee),
       fee: Fee && Sanitizer.sanitizeFee(Fee, !is_default_amount && custom_amount),
       student: Student && Sanitizer.sanitizeStudent(Student),
+    };
+    return sanitized;
+  },
+  sanitizeCashDepositLog(payload: any): any {
+    if (!payload) return null;
+    const { id, initiator_id, User, state_before, status, state_after, device_id, Device, ...rest } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      initiatedBy: User && Sanitizer.sanitizeUser(User),
+      device: Device && Sanitizer.sanitizeNoId(Device),
+    };
+    return sanitized;
+  },
+  sanitizeCashDeposit(payload: any): any {
+    if (!payload) return null;
+    const {
+      id,
+      StudentFee,
+      status,
+      approval_status,
+      User,
+      Student,
+      Payer,
+      beneficiary_product_id,
+      school_id,
+      payer_id,
+      student_id,
+      class_id,
+      session_id,
+      recorded_by,
+      Reciepts,
+      Transactions,
+      CashDepositLogs,
+      Period,
+      ClassLevel,
+      period_id,
+      ...rest
+    } = Sanitizer.jsonify(payload);
+    const sanitized = {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      approvalStatus: approval_status && Sanitizer.getStatusById(STATUSES, approval_status).toLowerCase(),
+      classLevel: ClassLevel && Sanitizer.sanitizeClassLevel(ClassLevel),
+      period: Period && Sanitizer.sanitizePeriod(Period),
+      payer: Payer && Sanitizer.sanitizePaymentContact(Payer),
+      fee: StudentFee && Sanitizer.sanitizeBeneficiaryFee(StudentFee),
+      student: Student && Sanitizer.sanitizeStudent(Student),
+      recordedBy: User && Sanitizer.sanitizeUser(User),
+      reciepts: Reciepts && Sanitizer.sanitizeAllArray(Reciepts, Sanitizer.sanitizeAsset),
+      transactions: Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeTransaction),
+      logs: CashDepositLogs && Sanitizer.sanitizeAllArray(CashDepositLogs, Sanitizer.sanitizeCashDepositLog),
     };
     return sanitized;
   },
@@ -547,24 +640,31 @@ export const Sanitizer = {
 
   sanitizeStudentGuardian(payload: IScholarshipApplication): any {
     if (!payload) return null;
-    const { id, status, Guardian, individualId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, verification_status, Guardian, School, individualId, Student, studentId, ...rest } = Sanitizer.jsonify(payload);
     const sanitized = {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      verification_status: verification_status && Sanitizer.getStatusById(STATUSES, verification_status).toLowerCase(),
       student: Student && Sanitizer.sanitizeStudent(Student),
       guardian: Guardian && Sanitizer.sanitizeIndividual(Guardian),
+      school: School && Sanitizer.sanitizeSchool(School),
     };
     return sanitized;
   },
 
-  sanitizeIndividual(payload: IScholarshipApplication): any {
+  sanitizeIndividual(payload: IIndividual): any {
     if (!payload) return null;
-    const { id, status, school_id, phoneNumber, phone_number, ...rest } = Sanitizer.jsonify(payload);
+    const { id, status, avatar, email, job_title, verification_status, school_id, phoneNumber, phone_number, Avatar, JobTitle, ...rest } =
+      Sanitizer.jsonify(payload);
     const sanitized = {
       id,
       ...rest,
-      phoneNumber: Sanitizer.sanitizePhoneNumber(phoneNumber),
+      email: Sanitizer.sanitizeEmail(email),
+      phoneNumber: phoneNumber && Sanitizer.sanitizePhoneNumber(phoneNumber),
+      avatar: Avatar && Sanitizer.sanitizeAsset(Avatar),
+      job_title: JobTitle && Sanitizer.sanitizeAsset(JobTitle),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      verification_status: verification_status && Sanitizer.getStatusById(STATUSES, verification_status).toLowerCase(),
     };
     return sanitized;
   },
@@ -640,7 +740,7 @@ export const Sanitizer = {
 
   sanitizePhoneNumber(payload: IPhoneNumber): any {
     if (!payload) return null;
-    const { id, is_verified, verified_at, ...rest } = Sanitizer.jsonify(payload);
+    const { id, is_verified, verified_at, remember_token, ...rest } = Sanitizer.jsonify(payload);
     return {
       ...rest,
       id,
@@ -691,8 +791,21 @@ export const Sanitizer = {
   sanitizeSchool(payload: any): any {
     if (!payload) return null;
 
-    const { country, education_level, email, status, organisation_id, phone_number, address_id, Address, phoneNumber, Organisation, Logo, ...rest } =
-      Sanitizer.jsonify(payload);
+    const {
+      owner,
+      country,
+      education_level,
+      email,
+      status,
+      organisation_id,
+      phone_number,
+      address_id,
+      Address,
+      phoneNumber,
+      Organisation,
+      Logo,
+      ...rest
+    } = Sanitizer.jsonify(payload);
     return {
       ...rest,
       email: Sanitizer.sanitizeEmail(email),
@@ -703,9 +816,11 @@ export const Sanitizer = {
       organisation: Organisation && Sanitizer.sanitizeOrganization(Organisation),
       logo: Logo && Sanitizer.sanitizeAsset(Logo),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+      owner: owner && Sanitizer.sanitizeIndividual(owner),
     };
   },
-  sanitizeBank(payload: any): any {
+
+  sanitizeBankAccount(payload: any): any {
     if (!payload) return null;
     const { status, walletId, ...rest } = Sanitizer.jsonify(payload);
     return {
@@ -716,6 +831,7 @@ export const Sanitizer = {
 
   sanitizeEmail(email: string): any {
     if (!email) return null;
+    if (email.includes('joinsteward.com')) return email;
     return email.includes('steward.com') ? null : email;
   },
 
@@ -725,7 +841,7 @@ export const Sanitizer = {
     return {
       ...rest,
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
-      bank: Bank && Sanitizer.sanitizeBank(Bank),
+      bank: Bank && Sanitizer.sanitizeBankAccount(Bank),
       assets: Assets && Sanitizer.sanitizeAsset(Assets),
       wallet: Wallet && Sanitizer.sanitizeWallet(Wallet, true),
       transactions: Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeTransaction),
@@ -736,6 +852,16 @@ export const Sanitizer = {
     if (!payload) return null;
     const { name, ...rest } = Sanitizer.jsonify(payload);
     return name;
+  },
+
+  sanitizeBank(payload: any): any {
+    if (!payload) return null;
+    const { id, status, bank_code, wema_data, code, country, created_at, updated_at, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      code: code.length < 10 ? code : bank_code,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
   },
 
   filterTransactionsByPurpose(transactions: ITransactions[], purpose: string): any {
@@ -752,6 +878,15 @@ export const Sanitizer = {
     };
   },
 
+  sanitizeDocumentRequirement(payload: any): any {
+    if (!payload) return null;
+    const { Asset, status, ...rest } = Sanitizer.jsonify(payload);
+    return {
+      ...rest,
+      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
+    };
+  },
+
   sanitizeSettlement(payload: any): any {
     if (!payload) return null;
     const { bankId, status, processor_transaction_id, Transactions, creditTransactions, Bank, ...rest } = Sanitizer.jsonify(payload);
@@ -760,7 +895,7 @@ export const Sanitizer = {
       ...rest,
       currency: Transactions && Transactions[0].Wallet && Transactions[0].Wallet.currency,
       payment: Transaction && Sanitizer.sanitizeLightTransaction(Transaction),
-      bank: Bank && Sanitizer.sanitizeBank(Bank),
+      bank: Bank && Sanitizer.sanitizeBankAccount(Bank),
       paymentTransactions: Transaction && Transactions && Sanitizer.sanitizeAllArray(Transactions, Sanitizer.sanitizeLightTransaction),
       transactions: creditTransactions && Sanitizer.sanitizeAllArray(creditTransactions, Sanitizer.sanitizeLightTransaction),
       status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
@@ -778,7 +913,7 @@ export const jsonify = (payload: any): { [key: string]: any } => {
 
 export const sanitizePhoneNumber = (payload: IPhoneNumber): any => {
   if (!payload) return null;
-  const { id, ...rest } = jsonify(payload);
+  const { id, remember_token, ...rest } = jsonify(payload);
   return rest;
 };
 

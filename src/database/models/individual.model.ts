@@ -1,5 +1,16 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { IUser, IBusiness, IAddresses, IAddress, IOrganisation, IPhoneNumber, IStudentGuardian } from '../modelInterfaces';
+import {
+  IUser,
+  IBusiness,
+  IAddresses,
+  IAddress,
+  IOrganisation,
+  IPhoneNumber,
+  IStudentGuardian,
+  ISchools,
+  IAssets,
+  IJobTitle,
+} from '../modelInterfaces';
 
 @Entity('individual')
 export class Individual {
@@ -24,14 +35,35 @@ export class Individual {
   @Column()
   type: string;
 
+  @Column()
+  is_owner: boolean;
+
   @Column('int')
   avatar: number;
 
   @Column('int')
   job_title: number;
 
+  @Column()
+  dob: Date;
+
+  @Column()
+  nationality: string;
+
   @Column('int')
   status: number;
+
+  @Column('int')
+  verification_status: number;
+
+  @Column()
+  document_reference: string;
+
+  @Column()
+  onboarding_reference: string;
+
+  @Column()
+  username: string;
 
   @Column()
   metadata: string;
@@ -61,9 +93,17 @@ export class Individual {
 
   @OneToOne('Schools', 'individual')
   @JoinColumn({ name: 'school_id', referencedColumnName: 'id' })
-  Organisation: IOrganisation;
+  School: ISchools;
 
   @ManyToOne('StudentGuardian', 'individual')
   @JoinColumn({ name: 'id', referencedColumnName: 'individualId' })
   Guardian: IStudentGuardian;
+
+  @OneToOne('Assets', 'individual')
+  @JoinColumn({ name: 'avatar', referencedColumnName: 'id' })
+  Avatar: IAssets;
+
+  @OneToOne('JobTitle', 'individual')
+  @JoinColumn({ name: 'job_title', referencedColumnName: 'id' })
+  JobTitle: IJobTitle;
 }

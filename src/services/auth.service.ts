@@ -16,7 +16,7 @@ import {
   userAuthValidator,
   verifyUserValidator,
 } from '../validators/auth.validator';
-import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import { BadRequestException, NotFoundError, ResourceNotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
 import {
   businessLoginDTO,
   changePasswordDTO,
@@ -30,23 +30,30 @@ import {
 import { findUser, createAUser, updateUser, verifyUser, listUser } from '../database/repositories/user.repo';
 import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
-import { generateBackOfficeToken, generateToken } from '../utils/jwt';
+import { generateBackOfficeToken, generateGuardianToken, generateToken, generateWemaToken } from '../utils/jwt';
 import { getBusinessesREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
 import { STATUSES } from '../database/models/status.model';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool, saveSchoolsREPO } from '../database/repositories/schools.repo';
-import { saveIndividual } from '../database/repositories/individual.repo';
+import { findIndividual, saveIndividual } from '../database/repositories/individual.repo';
 import { Service as WalletService } from './wallet.service';
 import { countryMapping } from '../database/models/users.model';
-import { sendSms } from '../integrations/africasTalking/sms.integration';
+import { sendSms } from '../integration/africasTalking/sms.integration';
 import Settings from './settings.service';
-import { formatPhoneNumber } from '../utils/utils';
+import Utils, { formatPhoneNumber } from '../utils/utils';
 import { getOnePhoneNumber, updatePhoneNumber } from '../database/repositories/phoneNumber.repo';
 import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
 import { PhoneNumbers } from '../database/models/phoneNumber.model';
+import DocumentService from './document.service';
 import { IBackOfficeUsers } from '../database/modelInterfaces';
+import { businessType } from '../database/models/organisation.model';
+import { getStudentGuardian, listStudentGuardian } from '../database/repositories/studentGuardian.repo';
+import { getStudent } from '../database/repositories/student.repo';
+import { CURRENCIES } from '../database/models/currencies.model';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
+import ReservedAccountService from './reservedAccount.service';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -80,7 +87,7 @@ export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
 
 export const createUser = async (data: createUserDTO): Promise<theResponse> => {
   const validation = registerValidator.validate(data);
-  if (validation.error) return ResourceNotFoundError(validation.error);
+  if (validation.error) throw new ValidationError(validation.error.message);
 
   const {
     // is_business = false,
@@ -118,6 +125,7 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
     // todo: put the token in redis and expire it
     const remember_token = randomstring.generate({ length: 6, charset: 'numeric' });
     const slug = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+    const username = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
     const userTypeCheck = user_type === 'school';
     const passwordHash = bcrypt.hashSync(password, 8);
 
@@ -166,6 +174,8 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
         firstName,
         lastName,
         school_id: school.id,
+        username,
+        is_owner: true,
       });
     }
 
@@ -187,6 +197,17 @@ export const createUser = async (data: createUserDTO): Promise<theResponse> => {
       // message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
+    if (!Utils.isProd())
+      sendSlackMessage({
+        body: {
+          recipient: internationalFormat,
+          code: `${remember_token_phone || remember_token}`,
+          channel: 'Phone',
+          text: `🔔 OTP for ${user.first_name} ${user.last_name}`,
+        },
+        feature: 'otp',
+      });
+
     const token = generateToken(user);
 
     return sendObjectResponse('Account created successfully', { user: sanitizeUser(user), token });
@@ -205,7 +226,7 @@ export const userAuth = async (data: any): Promise<theResponse> => {
     let phoneNumber;
     if (phone_number) {
       const { countryCode, localFormat } = phone_number;
-      const internationalFormat = formatPhoneNumber(localFormat);
+      const internationalFormat = formatPhoneNumber(localFormat, countryCode);
       phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
       if (!phoneNumber) throw Error('Your credentials are incorrect');
     }
@@ -222,7 +243,14 @@ export const userAuth = async (data: any): Promise<theResponse> => {
       userAlreadyExist.Organisation = organisation as any;
       if (organisation) {
         const school = await getSchool({ organisation_id: organisation.id }, [], ['Logo']);
-        if (school) userAlreadyExist.School = school as any;
+        if (school) {
+          const { isAlldocumentsSubmitted, requiredDocuments } = await DocumentService.areAllRequiredDocumentsSubmitted({
+            ...(organisation.business_type && { tag: businessType[organisation.business_type] }),
+            process: 'onboarding',
+            country: school.country.toUpperCase(),
+          });
+          userAlreadyExist.School = { ...school, requiredDocuments, isAlldocumentsSubmitted: requiredDocuments ? isAlldocumentsSubmitted : false };
+        }
       }
     }
 
@@ -243,7 +271,7 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
 
     if (phone_number) {
       const { countryCode, localFormat } = phone_number;
-      internationalFormat = formatPhoneNumber(localFormat);
+      internationalFormat = formatPhoneNumber(localFormat, countryCode);
       phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
       if (!phoneNumber) throw Error('Your credentials are incorrect');
     }
@@ -269,6 +297,17 @@ export const resendVerifyToken = async (data: any): Promise<theResponse> => {
       message: `Hi ${user.first_name}, Here is your OTP ${remember_token}`,
     });
 
+    if (!Utils.isProd())
+      sendSlackMessage({
+        body: {
+          recipient: internationalFormat,
+          code: `${remember_token}`,
+          channel: 'Phone',
+          text: `🔔 OTP for ${user.first_name} ${user.last_name}`,
+        },
+        feature: 'otp',
+      });
+
     return sendObjectResponse('OTP resent successfully');
   } catch (e: any) {
     return BadRequestException(e.message || 'Account creation failed, kindly try again', e);
@@ -282,7 +321,9 @@ export const userLogin = async (data: shopperLoginDTO): Promise<any> => {
   try {
     const { data: user, success, error } = await userAuth({ ...data, addPhone: true });
     if (!success) throw Error(error);
-    if (!user.email_verified_at) throw Error('This account has not been verified');
+    if (user.status !== STATUSES.VERIFIED) throw new ValidationError('This account has not been verified');
+    // Todo: [Urgency][Request][Medium]:[entity:users][title: Verification Request][body: { message: Email Verification Required }]
+    // if (!user.email_verified_at) throw Error('This account has not been verified');
 
     const token = generateToken(user);
 
@@ -329,56 +370,49 @@ export const verifyAccount = async (data: verifyUserDTO): Promise<theResponse> =
     let userAlreadyExist = id ? await findUser({ id }, [], []) : await findUser({ remember_token }, [], []);
     let emailToken = true;
     if (!userAlreadyExist) {
-      if (!remember_token) throw Error(`User Not Found`);
+      if (!remember_token) throw new ValidationError(`Token not passed`);
 
-      const message = remember_token ? 'OTP not found' : 'User not found';
+      const message = remember_token ? 'OTP' : 'User';
 
       // Check if the OTP belongs to the phone Number
       const phoneNumber = await getOnePhoneNumber({ queryParams: { remember_token } });
-      if (!phoneNumber) throw Error(message);
+      if (!phoneNumber) throw new NotFoundError(message);
+      // Todo: [Urgency][Request][Medium]:[entity:phone_numbers][title: Verification Request][body: { message: Phone Number Verification Required }]
       // if (phoneNumber.is_verified) throw Error(`User has been verified`);
+      emailToken = false;
 
       userAlreadyExist = await findUser({ phone_number: phoneNumber.id }, []);
-      if (!userAlreadyExist) throw Error(message);
+      if (!userAlreadyExist) throw new NotFoundError(message);
 
       userAlreadyExist.remember_token = remember_token;
       id = userAlreadyExist.id;
-      emailToken = false;
 
-      await updatePhoneNumber(
-        {
-          id: phoneNumber.id,
-        },
-        {
-          verified_at: new Date(Date.now()),
-          is_verified: true,
-        },
-      );
+      await updatePhoneNumber({ id: phoneNumber.id }, { verified_at: new Date(Date.now()), is_verified: true });
     }
-    if (userAlreadyExist.remember_token !== remember_token) throw Error(`Wrong Token`);
-    if (userAlreadyExist.email_verified_at) throw Error(`User has been verified`);
-
-    const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, []);
-    if (!school) throw Error(`School not found`);
+    if (userAlreadyExist.remember_token !== remember_token) throw new ValidationError(`Wrong Token`);
+    if (userAlreadyExist.status === STATUSES.VERIFIED) throw new ValidationError(`User has been verified`);
+    // Todo: [Urgency][Request][Medium]:[entity:users][title: Verification Request][body: { message: Email Verification Required }]
+    // if (userAlreadyExist.email_verified_at) throw new NotFoundError(`User has been verified`);
 
     await verifyUser(
-      {
-        ...(emailToken && { remember_token }),
-        ...(id && { id }),
-      },
-      {
-        ...(emailToken && { email_verified_at: new Date(Date.now()) }),
-        status: STATUSES.VERIFIED,
-      },
+      { ...(emailToken && { remember_token }), ...(id && { id }) },
+      { ...(emailToken && { email_verified_at: new Date(Date.now()) }), status: STATUSES.VERIFIED },
     );
 
-    await WalletService.createDollarWallet({
-      user: userAlreadyExist,
-      currency: 'UGX',
-      type: 'permanent',
-      entity: 'school',
-      entityId: school.id,
-    });
+    if (userAlreadyExist.user_type === 'school') {
+      const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, []);
+      if (!school) throw new NotFoundError(`School`);
+
+      // Create Wallet Consumer
+      await WalletService.createDollarWallet({
+        user: userAlreadyExist,
+        currency: CURRENCIES[school.country.toUpperCase()],
+        type: 'permanent',
+        entity: 'school',
+        entityId: school.id,
+      });
+      if (school.country === 'NIGERIA') ReservedAccountService.assignAccountNumber({ holder: 'school', holderId: String(school.id), school });
+    }
 
     const token = generateToken(userAlreadyExist);
     return sendObjectResponse('user verified', { token });
@@ -524,6 +558,17 @@ export const forgotPassword = async (data: {
       message: `Hi ${userAlreadyExist.first_name}, Here is your OTP ${otp}`,
     });
 
+    if (!Utils.isProd())
+      sendSlackMessage({
+        body: {
+          recipient: internationalFormat,
+          code: `${otp}`,
+          channel: 'Phone',
+          text: `🔔 OTP for ${userAlreadyExist.first_name} ${userAlreadyExist.last_name}`,
+        },
+        feature: 'otp',
+      });
+
     return sendObjectResponse(`OTP sent to ${reqPhone ? internationalFormat : userAlreadyExist.email}`);
   } catch (e: any) {
     console.log({ e });
@@ -547,7 +592,7 @@ export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse>
 
     await WalletService.createDollarWallet({
       user: userAlreadyExist,
-      currency: 'UGX',
+      currency: CURRENCIES[school.country.toUpperCase()],
       type: 'permanent',
       entity: 'school',
       entityId: school.id,
@@ -558,4 +603,40 @@ export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse>
     console.log({ e });
     return BadRequestException(e.message);
   }
+};
+
+export const guardianAuth = async (data: any): Promise<theResponse> => {
+  const { uniqueStudentId, pin, parent_username } = data;
+
+  const student: any = await getStudent({ uniqueStudentId }, [], ['School', 'School.Organisation']);
+  if (!student) throw new NotFoundError(`Student`);
+
+  const guardian: any = await findIndividual({ username: parent_username, status: STATUSES.ACTIVE }, []);
+  if (!guardian) throw new NotFoundError('Guardian');
+
+  const studentGuardian: any = await getStudentGuardian(
+    { studentId: student.id, individualId: guardian.id, status: STATUSES.ACTIVE },
+    [],
+    ['Guardian', 'student', 'Guardian.phoneNumber'],
+  );
+  if (!studentGuardian) throw Error(`Your credentials are incorrect`);
+  if (!bcrypt.compareSync(pin, studentGuardian.authentication_pin)) throw new ValidationError('Your credentials are incorrect');
+
+  const { School } = student;
+  const { Organisation: organisation } = School;
+  delete student.School;
+  delete School.Organisation;
+  return sendObjectResponse('Guardian Authenticated', { ...studentGuardian, School, Student: student, organisation });
+};
+
+export const guardianLogin = async (data: any): Promise<theResponse> => {
+  // const {}
+  const { data: user, success, error } = await guardianAuth({ ...data });
+
+  const token = generateGuardianToken(user);
+
+  return sendObjectResponse('Login successful', {
+    ...Sanitizer.sanitizeStudentGuardian(user),
+    token,
+  });
 };

@@ -1,4 +1,5 @@
 import { QueryRunner, InsertResult, getRepository, UpdateResult } from 'typeorm';
+import randomstring from 'randomstring';
 import { Wallets } from '../models/wallets.model';
 import { IWallets } from '../modelInterfaces';
 
@@ -9,7 +10,7 @@ export const Repo = {
    * @returns an inserted result [[InsertResult]]
    * @engineer Adebayo Opesanya(Created), Joyce Odenma(Updated), Daniel Adegoke(Updated), Emmanuel Akinjole(Updated)
    */
-  async createWallet(payload: {
+  async createWallet(data: {
     userId: string;
     entity?: string;
     entityId: string;
@@ -18,24 +19,18 @@ export const Repo = {
     type?: 'temporary' | 'permanent';
     t?: QueryRunner;
   }): Promise<InsertResult> {
-    const { userId, uniquePaymentId, currency, type, entity, entityId: entity_id, t } = payload;
-    return t
-      ? t.manager.insert(Wallets, {
-          userId,
-          uniquePaymentId,
-          entity_id,
-          entity,
-          ...(currency && { currency }),
-          ...(type && { type }),
-        })
-      : getRepository(Wallets).insert({
-          userId,
-          uniquePaymentId,
-          entity_id,
-          entity,
-          ...(currency && { currency }),
-          ...(type && { type }),
-        });
+    const { userId, uniquePaymentId, currency, type, entity, entityId: entity_id, t } = data;
+    const repository = t ? t.manager.getRepository(Wallets) : getRepository(Wallets);
+    const payload = {
+      code: `wlt_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+      userId,
+      uniquePaymentId,
+      entity_id,
+      entity,
+      ...(currency && { currency }),
+      ...(type && { type }),
+    };
+    return repository.insert(payload);
   },
 
   async findWallet(

@@ -3,11 +3,15 @@ import { Not, In } from 'typeorm';
 import { v4 } from 'uuid';
 import Settings from './settings.service';
 import { STATUSES } from '../database/models/status.model';
-import { getSettlementTransactionREPO, listSettlementTransactions, saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
+import {
+  getSettlementTransactionREPO,
+  listSettlementTransactions,
+  saveSettlementTransaction,
+} from '../database/repositories/settlementTransactions.repo';
 import { getListOfTransactionsForSettlement, getTotalSuccessfulDebit, updateTransactionREPO } from '../database/repositories/transaction.repo';
 import { sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
-import BankRepo from '../database/repositories/bank.repo';
+import BankAccountRepo from '../database/repositories/bankAccount.repo';
 import { getQueryRunner } from '../database/helpers/db';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';
@@ -37,7 +41,7 @@ const Service = {
 
     const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
     const defaultBankDetails = { ...(bankId ? { id: bankId } : { ...coreBankDetails, default: true }), status: STATUSES.ACTIVE };
-    const foundBank = await BankRepo.findBank(defaultBankDetails, []);
+    const foundBank = await BankAccountRepo.findBank(defaultBankDetails, []);
     if (!foundBank) return { success: false, error: 'Bank not found' };
 
     // todo: process payment handled here

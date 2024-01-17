@@ -5,7 +5,7 @@ export class addBanksTable1677723163847 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'banks',
+        name: 'bank_accounts',
         columns: [
           {
             name: 'id',
@@ -105,6 +105,6 @@ export class addBanksTable1677723163847 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('banks');
+    await queryRunner.dropTable('bank_accounts');
   }
 }

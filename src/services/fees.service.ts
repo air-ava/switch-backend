@@ -45,6 +45,7 @@ import { Sanitizer } from '../utils/sanitizer';
 import Utils from '../utils/utils';
 import { listStudentClass } from '../database/repositories/studentClass.repo';
 import AuditLogsService from './auditLogs.service';
+import { CURRENCIES } from '../database/models/currencies.model';
 
 const Service: any = {
   async getSchoolProduct(data: any): Promise<theResponse> {
@@ -128,7 +129,6 @@ const Service: any = {
 
   async listFeesInSchool(data: any): Promise<theResponse> {
     const { school, ...rest } = data;
-    // todo: repo for sum of students and a sum of expected tuition fee
     const response = await listSchoolProduct(
       { school_id: school.id, ...rest },
       [],
@@ -341,7 +341,6 @@ const Service: any = {
     if (schoolProduct) throw new ExistsError(`Fee for this school`);
     schoolProduct = await saveSchoolProduct({ description, amount, currency, image, ...findCriteria });
 
-    // todo: Create a fee per student for the class and school
     const students = foundClassLevel
       ? (
           await listStundentsInSchoolClass(
@@ -349,6 +348,7 @@ const Service: any = {
               schoolId: school.id,
               status: STATUSES.ACTIVE,
               classId: foundClassLevel,
+              currency: CURRENCIES[school.country.toUpperCase()],
             },
             [],
             ['student.Fees', 'student.Fees.Fee', 'student.User', 'student.Fees.FeesHistory'],
@@ -443,7 +443,8 @@ const Service: any = {
   },
 
   async listClassFee(data: any): Promise<theResponse> {
-    const { currency = 'UGX', school, perPage, page, from, to } = data;
+    const { school, perPage, page, from, to } = data;
+    const { currency = CURRENCIES[school.country.toUpperCase()] } = data;
 
     const response = await listFeesByClass(
       { status: STATUSES.ACTIVE, currency, school_id: school.id, perPage, page, from, to },
@@ -454,7 +455,8 @@ const Service: any = {
   },
 
   async getFeesInClass(data: any): Promise<theResponse> {
-    const { currency = 'UGX', code, school, ...rest } = data;
+    const { code, school, ...rest } = data;
+    const { currency = CURRENCIES[school.country.toUpperCase()] } = data;
 
     const foundClassLevel = await getClassLevel({ code }, []);
     if (!foundClassLevel) throw new NotFoundError('Class Level');
@@ -473,7 +475,7 @@ const Service: any = {
   },
 
   async feesDetails(data: any): Promise<theResponse> {
-    const { currency = 'UGX', school } = data;
+    const { school } = data;
 
     const response = await schoolFeesDetails({ schoolId: school.id });
     return sendObjectResponse('Fee details retrieved', response);

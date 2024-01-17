@@ -62,15 +62,54 @@ export const getStudentCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, Sanitizer.sanitizeStudent(data));
 };
 
+export const getStudent_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
+  const { school, organisation, student } = req;
+  const { uniqueStudentId: studentId } = student as any;
+  const response = await StudentService.getStudent({ studentId });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeStudent(data));
+};
+
 export const getStudentPaymentHistoryCONTROLLER: RequestHandler = async (req, res) => {
   const { code: studentId } = req.params;
   const response = await StudentService.getStudentHistory({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };
+
 export const getStudentFeesCONTROLLER: RequestHandler = async (req, res) => {
   const { code: studentId } = req.params;
   const response = await StudentService.getStudentFees({ studentId });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, data);
+};
+export const getStudentFees_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
+  const { school, organisation, student } = req;
+  const { uniqueStudentId: studentId } = student as any;
+  const response = await StudentService.getStudentFeesLight({ studentId });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const getStudentPaymentHistory_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
+  const { school, organisation, student } = req;
+  const { uniqueStudentId: studentId } = student as any;
+  const response = await StudentService.getStudentHistory({ studentId });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const getStudentDetail_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
+  const { school, organisation, student } = req;
+  const { uniqueStudentId: studentId } = student as any;
+  const response = await StudentService.getStudentPaymentSummary({ studentId, school });
+  const { data, message, error = errorMessages.addStudent } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const getStudentFeesLightCONTROLLER: RequestHandler = async (req, res) => {
+  const { code: studentId } = req.params;
+  const response = await StudentService.getStudentFeesLight({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
   return ResponseService.success(res, message || error, data);
 };

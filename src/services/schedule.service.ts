@@ -7,7 +7,7 @@ import { STATUSES } from '../database/models/status.model';
 import { saveSchedule, updateSchedule } from '../database/repositories/schedule.repo';
 import { sendObjectResponse, ValidationError } from '../utils/errors';
 import Utils from '../utils/utils';
-import CronIntegrator from '../integrations/extra/cron.integrations';
+import CronIntegrator from '../integration/extra/cron.integrations';
 
 interface cronExpressionDTO {
   minutes?: string | number;

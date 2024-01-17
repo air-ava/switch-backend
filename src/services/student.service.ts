@@ -6,6 +6,7 @@ import randomstring from 'randomstring';
 // import { StudentGuardian } from './../database/models/studentGuardian.model';
 import * as bcrypt from 'bcrypt';
 import { In, IsNull, Like, Not } from 'typeorm';
+import { getSchool } from '../database/repositories/schools.repo';
 import Utils, { createObjectFromArrayWithoutValue, mapAnArray } from '../utils/utils';
 import { ISchoolProduct, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
@@ -36,16 +37,22 @@ import {
   saveSchoolClass,
 } from '../database/repositories/schoolClass.repo';
 import {
+  calculateTotalFee,
   getBeneficiaryProductPayment,
   increaseOutstandingAmount,
   listBeneficiaryProductPayments,
   saveBeneficiaryProductPayment,
+  sumPaymentsAndOutstandings,
   updateBeneficiaryProductPayment,
 } from '../database/repositories/beneficiaryProductPayment.repo';
 import { listSchoolProduct } from '../database/repositories/schoolProduct.repo';
 import { listProductTransaction } from '../database/repositories/productTransaction.repo';
 import { Sanitizer } from '../utils/sanitizer';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
+import { sendEmail } from '../utils/mailtrap';
+import { CURRENCIES } from '../database/models/currencies.model';
+import ReservedAccountService from './reservedAccount.service';
 
 class StudentSetupBuilder {
   private classId: string | number;
@@ -174,8 +181,18 @@ const Service: ServiceInterface = {
     const statusValue = STATUSES[status.toUpperCase() as 'ACTIVE' | 'INACTIVE'];
 
     // Check if user already exists
-    // const existingUser = await findUser({ first_name, last_name, other_name, gender, status: STATUSES.UNVERIFIED }, [], []);
-    // if (existingUser) throw new ExistsError('User');
+    const existingUser = await findUser(
+      { first_name, last_name, ...(other_name && { other_name }), ...(gender && { gender }), status: STATUSES.UNVERIFIED },
+      [],
+      [],
+    );
+    if (existingUser) {
+      const existingStudent = await getStudent({ userId: existingUser.id, schoolId }, [], []);
+      if (existingStudent) {
+        const existingStudentClass = await getStudentClass({ studentId: existingStudent.id, classId }, [], []);
+        if (existingStudentClass) throw new CustomError('Student with same details already exists in this class');
+      }
+    }
 
     const studentPayload: any = {
       email: Utils.removeStringWhiteSpace(studentEmail),
@@ -187,6 +204,7 @@ const Service: ServiceInterface = {
       other_name: other_name && other_name,
       password: passwordHash,
     };
+
     if (reqPhone) {
       const {
         data: { id: phone_number },
@@ -200,7 +218,7 @@ const Service: ServiceInterface = {
     const existingStudent = await getStudent({ userId: studentUserRecord.id }, [], []);
     if (existingStudent) throw new ExistsError('Student');
 
-    const student = await saveStudentREPO({
+    const createdStudent = await saveStudentREPO({
       schoolId,
       uniqueStudentId,
       userId: studentUserRecord.id,
@@ -208,19 +226,21 @@ const Service: ServiceInterface = {
       paymentTypeId: PAYMENT_TYPE[partPayment.toUpperCase() as 'INSTALLMENTAL' | 'LUMP_SUM' | 'NO_PAYMENT'],
     });
 
+    const student = await getStudent({ id: createdStudent.id }, [], ['User']);
+    if (!student) throw new NotFoundError('Student');
+
     // Check if student already exists in the class
     const existingStudentClass = await getStudentClass({ studentId: student.id, classId }, [], []);
     if (existingStudentClass) throw new CustomError('Student already exists in the class');
 
-    await saveStudentClassREPO({
-      studentId: student.id,
-      classId,
-      school_id: schoolId,
-      session: session.id,
-    });
+    await saveStudentClassREPO({ studentId: student.id, classId, school_id: schoolId, session: session.id });
 
+    // todo: Make this a queue for guardian
     await Service.addNonExistingGuardians({ school, guardians, student });
+    // todo: Make this a queue for adding Fees
     await Service.addFeesForStudent({ school, schoolClass: foundSchoolClass, student });
+    // todo: Make this a queue for assigning AccountNumber
+    if (school.country === 'NIGERIA') await ReservedAccountService.assignAccountNumber({ holder: 'student', holderId: String(student.id), school });
 
     return sendObjectResponse('Student created successfully');
   },
@@ -242,6 +262,7 @@ const Service: ServiceInterface = {
       ],
       [],
     );
+    // todo: Make fees per student a queue
     if (classFees.length)
       await Promise.all(
         classFees.map(async (classFee: ISchoolProduct) => {
@@ -306,23 +327,89 @@ const Service: ServiceInterface = {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async addGuardian(data: any): Promise<theResponse> {
     const { student, school, incomingGuardians, guardian } = data;
-    guardian as { relationship: string; firstName: any; lastName: any; gender: any; email?: string; phone_number: any };
+    guardian as { relationship: string; firstName: any; lastName: any; gender: any; email?: string; phone_number?: any };
     const { relationship, firstName, lastName, email, gender, phone_number } = guardian;
     if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
-    const { data: phone } = await findOrCreatePhoneNumber(phone_number);
+
+    let phone;
+    if (phone_number) {
+      const { data: phoneData } = await findOrCreatePhoneNumber(phone_number);
+      phone = phoneData;
+    }
+
+    const pin = randomstring.generate({ length: 6, charset: 'numeric' });
+    const hashedPin = bcrypt.hashSync(pin, 8);
+    const username = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
+
     const individual = await findOrCreateIndividual({
       firstName,
       lastName,
       school_id: school.id,
-      phone_number: phone.id,
+      ...(phone && { phone_number: phone.id }),
       email,
       gender,
       type: 'guardian',
+      username,
     });
-    await saveStudentGuardianREPO({
+
+    const studentGuardian = await saveStudentGuardianREPO({
       studentId: student.id,
       relationship,
       individualId: individual.id,
+      authentication_pin: hashedPin,
+    });
+
+    const { first_name, last_name } = student.User;
+    const avatar = Utils.getAvatar();
+    if (email)
+      Promise.all([
+        sendEmail({
+          recipientEmail: email,
+          purpose: 'guardian_login',
+          templateInfo: {
+            supportEmail: 'support@joinsteward.com',
+            schoolName: school.name,
+            schoolLogo: school.Logo ? school.Logo.url : avatar.school,
+            schoolPageUrl: `${Utils.getDashboardURL()}/guardian/${school.slug}/login`,
+            pin,
+            username,
+            studentCode: student.uniqueStudentId,
+            studentName: `${first_name} ${last_name}`,
+            guardianName: `${firstName} ${lastName}`,
+          },
+        }),
+        sendEmail({
+          recipientEmail: email,
+          purpose: 'student_payment_details',
+          templateInfo: {
+            supportEmail: 'support@joinsteward.com',
+            schoolName: school.name,
+            schoolLogo: school.Logo ? school.Logo.url : avatar.school,
+            accountNumber: student.uniqueStudentId,
+            bankName: 'WEMA Bank',
+            accountName: `${first_name} ${last_name}/${school.name}`,
+            studentCode: student.uniqueStudentId,
+            studentName: `${first_name} ${last_name}`,
+            guardianName: `${firstName} ${lastName}`,
+          },
+        }),
+      ]);
+
+    sendSlackMessage({
+      body: {
+        first_name,
+        last_name,
+        firstName,
+        lastName,
+        email,
+        ...(phone && { internationalFormat: phone.internationalFormat }),
+        uniqueStudentId: student.uniqueStudentId,
+        pin,
+        code: studentGuardian.code,
+        guardianCode: individual.code,
+        username: individual.username || username,
+      },
+      feature: 'guardian_pin',
     });
 
     return sendObjectResponse('Guardian added successfully');
@@ -358,6 +445,7 @@ const Service: ServiceInterface = {
         'StudentGuardians',
         'StudentGuardians.Guardian',
         'StudentGuardians.Guardian.phoneNumber',
+        'ReservedAccounts',
       ],
     );
     if (!student) throw new NotFoundError('Student');
@@ -400,6 +488,45 @@ const Service: ServiceInterface = {
       'student.session.session',
     );
     return sendObjectResponse('Student Fees retrieved successfully', groupedTransactions);
+  },
+
+  async getStudentFeesLight(criteria: any): Promise<theResponse> {
+    const { studentId } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees']);
+    if (!student) throw new NotFoundError('Student');
+
+    const paymentTransactions = await listBeneficiaryProductPayments(
+      { beneficiary_id: student.id, beneficiary_type: 'student' },
+      [],
+      ['Fee', 'Student', 'Student.Classes', 'Student.Classes.Session', 'Student.Classes.ClassLevel'],
+    );
+    return sendObjectResponse(
+      'Student Fees retrieved successfully',
+      Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizeBeneficiaryFee),
+    );
+  },
+
+  async getStudentPaymentSummary(criteria: any): Promise<theResponse> {
+    const { studentId, school, currency = 'NGN' } = criteria;
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees', 'User']);
+    if (!student) throw new NotFoundError('Student');
+
+    const paymentTransactions = await sumPaymentsAndOutstandings({ beneficiary_id: student.id, beneficiary_type: 'student', currency });
+    const totalFees = await calculateTotalFee({ beneficiary_id: student.id, beneficiary_type: 'student', currency });
+    (paymentTransactions as any).total_fees = totalFees.total_fee;
+    (paymentTransactions as any).currency = currency;
+    return sendObjectResponse(
+      'Student payment summary retrieved successfully',
+      {
+        paymentTransactions,
+        paymentDetails: {
+          account_name: `${student.User.first_name} ${student.User.last_name}/${school.name}`,
+          account_number: `${student.uniqueStudentId}`,
+          bank: `Wema Bank`,
+        },
+      },
+      // Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizeBeneficiaryFee),
+    );
   },
 
   async deactivateStudentFee(criteria: any): Promise<theResponse> {
@@ -512,7 +639,7 @@ const Service: ServiceInterface = {
     await studentSetup.setClassId();
     await studentSetup.setSchoolClass();
     const { schoolClass: foundSchoolClass } = studentSetup.build();
-    const { id: classId } = foundSchoolClass.id;
+    const { id: classId } = foundSchoolClass;
 
     if (addGuardians && addGuardians.length > 2) throw new ValidationError('You can not have more than two(2) Guardians');
     const student = await getStudent(
@@ -534,9 +661,10 @@ const Service: ServiceInterface = {
     }
     if (status || partPayment) await updateStudent({ id: student.id }, updateStudentPayload);
     if (classId) {
-      const existingClass = await getSchoolClass({ code: classId }, []);
+      const existingClass = await getSchoolClass({ id: classId }, []);
       if (!existingClass) throw new NotFoundError('class');
-      await updateStudentClass({ id: student.id }, { classId: existingClass.class_id });
+      const [studentCurrentClass] = student.Classes.filter((value: IStudentClass) => value.status === STATUSES.ACTIVE);
+      await updateStudentClass({ id: studentCurrentClass.id }, { classId: existingClass.class_id });
     }
     const studentPayload: any = {};
     if (criteria.first_name) studentPayload.first_name = criteria.first_name;
@@ -732,15 +860,15 @@ const Service: ServiceInterface = {
   },
 
   async addClassToSchoolWitFees(data: any): Promise<theResponse> {
+    const { school } = data;
     const {
       forPeriod = false,
       forSession = false,
       expiresAtPeriodEnd = false,
       description,
       amount,
-      currency = 'UGX',
+      currency = CURRENCIES[school.country.toUpperCase()] || 'UGX',
       image,
-      school,
       class: classCode,
       eduPeriodCode,
       periodCode,
@@ -804,6 +932,7 @@ const Service: ServiceInterface = {
         page,
         from,
         to,
+        currency: CURRENCIES[school.country.toUpperCase()],
       },
       [],
       ['student.Fees', 'student.Fees.Fee', 'student.User', 'student.Fees.FeesHistory'],
@@ -821,8 +950,7 @@ const Service: ServiceInterface = {
     if (!foundSchoolClass) throw new NotFoundError('Class for School');
 
     const classDetails = await getSchoolClassDetails({ schoolId: school.id, classId: foundClassLevel.id, groupingInterval: 'week' });
-    const [classDetail] = classDetails.filter((value: any) => value.currency === 'UGX');
-    console.log({ foundSchoolClass });
+    const [classDetail] = classDetails.filter((value: any) => value.currency === CURRENCIES[school.country.toUpperCase()]);
 
     const { code, ...rest } = foundClassLevel;
     return sendObjectResponse('Added Class to School Successfully', { code: foundSchoolClass.code, ...rest, ...classDetail });

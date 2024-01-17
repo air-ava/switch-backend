@@ -1,11 +1,13 @@
-import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import { BadRequestException, NotFoundError, ResourceNotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
+import { Sanitizer } from '../utils/sanitizer';
 import { theResponse } from '../utils/interface';
-import { createAddressValidator, getAddressValidator } from '../validators/address.validator';
+import { createAddressValidator, getAddressValidator, getStateDistrictsValidator, getStatesValidator } from '../validators/address.validator';
 import { createAddressDTO, getAddressDTO } from '../dto/address.dto';
 import { businessChecker, findOrCreateAddress, updateAddressDefault } from './helper.service';
 import { IBusiness } from '../database/modelInterfaces';
 import { getAddressesREPO } from '../database/repositories/address.repo';
 import { getOneBuinessREPO } from '../database/repositories/business.repo';
+import CountryStateRepo from '../database/repositories/countryState.repo';
 import { STATUSES } from '../database/models/status.model';
 
 export const createAddress = async (data: createAddressDTO | any): Promise<theResponse> => {
@@ -62,3 +64,32 @@ export const getAddress = async (data: getAddressDTO): Promise<theResponse> => {
     return BadRequestException(error.message || 'Address retrieval failed, kindly try again');
   }
 };
+
+const Service = {
+  async getCountryStates(data: { country: 'NIGERIA' | 'UGANDA' }): Promise<theResponse> {
+    const { country } = data;
+
+    const validation = getStatesValidator.validate(data);
+    if (validation.error) throw new ValidationError(validation.error.message);
+
+    const states = { UGANDA: 'Regions', NIGERIA: 'States' };
+    const gottenStates = await CountryStateRepo.listCountryStates({ country }, []);
+
+    return sendObjectResponse(`${states[country]} retrieved successfully`, Sanitizer.sanitizeAllArray(gottenStates, Sanitizer.sanitizeNoId));
+  },
+
+  async getStatesDistricts(data: { country: 'NIGERIA' | 'UGANDA'; state: string }): Promise<theResponse> {
+    const { country, state } = data;
+
+    const validation = getStateDistrictsValidator.validate(data);
+    if (validation.error) throw new ValidationError(validation.error.message);
+
+    const states = { UGANDA: 'Regions', NIGERIA: 'States' };
+    const districts = await CountryStateRepo.getCountryState({ country, state_district: state }, ['lga_cities']);
+    if (!districts) throw new NotFoundError(`${states[country]}`);
+
+    return sendObjectResponse(`${state} retrieved successfully`, districts.lga_cities ? districts.lga_cities.split(',') : []);
+  },
+};
+
+export default Service;

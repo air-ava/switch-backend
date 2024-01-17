@@ -37,3 +37,36 @@ export const BAYONIC_KEY = throwIfUndefined('BAYONIC_KEY');
 export const STEWARD_BASE_URL = throwIfUndefined('STEWARD_BASE_URL');
 export const AFRICA_TALKING_USSD_TOKEN = throwIfUndefined('AFRICA_TALKING_USSD_TOKEN');
 export const SLACK_TOKEN = throwIfUndefined('SLACK_TOKEN');
+export const CRON_TOKEN = throwIfUndefined('CRON_TOKEN');
+
+export const REDIS_URL = throwIfUndefined('REDIS_URL');
+export const AMQP_CLIENT = throwIfUndefined('AMQP_CLIENT');
+
+export const WEMA_ACCOUNT_PREFIX = throwIfUndefined('WEMA_ACCOUNT_PREFIX');
+export const WEMA_BANK_BASE_URL = throwIfUndefined('WEMA_BANK_BASE_URL');
+export const WEMA_VENDOR_ID = throwIfUndefined('WEMA_VENDOR_ID');
+export const WEMA_AUTH_TOKEN = throwIfUndefined('WEMA_AUTH_TOKEN');
+export const WEMA_ENCRYPTION_KEY = throwIfUndefined('WEMA_ENCRYPTION_KEY');
+export const WEMA_ENCRYPTION_IV = throwIfUndefined('WEMA_ENCRYPTION_IV');
+export const WEMA_USERNAME = throwIfUndefined('WEMA_USERNAME');
+export const WEMA_PASSWORD = throwIfUndefined('WEMA_PASSWORD');
+export const STEWARD_WEMA_ACCOUNT_NAME = throwIfUndefined('STEWARD_WEMA_ACCOUNT_NAME');
+export const STEWARD_WEMA_ACCOUNT_NUMBER = throwIfUndefined('STEWARD_WEMA_ACCOUNT_NUMBER');
+export const WEMA_TOKEN = throwIfUndefined('WEMA_TOKEN');
+
+export const SMILEID_API_KEY = throwIfUndefined('SMILEID_API_KEY');
+export const SMILEID_PARTNER_ID = throwIfUndefined('SMILEID_PARTNER_ID');
+export const SMILEID_URL = throwIfUndefined('SMILEID_URL');
+export const SMILEID_CALLBACK_URL = throwIfUndefined('SMILEID_CALLBACK_URL');
+export const SMILEID_ENV = throwIfUndefined('SMILEID_ENV');
+
+export const CRONJOB_URI = throwIfUndefined('CRONJOB_URI');
+export const MOMO_URI = throwIfUndefined('MOMO_URI');
+// Core Proto Server Details
+export const PROTO_LOCATION = throwIfUndefined('PROTO_LOCATION');
+export const SERVICE_IP = throwIfUndefined('SERVICE_IP');
+export const SERVICE_PORT = throwIfUndefined('SERVICE_PORT');
+
+// Core Proto Payment Server Details
+export const PAYMENTS_SERVICE_IP = throwIfUndefined('PAYMENTS_SERVICE_IP');
+export const PAYMENTS_SERVICE_PORT = throwIfUndefined('PAYMENTS_SERVICE_PORT');

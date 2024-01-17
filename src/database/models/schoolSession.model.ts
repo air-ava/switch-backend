@@ -23,10 +23,10 @@ export class SchoolSession {
   @Column()
   status: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'datetime' })
   start_date: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   expiry_date: Date;
 
   @Column({ unique: true })

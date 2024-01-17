@@ -1,12 +1,12 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { v4 } from 'uuid';
 import { response } from 'express';
-import { Not, In } from 'typeorm';
+import { Not, In, QueryRunner } from 'typeorm';
 import { STATUSES } from '../database/models/status.model';
-import { BadRequestException, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import { BadRequestError, BadRequestException, NotFoundError, ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
 import { Sanitizer } from '../utils/sanitizer';
-import BankRepo from '../database/repositories/bank.repo';
+import BankAccountRepo from '../database/repositories/bankAccount.repo';
 import BankTransferRepo from '../database/repositories/bankTransfer.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';
@@ -15,11 +15,50 @@ import { getOneTransactionREPO, updateTransactionREPO } from '../database/reposi
 import { completeBankTransfer, updateBankTransfer } from '../validators/payment.validator';
 import { findUser } from '../database/repositories/user.repo';
 import { createAsset } from './assets.service';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 
 const Service = {
-  async recordBankTransfer(data: any): Promise<theResponse> {
-    const { bankId, user, walletId, bankDetails, description, note, amount, transactionPin, school } = data;
+  async findOrCreateBankAccount({
+    bankDetails,
+    bankId,
+    wallet = Settings.get('WALLET'),
+    t,
+  }: {
+    bankDetails: any;
+    bankId?: number;
+    wallet: any;
+    t?: QueryRunner;
+  }): Promise<theResponse> {
+    let foundBank;
+
+    if (bankId) foundBank = await BankAccountRepo.findBank({ id: bankId }, []);
+    else {
+      const { country = Settings.get('COUNTRY'), number, bank_name, bank_routing_number, account_name } = bankDetails;
+      const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
+      const defaultBankDetails = { ...coreBankDetails, number, bank_name, status: STATUSES.ACTIVE, account_name };
+
+      const existingBank = await BankAccountRepo.findBank(defaultBankDetails, []);
+      if (existingBank) foundBank = existingBank;
+      else
+        foundBank = await BankAccountRepo.saveBank(
+          {
+            ...defaultBankDetails,
+            bank_routing_number,
+            default: false,
+            country,
+            type: 'beneficiary',
+          },
+          t && t,
+        );
+    }
+
+    if (!foundBank) throw new NotFoundError('Bank');
+
+    return sendObjectResponse('Bank retrieved successfully', foundBank);
+  },
+
+  async recordBankTransfer(payload: any): Promise<theResponse> {
+    const { bankId, user, walletId, bankDetails, description, note, amount, transactionPin, school } = payload;
     const reference = v4();
     const purpose = 'Withdraw:Bank-Transfer';
     const channel = 'bank-transfer';
@@ -33,25 +72,7 @@ const Service = {
     }
 
     // find or create Bank
-    let foundBank;
-    if (bankId) foundBank = await BankRepo.findBank({ id: bankId }, []);
-    else {
-      const { country = 'UGANDA', number, bank_name, bank_routing_number, account_name } = bankDetails;
-      const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
-      const defaultBankDetails = { ...coreBankDetails, number, bank_name, status: STATUSES.ACTIVE, account_name };
-
-      const existingBank = await BankRepo.findBank(defaultBankDetails, []);
-      if (existingBank) foundBank = existingBank;
-      else
-        foundBank = await BankRepo.saveBank({
-          ...defaultBankDetails,
-          bank_routing_number,
-          default: false,
-          country,
-          type: 'beneficiary',
-        });
-    }
-    if (!foundBank) return { success: false, error: 'Bank not found' };
+    const { data: foundBank } = await Service.findOrCreateBankAccount({ bankDetails, bankId, wallet });
 
     const createdBankTransfer = await BankTransferRepo.saveBankTransfer({
       amount,

@@ -1,6 +1,7 @@
 import { QueryRunner, getRepository, In, UpdateResult } from 'typeorm';
 import { IStudentClass } from '../modelInterfaces';
 import { StudentClass } from '../models/studentClass.model';
+import randomstring from 'randomstring';
 
 export const getStudentClass = async (
   queryParam: Partial<IStudentClass> | any,
@@ -43,7 +44,12 @@ export const saveStudentClassREPO = (
   queryParams: Partial<IStudentClass> | Partial<IStudentClass>[] | any,
   transaction?: QueryRunner,
 ): Promise<any> => {
-  return transaction ? transaction.manager.save(StudentClass, queryParams) : getRepository(StudentClass).save(queryParams);
+  const repository = transaction ? transaction.manager.getRepository(StudentClass) : getRepository(StudentClass);
+  const payload = {
+    code: `stc_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    ...queryParams,
+  };
+  return repository.save(payload);
 };
 
 export const updateStudentClass = (

@@ -1,6 +1,6 @@
 import { sendObjectResponse } from '../utils/errors';
 import { theResponse } from '../utils/interface';
-import CronIntegrator, { Schedule } from '../integrations/extra/cron.integrations';
+import CronIntegrator, { Schedule } from '../integration/extra/cron.integrations';
 
 const Service = {
   async addCron(title: string, schedule: Schedule & { url: string }): Promise<theResponse> {

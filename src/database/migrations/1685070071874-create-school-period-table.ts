@@ -43,12 +43,12 @@ export class createSchoolPeriodTable1685070071874 implements MigrationInterface 
           },
           {
             name: 'start_date',
-            type: 'date',
+            type: 'datetime',
             isNullable: true,
           },
           {
             name: 'expiry_date',
-            type: 'date',
+            type: 'datetime',
             isNullable: true,
           },
           {

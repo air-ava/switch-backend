@@ -9,8 +9,14 @@ export class Organisation {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ unique: true })
+  code: string;
+
   @Column()
   name: string;
+  
+  @Column()
+  business_type: string;
 
   @Column()
   email: string;
@@ -32,6 +38,15 @@ export class Organisation {
 
   @Column()
   owner: string;
+
+  @Column('int')
+  onboarding_status: number;
+  
+  @Column()
+  onboarding_reference: string;
+  
+  @Column()
+  document_reference: string;
 
   @Column('text')
   slug: string;
@@ -69,3 +84,8 @@ export class Organisation {
   @JoinColumn({ name: 'logo' })
   LogoId: IUser;
 }
+
+export const businessType: any = {
+  'sole proprietorship': 'SOLE_PROPITOR',
+  'limited liability': 'LIMITED_LIABILITY',
+};

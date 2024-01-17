@@ -21,6 +21,12 @@ export class PaymentContacts {
   email?: string;
 
   @Column()
+  relationship?: string;
+
+  @Column()
+  gender?: string;
+
+  @Column()
   status: number;
 
   @Column({ unique: true })

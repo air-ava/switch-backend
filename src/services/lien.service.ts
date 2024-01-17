@@ -13,6 +13,7 @@ export const creditLedgerWallet = async ({
   description,
   metadata,
   walletId,
+  type = 'collection-request',
   t,
   saveToTransaction = false,
 }: {
@@ -21,6 +22,7 @@ export const creditLedgerWallet = async ({
   walletId: number;
   reference: string;
   description: string;
+  type?: string;
   metadata: { [key: string]: number | string };
   saveToTransaction: boolean;
   t?: QueryRunner;
@@ -37,6 +39,7 @@ export const creditLedgerWallet = async ({
   await saveALienTransaction({
     walletId: wallet.id,
     amount,
+    type,
     metadata: {
       ...metadata,
       txn_type: 'credit',
@@ -75,12 +78,14 @@ export const debitLedgerWallet = async ({
   walletId,
   reference,
   metadata,
+  type = 'collection-request',
   t,
 }: {
   amount: number;
   user: IUser;
   walletId: number;
   reference: string;
+  type?: string;
   metadata: { [key: string]: number | string };
   t?: QueryRunner;
 }): Promise<ControllerResponse> => {
@@ -115,6 +120,7 @@ export const debitLedgerWallet = async ({
     walletId: wallet.id,
     amount,
     status: STATUSES.COMPLETED,
+    type,
     metadata: {
       ...metadata,
       txn_type: 'debit',
@@ -131,4 +137,3 @@ export const debitLedgerWallet = async ({
     message: 'Transfer successful',
   };
 };
-

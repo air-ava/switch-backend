@@ -9,6 +9,7 @@ import { findCurrency } from '../database/repositories/curencies.repo';
 import { BadRequestException, NotFoundError, sendObjectResponse } from '../utils/errors';
 import { ControllerResponse, theResponse } from '../utils/interface';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
+import ReservedAccountREPO from '../database/repositories/reservedAccount.repo';
 import { getQueryRunner } from '../database/helpers/db';
 import { getSchool } from '../database/repositories/schools.repo';
 import { IUser } from '../database/modelInterfaces';
@@ -16,6 +17,8 @@ import { saveTransaction } from '../database/repositories/transaction.repo';
 import { STATUSES } from '../database/models/status.model';
 import Settings from './settings.service';
 import { sumOfArray } from '../utils/utils';
+import { countryMapping } from '../database/models/users.model';
+import { CURRENCIES } from '../database/models/currencies.model';
 
 export const Service: any = {
   /**
@@ -31,7 +34,11 @@ export const Service: any = {
    * [[BadRequestException]] is used for sending error response.
    * @engineer  Daniel Adegoke(Created), Emmanuel Akinjole(Updated)
    */
-  async createDollarWallet({ user, currency = 'UGX', type = 'permanent', entity = 'school', entityId }: any): Promise<ControllerResponse> {
+  async createDollarWallet(data: any): Promise<ControllerResponse> {
+    const { user, type = 'permanent', entity = 'school', entityId } = data;
+
+    const country = user.country.length === 2 ? countryMapping[user.country] : user.country;
+    const { currency = CURRENCIES[country.toUpperCase()] || 'UGX' } = data;
     // const schema = joi.object(createDollarWalletSchema).and('currency', 'type');
     // const validation = schema.validate({ userMobile, firstName, lastName, type, currency });
 
@@ -62,7 +69,7 @@ export const Service: any = {
     await WalletREPO.createWallet({
       userId: user.id,
       uniquePaymentId: randomstring.generate({ length: 10, charset: 'numeric' }),
-      currency: currencyRes.short_code || 'UGX',
+      currency: currencyRes.short_code || currency || 'UGX',
       entityId,
       entity,
       type,
@@ -157,6 +164,8 @@ export const Service: any = {
       t && t,
       relation,
     );
+    if (!t && type === 'fetchWallet')
+      wallet.ReservedAccount = await ReservedAccountREPO.getReservedAccount({ entity: 'school', entity_id: school.id }, []);
 
     // const ConvertedWalletCase = await Promise.all(wallets.map(async (wallet) => toCamelCase(await getFlutterwaveAccountWithWalletInfo(wallet))));
 

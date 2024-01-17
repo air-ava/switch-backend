@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Response } from 'express';
+import { handleUnaryCall } from '@grpc/grpc-js';
 
 interface Payload {
   message: string;
@@ -21,6 +23,17 @@ export = {
     const payload: any = {
       message,
       status: true,
+      error: false,
+    };
+    if (data) payload.data = data;
+    if (meta) payload.meta = meta;
+    res.status(200).json(payload);
+  },
+
+  successTwo(res: Response, message: string, data: any = null, meta: any = null) {
+    const payload: any = {
+      message,
+      success: true,
       error: false,
     };
     if (data) payload.data = data;
@@ -62,5 +75,34 @@ export = {
     };
     if (config.data) payload.data = config.data;
     res.status(config.statusCode ?? config.code ?? 200).json(payload);
+  },
+
+  wemaInvalid(res: Response, status = '07', message = 'Invalid authorization') {
+    res.status(400).json({
+      status,
+      status_desc: message,
+    });
+  },
+
+  wemaSuccess(res: Response, status = '00', message = 'Successful', data: any = null) {
+    const payload: any = {
+      status,
+      status_desc: message,
+      ...data,
+    };
+    res.status(200).json(payload);
+  },
+
+  wrapGrpcUnaryCall<TRequest, TControllerResponse>(
+    handler: (request: TRequest) => Promise<TControllerResponse>,
+  ): handleUnaryCall<TRequest, TControllerResponse> {
+    return async (call: any, callback: any) => {
+      try {
+        const response = await handler(call.request);
+        return callback(null, response);
+      } catch (error: any) {
+        return callback(error);
+      }
+    };
   },
 };

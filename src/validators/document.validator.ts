@@ -7,7 +7,7 @@ export const verifyDocument = joi.object().keys({
 });
 
 export const listDocuments = joi.object().keys({
-  process: joi.string().optional(),
-  country: joi.string().valid('UGANDA').optional(),
+  process: joi.string().valid('onboarding').optional(),
+  country: joi.string().valid('UGANDA', 'NIGERIA').optional(),
   reference: joi.string().optional(),
 });

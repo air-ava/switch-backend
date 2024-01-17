@@ -1,9 +1,12 @@
 /* eslint-disable lines-between-class-members */
+import axios from 'axios';
+import sharp from 'sharp';
 import { Not } from 'typeorm';
 import { theResponse } from '../utils/interface';
 import { getOnePhoneNumber, createAPhoneNumber } from '../database/repositories/phoneNumber.repo';
 import { ImageValidator, phoneNumberValidator } from '../validators/phoneNumber.validator';
-import { ResourceNotFoundError, sendObjectResponse } from '../utils/errors';
+import { CustomError, NotFoundError, ResourceNotFoundError, ValidationError, sendObjectResponse } from '../utils/errors';
+import HTTP from '../utils/httpStatus';
 import {
   businessCheckerDTO,
   findAndCreateAddressDTO,
@@ -28,14 +31,14 @@ import { getOneOrganisationREPO, createOrganisationREPO } from '../database/repo
 import { getSchool } from '../database/repositories/schools.repo';
 import { listJobTitleREPO } from '../database/repositories/jobTitle.repo';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO, remember_token?: string): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
-  if (error) return ResourceNotFoundError(error);
+  if (error) throw new ValidationError(error.message);
 
   const { countryCode, localFormat } = phone;
-  const internationalFormat = formatPhoneNumber(localFormat);
+  const internationalFormat = formatPhoneNumber(localFormat, countryCode);
   const phoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: String(internationalFormat.replace('+', '')) } });
   if (phoneNumber)
     return sendObjectResponse('Phone numbers retrieved successfully', { ...phoneNumber, completeInternationalFormat: internationalFormat });
@@ -49,7 +52,7 @@ export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO
     },
   });
   const createdPhoneNumber = await getOnePhoneNumber({ queryParams: { internationalFormat: internationalFormat.replace('+', '') } });
-  if (!createdPhoneNumber) throw Error('Sorry, problem with Phone Number creation');
+  if (!createdPhoneNumber) throw new ValidationError('Sorry, problem with Phone Number creation');
 
   return sendObjectResponse('Account created successfully', { ...createdPhoneNumber, completeInternationalFormat: internationalFormat });
 };
@@ -158,7 +161,7 @@ export const findOrCreateAddress = async (payload: findAndCreateAddressDTO): Pro
     area,
   });
 
-  if (!createdAddress) throw Error('Sorry, problem with Address creation');
+  if (!createdAddress) throw new ValidationError('Sorry, problem with Address creation');
 
   return sendObjectResponse('Address created successfully', createdAddress);
 };
@@ -202,14 +205,14 @@ export const findSchoolWithOrganization = async (payload: { owner: string; email
 
   const { owner, email } = payload;
   const existingOrganisation = await getOneOrganisationREPO({ owner, ...(email && { email }), status: STATUSES.ACTIVE, type: 'school' }, []);
-  if (!existingOrganisation) throw Error('Organization not found');
+  if (!existingOrganisation) throw new NotFoundError('Organization');
 
   const foundSchool = await getSchool(
     { organisation_id: existingOrganisation.id },
     [],
     ['Address', 'phoneNumber', 'Organisation', 'Organisation.Owner', 'Logo', 'Organisation.Owner.phoneNumber'],
   );
-  if (!foundSchool) throw Error('School not found');
+  if (!foundSchool) throw new NotFoundError('School');
 
   return sendObjectResponse('Organisation retrieved successfully', { organisation: existingOrganisation, school: foundSchool });
 };
@@ -378,3 +381,32 @@ export class NotificationHandler {
     return sendSlackMessage({ feature, body });
   }
 }
+
+const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+    stream.on('error', (err) => reject(err));
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+};
+
+export const imageUrlToResizedBlob = async (imageUrl: string, size?: { width: number; height: number }): Promise<string> => {
+  try {
+    // Fetch the image as a stream to optimize memory usage
+    const response = await axios.get(imageUrl, { responseType: 'stream' });
+    const imageStream = response.data;
+
+    // Use a Sharp stream to handle resizing
+    let transform = sharp();
+
+    if (size) transform = transform.resize(size.width, size.height);
+
+    // Stream the image through Sharp, convert to Base64 string
+    const buffer = await streamToBuffer(imageStream.pipe(transform));
+    return `data:image/jpeg;base64,${buffer.toString('base64')}`;
+  } catch (error) {
+    if (axios.isAxiosError(error) && !error.response) throw new NotFoundError('Image URL');
+    throw new CustomError('Error processing the image', HTTP.BAD_REQUEST, error);
+  }
+};

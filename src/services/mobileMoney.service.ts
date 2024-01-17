@@ -12,7 +12,7 @@ import { STATUSES } from '../database/models/status.model';
 import { saveMobileMoneyTransaction, updateMobileMoneyTransactionREPO } from '../database/repositories/mobileMoneyTransactions.repo';
 import { getStudent } from '../database/repositories/student.repo';
 import { getOneTransactionREPO, getTransactionsREPO, saveTransaction, updateTransactionREPO } from '../database/repositories/transaction.repo';
-import { createPayment, initiateCollection } from '../integrations/bayonic/collection.integration';
+import { createPayment, initiateCollection } from '../integration/bayonic/collection.integration';
 import { Service as WalletService } from './wallet.service';
 import PreferenceService from './preference.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
@@ -23,7 +23,7 @@ import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo
 import { ENVIRONMENT, STEWARD_BASE_URL } from '../utils/secrets';
 import Settings from './settings.service';
 import Utils from '../utils/utils';
-import { sendSms } from '../integrations/africasTalking/sms.integration';
+import { sendSms } from '../integration/africasTalking/sms.integration';
 import { sendEmail } from '../utils/mailtrap';
 import FeesService from './fees.service';
 import { findUser } from '../database/repositories/user.repo';
@@ -33,7 +33,7 @@ import {
   getMobileMoneyPaymentREPO,
   updateMobileMoneyPaymentREPO,
 } from '../database/repositories/mobileMoneyPayment.repo';
-import { sendSlackMessage } from '../integrations/extra/slack.integration';
+import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { NotificationHandler } from './helper.service';
 import { getSchool } from '../database/repositories/schools.repo';
 import { mobileMoneyPaymentDTO } from '../dto/mobileMoney.dto';

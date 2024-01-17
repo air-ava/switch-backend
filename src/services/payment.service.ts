@@ -1,8 +1,8 @@
-import { theResponse } from './../utils/interface';
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import randomstring from 'randomstring';
 import { In, Not } from 'typeorm';
 import { v4 } from 'uuid';
+import { theResponse } from '../utils/interface';
 import { STATUSES } from '../database/models/status.model';
 import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import { findPendingPayment, findMultiplePendingPayments, savePendingPaymentsREPO } from '../database/repositories/payments.repo';
@@ -15,7 +15,7 @@ import { getSchoolDetails } from './school.service';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
 import { Service as WalletService } from './wallet.service';
 import { getListOfTransactionsForSettlement, updateTransactionREPO } from '../database/repositories/transaction.repo';
-import BankRepo from '../database/repositories/bank.repo';
+import BankAccountRepo from '../database/repositories/bankAccount.repo';
 import { saveSettlementTransaction } from '../database/repositories/settlementTransactions.repo';
 import Settings from './settings.service';
 import { getQueryRunner } from '../database/helpers/db';
@@ -149,7 +149,7 @@ export const buildCollectionRequestPayload = async ({
         const message = 'Fee not active for this student';
         if (ussd) return { error: message };
         throw new ValidationError(message);
-      };
+      }
       studentTutition = studentTutitionFee;
     }
     reciever = student;
@@ -202,7 +202,7 @@ export const recordSettlementTransaction = async (data: any): Promise<any> => {
 
   const coreBankDetails = { walletId: wallet.id, currency: wallet.currency };
   const defaultBankDetails = { ...(bankId ? { id: bankId } : { ...coreBankDetails }), status: STATUSES.ACTIVE };
-  const foundBank = await BankRepo.findBank(defaultBankDetails, []);
+  const foundBank = await BankAccountRepo.findBank(defaultBankDetails, []);
   if (foundBank) return { success: false, error: 'Bank exists' };
 
   // todo: process payment handled here

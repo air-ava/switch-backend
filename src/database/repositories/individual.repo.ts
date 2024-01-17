@@ -5,7 +5,7 @@ import { Users } from '../models/users.model';
 import { Individual } from '../models/individual.model';
 
 export const findIndividual = async (
-  queryParam: Partial<IIndividual | any>,
+  queryParam: Partial<IIndividual | IIndividual[] | any>,
   selectOptions: Array<keyof Individual>,
   relationOptions?: any[],
   t?: QueryRunner,
@@ -22,6 +22,25 @@ export const findIndividual = async (
         // relations: ['phone'],
         ...(relationOptions && { relations: relationOptions }),
       });
+};
+
+export const listDirectors = async (
+  queryParam: Partial<IIndividual | any>,
+  selectOptions: Array<keyof Individual>,
+  relationOptions?: any[],
+  t?: QueryRunner,
+): Promise<Individual[] | any[]> => {
+  const repository = t ? t.manager.getRepository(Individual) : getRepository(Individual);
+
+  const modifiedQueryParam = {
+    ...queryParam,
+    type: In(['director', 'shareholder']),
+  };
+  return repository.find({
+    where: modifiedQueryParam,
+    ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+    ...(relationOptions && { relations: relationOptions }),
+  });
 };
 
 export const createIndividual = async (payload: {
@@ -65,12 +84,12 @@ export const findOrCreateIndividual = async (queryParams: Partial<IIndividual>, 
   const { phone_number, email } = queryParams;
 
   // Prepare the find conditions based on the extracted keys
-  const findConditions: FindConditions<IIndividual> = {};
+  const findConditions: Partial<IIndividual> = {};
   if (phone_number) findConditions.phone_number = phone_number;
   if (email) findConditions.email = email;
 
   // Attempt to find an existing individual based on the provided queryParams
-  const existingIndividual = await queryRunner.findOne(queryParams);
+  const existingIndividual = await queryRunner.findOne(findConditions);
 
   // If an existing individual is found, return it
   if (existingIndividual) return existingIndividual;

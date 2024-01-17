@@ -1,8 +1,9 @@
 import randomstring from 'randomstring';
-import { QueryRunner, getRepository, UpdateResult } from 'typeorm';
+import { QueryRunner, getRepository, UpdateResult, FindConditions } from 'typeorm';
 import { PaymentContacts } from '../models/paymentContacts.model';
+import { IPaymentContacts } from '../modelInterfaces';
 
-export const getPreference = async (
+export const getPaymentContact = async (
   queryParam: Partial<PaymentContacts> | any,
   selectOptions: Array<keyof PaymentContacts>,
   relationOptions?: any[],
@@ -40,6 +41,24 @@ export const createPaymentContacts = async (
     ...queryParams,
   };
   return repository.save(payload);
+};
+
+export const findOrCreatePaymentContacts = async (queryParams: Partial<IPaymentContacts>, t?: QueryRunner): Promise<PaymentContacts> => {
+  const queryRunner = t ? t.manager.getRepository(PaymentContacts) : getRepository(PaymentContacts);
+  const { phone_number, email, school } = queryParams;
+
+  const findConditions: FindConditions<IPaymentContacts> = { school };
+  if (phone_number) findConditions.phone_number = phone_number;
+  if (email) findConditions.email = email;
+
+  const existingPaymentContacts = await queryRunner.findOne({ where: findConditions });
+
+  if (existingPaymentContacts) return existingPaymentContacts;
+  const payload = {
+    code: `prf_${randomstring.generate({ length: 17, capitalization: 'lowercase', charset: 'alphanumeric' })}`,
+    ...queryParams,
+  };
+  return queryRunner.save(payload);
 };
 
 export const updatePaymentContacts = async (

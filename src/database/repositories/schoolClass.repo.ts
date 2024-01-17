@@ -36,8 +36,9 @@ export const listSchoolClass = async (
   t?: QueryRunner,
 ): Promise<SchoolClass[] | any> => {
   const repository = t ? t.manager.getRepository(SchoolClass) : getRepository(SchoolClass);
+  const { currency: incomingCurrency, ...rest } = queryParam;
   const classes = await repository.find({
-    where: queryParam,
+    where: rest,
     ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
     ...(relationOptions && { relations: relationOptions }),
   });
@@ -45,7 +46,7 @@ export const listSchoolClass = async (
   classes.forEach((classRoom: any) => {
     // eslint-disable-next-line no-return-assign
     const amountPaid = classRoom.Fees && classRoom.Fees.reduce((sum: any, fee: any) => (sum += +fee.amount), 0);
-    const { currency } = classRoom.Fees[0] || { currency: 'UGX' };
+    const { currency } = classRoom.Fees[0] || { currency: incomingCurrency };
     classRoom.totalFee = amountPaid;
     classRoom.currency = currency;
     classRoom.studentCount = classRoom.School.Students.reduce(
@@ -65,7 +66,7 @@ export const listSchoolsClassAndFees = async (
   relationOptions?: any[],
   t?: QueryRunner,
 ): Promise<SchoolClass[] | any> => {
-  const { school_id, status } = queryParam;
+  const { school_id, currency: incomingCurrency, status } = queryParam;
   const queryBuilder = getRepository(SchoolClass).createQueryBuilder('SchoolClass');
   const query = queryBuilder
     .leftJoinAndSelect('SchoolClass.ClassLevel', 'ClassLevel')
@@ -125,7 +126,7 @@ export const listSchoolsClassAndFees = async (
 
   classes.forEach((classRoom: any) => {
     // eslint-disable-next-line no-return-assign
-    const { currency } = studentFees ? studentFees[0] : { currency: 'UGX' };
+    const { currency } = studentFees ? studentFees[0] : { currency: incomingCurrency };
     classRoom.totalFee = studentFeesObject ? studentFeesObject[`${classRoom.class_id}`] : 0;
     classRoom.currency = currency;
     classRoom.studentCount = (studentCountObject ? studentCountObject[`${classRoom.class_id}`] : '0') || '0';
@@ -141,7 +142,7 @@ export const listStundentsInSchoolClass = async (
   t?: QueryRunner,
 ): Promise<StudentClass[] | any> => {
   const repository = t ? t.manager.getRepository(StudentClass) : getRepository(StudentClass);
-  const { schoolId, classId, status, page = 1, perPage = 20, from, to } = queryParam;
+  const { currency = 'UGX', schoolId, classId, status, page = 1, perPage = 20, from, to } = queryParam;
 
   const payload = {
     classId,
@@ -196,7 +197,7 @@ export const listStundentsInSchoolClass = async (
       );
     const { beneficiary_type, product_currency, ...rest } = student.student.Fees[0] || {
       beneficiary_type: 'student',
-      product_currency: 'UGX',
+      product_currency: currency,
     };
     const { totalAmountPaid, totalAmountOutstanding, totalFee } = amountPaid;
     let paidStatus;

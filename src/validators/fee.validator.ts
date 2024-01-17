@@ -4,6 +4,8 @@ const feeCode = joi.string().pattern(new RegExp('shp_.{17}$')).required().messag
   'string.pattern.base': 'Invalid fee code',
 });
 
+export const currencyCodes = joi.string().valid('UGX', 'NGN');
+
 const schoolClassCode = joi.string().pattern(new RegExp('shc_.{17}$')).messages({
   'string.pattern.base': 'Invalid student class code',
 });
@@ -19,7 +21,7 @@ export const editFeeValidator = joi.object().keys({
   code: feeCode,
   classCode: schoolClassCode.optional(),
   status: joi.string().valid('active', 'inactive').optional(),
-  currency: joi.string().valid('UGX').optional(),
+  currency: currencyCodes.optional(),
   description: joi.string().optional(),
   name: joi.string().optional(),
   amount: joi.number().positive().optional().min(10000).messages({

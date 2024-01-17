@@ -7,19 +7,13 @@ export const Repo = {
     queryParam: Partial<IDocumentRequirement> | any,
     selectOptions: Array<keyof DocumentRequirement>,
     relationOptions?: any[],
-
     t?: QueryRunner,
   ): Promise<DocumentRequirement[]> {
-    return t
-      ? t.manager.find(DocumentRequirement, {
-          where: queryParam,
-          ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-          ...(relationOptions && { relations: relationOptions }),
-        })
-      : getRepository(DocumentRequirement).find({
-          where: queryParam,
-          ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-          ...(relationOptions && { relations: relationOptions }),
-        });
+    const repository = t ? t.manager.getRepository(DocumentRequirement) : getRepository(DocumentRequirement);
+    return repository.find({
+      where: queryParam,
+      ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
+      ...(relationOptions && { relations: relationOptions }),
+    });
   },
 };

@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
-import { createAddress, getAddress } from '../services/address.service';
+import ResponseService from '../utils/response';
+import AddressService, { createAddress, getAddress } from '../services/address.service';
 
 export const getAddressCONTROLLER: RequestHandler = async (req, res) => {
   try {
@@ -28,4 +29,16 @@ export const createAddressCONTROLLER: RequestHandler = async (req, res) => {
     console.log(error);
     return res.status(500).json({ success: false, error: 'Could not fetch beneficiaries.', data: error });
   }
+};
+
+export const getCountryStatesCONTROLLER: RequestHandler = async (req, res) => {
+  const response = await AddressService.getCountryStates({ country: req.query.country as 'NIGERIA' | 'UGANDA' });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const getStatesDistrictsCONTROLLER: RequestHandler = async (req, res) => {
+  const response = await AddressService.getStatesDistricts({ country: req.query.country as 'NIGERIA' | 'UGANDA', state: String(req.query.state) });
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
 };

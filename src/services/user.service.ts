@@ -80,6 +80,7 @@ export const fetchUserProfile = async (data: any): Promise<any> => {
   // if (validation.error) return ResourceNotFoundError(validation.error);
 
   const { user } = data;
+
   try {
     const userAlreadyExist = await findUser({ id: user.id }, [], ['phoneNumber', 'Address', 'Avatar', 'JobTitle']);
     if (!userAlreadyExist) throw Error('User not found');
@@ -87,10 +88,12 @@ export const fetchUserProfile = async (data: any): Promise<any> => {
     const school = await getSchool({ organisation_id: userAlreadyExist.organisation }, [], ['Organisation', 'Logo']);
     (userAlreadyExist as any).School = school;
 
-    const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user });
+    const { success: getWallet, data: wallet, error: walletError } = await WalletService.getSchoolWallet({ user, type: 'fetchWallet' });
     if (!getWallet) throw walletError;
 
     (userAlreadyExist as any).Wallet = wallet;
+
+    console.log({ data, userAlreadyExist });
 
     return sendObjectResponse('User details retrieved successful', Sanitizer.sanitizeUser(userAlreadyExist));
   } catch (e: any) {
