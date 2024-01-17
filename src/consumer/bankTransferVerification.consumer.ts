@@ -4,13 +4,11 @@ import { AMQP_CLIENT } from '../utils/secrets';
 import { Consumer } from './Consumer';
 import logger from '../utils/logger';
 import { consumerDbTransaction } from '../database/helpers/db';
-import ReservedAccountService from '../services/reservedAccount.service';
 import { requeryTransaction } from '../integration/wema/banks';
 import { STATUSES } from '../database/models/status.model';
 import { publishMessage } from '../utils/amqpProducer';
 import BankTransferRepo from '../database/repositories/bankTransfer.repo';
 import { updateTransactionREPO } from '../database/repositories/transaction.repo';
-import ValidationError from '../utils/validationError';
 import { NIPResponses } from '../integration/wema/nipResponse';
 
 interface IBankTransferVerification {
