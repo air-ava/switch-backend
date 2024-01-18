@@ -289,6 +289,7 @@ const Service: any = {
 
   async addFeeForStudent(data: { student: any; classFee: ISchoolProduct; t?: QueryRunner }) {
     const { student, classFee, t } = data;
+
     const existingBeneficiaryProductPayment = await getBeneficiaryProductPayment(
       { beneficiary_type: 'student', beneficiary_id: student.id, product_id: classFee.id },
       [],
@@ -311,13 +312,16 @@ const Service: any = {
     }
   },
 
-  async queueFeeForStudent(data: { student: any; classFee: ISchoolProduct }) {
-    const { student, classFee } = data;
-    publishMessage('create:student:fees', { student, classFee });
+  // async queueFeeForStudent(data: { student: any; classFee: ISchoolProduct; item: any }) {
+  async queueFeeForStudent(data: any) {
+    const { student, classFee, ...item } = data;
+    let fee = classFee;
+    if (!classFee) fee = item;
+    publishMessage('create:student:fees', { student, classFee: fee });
   },
-  async queueGuardianForStudent(data: { student: any; classFee: ISchoolProduct }) {
-    const { student, classFee } = data;
-    publishMessage('create:student:fees', { student, classFee });
+  async queueGuardianForStudent(data: any) {
+    const { student, school, incomingGuardians, ...guardian } = data;
+    publishMessage('add:student:guardian', { student, school, incomingGuardians, guardian });
   },
 
   async addNonExistingGuardians(data: any) {
