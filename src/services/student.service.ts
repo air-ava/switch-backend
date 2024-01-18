@@ -5,8 +5,7 @@
 import randomstring from 'randomstring';
 // import { StudentGuardian } from './../database/models/studentGuardian.model';
 import * as bcrypt from 'bcrypt';
-import { In, IsNull, Like, Not } from 'typeorm';
-import { getSchool } from '../database/repositories/schools.repo';
+import { In, IsNull, Like, Not, QueryRunner } from 'typeorm';
 import Utils, { createObjectFromArrayWithoutValue, mapAnArray } from '../utils/utils';
 import { ISchoolProduct, IStudentClass } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
@@ -52,7 +51,6 @@ import { getSchoolSession } from '../database/repositories/schoolSession.repo';
 import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { sendEmail } from '../utils/mailtrap';
 import { CURRENCIES } from '../database/models/currencies.model';
-import ReservedAccountService from './reservedAccount.service';
 import { publishMessage } from '../utils/amqpProducer';
 import ReservedAccountREPO from '../database/repositories/reservedAccount.repo';
 
@@ -150,7 +148,7 @@ interface ServiceInterface {
   classAnalytics(data: { status: 'ACTIVE' | 'INACTIVE'; school: any; classCode: string; groupBy: string }): Promise<theResponse>;
 }
 
-const Service: ServiceInterface = {
+const Service: any = {
   // Clases to be used in the code
   async addStudentToSchool(payload: any): Promise<theResponse> {
     const { status = 'active', first_name, last_name, gender, other_name, school, guardians, phone_number: reqPhone, email } = payload;
@@ -238,18 +236,15 @@ const Service: ServiceInterface = {
     await saveStudentClassREPO({ studentId: student.id, classId, school_id: schoolId, session: session.id });
 
     // todo: Make this a queue for guardian
-    await Service.addNonExistingGuardians({ school, guardians, student });
-    // todo: Make this a queue for adding Fees
-    await Service.addFeesForStudent({ school, schoolClass: foundSchoolClass, student });
-    // todo: Make this a queue for assigning AccountNumber
-    // if (school.country === 'NIGERIA') await ReservedAccountService.assignAccountNumber({ holder: 'student', holderId: String(student.id), school });
+    Service.addNonExistingGuardians({ school, guardians, student });
+    Service.addFeesForStudent({ school, schoolClass: foundSchoolClass, student });
     if (school.country === 'NIGERIA') publishMessage('assign:account:number', { holder: 'student', holderId: String(student.id), school });
 
     return sendObjectResponse('Student created successfully');
   },
 
   async addFeesForStudent(data: any) {
-    const { school, schoolClass, student } = data;
+    const { school, schoolClass, student, t } = data;
     const classFees = await listSchoolProduct(
       [
         {
@@ -264,38 +259,77 @@ const Service: ServiceInterface = {
         },
       ],
       [],
+      undefined,
+      t && t,
     );
     // todo: Make fees per student a queue
-    if (classFees.length)
-      await Promise.all(
-        classFees.map(async (classFee: ISchoolProduct) => {
-          // Check if BeneficiaryProductPayment already exists
-          const existingBeneficiaryProductPayment = await getBeneficiaryProductPayment(
-            { beneficiary_type: 'student', beneficiary_id: student.id, product_id: classFee.id },
-            [],
-            [],
-          );
-          if (!existingBeneficiaryProductPayment) {
-            // If not, create a new one
-            await saveBeneficiaryProductPayment({
-              beneficiary_type: 'student',
-              beneficiary_id: student.id,
-              product_id: classFee.id,
-              amount_paid: 0,
-              amount_outstanding: classFee.amount,
-              product_currency: classFee.currency,
-            });
-          }
-        }),
+    if (classFees.length) await Service.callService('queueFeeForStudent', classFees, { student });
+    // await Promise.all(
+    //   classFees.map(async (classFee: ISchoolProduct) => {
+    //     // Check if BeneficiaryProductPayment already exists
+    //     const existingBeneficiaryProductPayment = await getBeneficiaryProductPayment(
+    //       { beneficiary_type: 'student', beneficiary_id: student.id, product_id: classFee.id },
+    //       [],
+    //       [],
+    //     );
+    //     if (!existingBeneficiaryProductPayment) {
+    //       // If not, create a new one
+    //       await saveBeneficiaryProductPayment({
+    //         beneficiary_type: 'student',
+    //         beneficiary_id: student.id,
+    //         product_id: classFee.id,
+    //         amount_paid: 0,
+    //         amount_outstanding: classFee.amount,
+    //         product_currency: classFee.currency,
+    //       });
+    //     }
+    //   }),
+    // );
+  },
+
+  async addFeeForStudent(data: { student: any; classFee: ISchoolProduct; t?: QueryRunner }) {
+    const { student, classFee, t } = data;
+    const existingBeneficiaryProductPayment = await getBeneficiaryProductPayment(
+      { beneficiary_type: 'student', beneficiary_id: student.id, product_id: classFee.id },
+      [],
+      [],
+      t && t,
+    );
+    if (!existingBeneficiaryProductPayment) {
+      // If not, create a new one
+      await saveBeneficiaryProductPayment(
+        {
+          beneficiary_type: 'student',
+          beneficiary_id: student.id,
+          product_id: classFee.id,
+          amount_paid: 0,
+          amount_outstanding: classFee.amount,
+          product_currency: classFee.currency,
+        },
+        t && t,
       );
+    }
+  },
+
+  async queueFeeForStudent(data: { student: any; classFee: ISchoolProduct }) {
+    const { student, classFee } = data;
+    publishMessage('create:student:fees', { student, classFee });
+  },
+  async queueGuardianForStudent(data: { student: any; classFee: ISchoolProduct }) {
+    const { student, classFee } = data;
+    publishMessage('create:student:fees', { student, classFee });
   },
 
   async addNonExistingGuardians(data: any) {
     const { guardians, student, school } = data;
     if (guardians) {
       const { data: incomingGuardians } = await Service.findExistingGuardians(student);
-      await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
+      await Service.callService('queueGuardianForStudent', guardians, { student, school, incomingGuardians });
     }
+    // if (guardians) {
+    //   const { data: incomingGuardians } = await Service.findExistingGuardians(student);
+    //   await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
+    // }
   },
 
   async runService(service: string, item: any, supportData: any) {
@@ -970,7 +1004,7 @@ const Service: ServiceInterface = {
     return sendObjectResponse('Added Class to School Successfully', classAnalytics);
   },
 
-  async getStudentIdFromAccountNumber(studentId, provider = 'WEMA') {
+  async getStudentIdFromAccountNumber(studentId: string, provider = 'WEMA') {
     if (studentId.substr(0, 3) === Utils.getWemaPrefix() && provider === 'WEMA') {
       const accountDetails = await ReservedAccountREPO.getReservedAccount(
         { reserved_account_number: studentId },

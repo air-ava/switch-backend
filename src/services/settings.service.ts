@@ -8,6 +8,8 @@ import { Sanitizer } from '../utils/sanitizer';
 import Utils from '../utils/utils';
 import { STEWARD_BASE_URL, SMILEID_CALLBACK_URL, CRONJOB_URI, FLUTTERWAVE_BASE_URL, MOMO_URI } from '../utils/secrets';
 import { STATUSES } from '../database/models/status.model';
+import { Currency } from '../database/models/currencies.model';
+import { ProductType } from '../database/models/productType.model';
 
 const settings: any = {
   TRANSACTION_FEES: {
@@ -182,17 +184,17 @@ const loadPaymentTypes = async () => {
 };
 
 const loadFeeTypes = async () => {
-  const paymentTypes = {};
-  const response = await getRepository(PaymentType).find({});
-  mapper(response, 'slug', 'code', paymentTypes);
-  settings.FEE_TYPES = paymentTypes;
+  const productTypes = {};
+  const response = await getRepository(ProductType).find({});
+  mapper(response, 'slug', 'code', productTypes);
+  settings.FEE_TYPES = productTypes;
 };
 
 const loadCurrencies = async () => {
-  const paymentTypes = {};
-  const response = await getRepository(PaymentType).find({});
-  mapper(response, 'country', 'short_code', paymentTypes);
-  settings.COUNTRY_CURRENCIES = paymentTypes;
+  const currencies = {};
+  const response = await getRepository(Currency).find({});
+  mapper(response, 'country', 'short_code', currencies);
+  settings.COUNTRY_CURRENCIES = currencies;
 };
 
 const loadGroupedProviders = async () => {

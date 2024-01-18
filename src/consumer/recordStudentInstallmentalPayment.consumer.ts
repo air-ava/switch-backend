@@ -5,6 +5,9 @@ import logger from '../utils/logger';
 import { consumerDbTransaction } from '../database/helpers/db';
 import FeesService from '../services/fees.service';
 import { publishMessage } from '../utils/amqpProducer';
+import Utils from '../utils/utils';
+import ValidationError from '../utils/validationError';
+import { listBeneficiaryProductPayments } from '../database/repositories/beneficiaryProductPayment.repo';
 
 interface IRecordInstallmentalPay {
   paymentContact: any;
@@ -30,13 +33,20 @@ const Service = {
   },
 
   async recordInstallmentalPay(queryRunner: QueryRunner, content: IRecordInstallmentalPay) {
-    const { paymentContact, amount, metadata, reference, student, beneficiaryId } = content;
+    const { paymentContact, amount, metadata, reference, student, beneficiaryId: beneficiaryPaymentId } = content;
+
+    // ? to get the fees orderly
+    const fees = student.Fees ? student.Fees : await listBeneficiaryProductPayments({ beneficiary_type: 'student', beneficiary_id: student.id }, []);
+    const unPaidFee = (fee: any) => Number(fee.amount_outstanding) > 0;
+    const selectedFee = Utils.searchAndFindInArray(fees, unPaidFee);
+
     await FeesService.recordInstallment({
       amount,
       reference,
       paymentContact,
       metadata,
-      beneficiaryId: beneficiaryId || student.id,
+      beneficiaryId: beneficiaryPaymentId || selectedFee.id,
+      t: queryRunner,
     });
   },
 

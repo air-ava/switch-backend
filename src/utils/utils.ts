@@ -479,6 +479,45 @@ const Utils = {
 
     return null;
   },
+
+  ListFromArray(array: any[], searchObject: { [key: string]: any }) {
+    const matchingItems = [];
+    // eslint-disable-next-line no-restricted-syntax
+    for (const item of array) {
+      let isMatch = true;
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const key in searchObject) {
+        // eslint-disable-next-line no-prototype-builtins
+        if (searchObject.hasOwnProperty(key) && item[key] !== searchObject[key]) {
+          isMatch = false;
+          break;
+        }
+      }
+
+      if (isMatch) matchingItems.push(item);
+    }
+
+    return matchingItems.length > 0 ? matchingItems : null;
+  },
+
+  searchAndFindInArray(array: any[], searchCriteria: any) {
+    if (searchCriteria && typeof searchCriteria === 'object') return Utils.searchInArray(array, searchCriteria);
+    if (typeof searchCriteria === 'function') return array.find(searchCriteria);
+    return null; // Return null if no match is found
+  },
+  
+  searchAndListFromArray(array: any[], searchCriteria: any) {
+    if (searchCriteria && typeof searchCriteria === 'object') return Utils.searchInArray(array, searchCriteria);
+    if (typeof searchCriteria === 'function') return array.filter(searchCriteria);
+    return null; // Return null if no match is found
+  },
+
+  searchInArray2(array: any[], searchCriteria: any) {
+    const properties = searchCriteria;
+    return array.find((item) => Object.keys(properties).every((key) => item[key] === properties[key]));
+    return null; // Return null if no match is found
+  },
 };
 
 export const toSnake = propertyNameConverter(Utils.snake);
