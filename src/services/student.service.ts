@@ -363,7 +363,7 @@ const Service: any = {
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async addGuardian(data: any): Promise<theResponse> {
-    const { student, school, incomingGuardians, guardian } = data;
+    const { student, school, incomingGuardians, guardian, t } = data;
     guardian as { relationship: string; firstName: any; lastName: any; gender: any; email?: string; phone_number?: any };
     const { relationship, firstName, lastName, email, gender, phone_number } = guardian;
     if (incomingGuardians.gender.includes(gender) && incomingGuardians.relationship.includes(relationship)) throw new ExistsError('Guardian');
@@ -378,61 +378,66 @@ const Service: any = {
     const hashedPin = bcrypt.hashSync(pin, 8);
     const username = randomstring.generate({ length: 8, capitalization: 'lowercase', charset: 'alphanumeric' });
 
-    const individual = await findOrCreateIndividual({
-      firstName,
-      lastName,
-      school_id: school.id,
-      ...(phone && { phone_number: phone.id }),
-      email,
-      gender,
-      type: 'guardian',
-      username,
-    });
+    const individual = await findOrCreateIndividual(
+      {
+        firstName,
+        lastName,
+        school_id: school.id,
+        ...(phone && { phone_number: phone.id }),
+        email,
+        gender,
+        type: 'guardian',
+        username,
+      },
+      t && t,
+    );
 
-    const studentGuardian = await saveStudentGuardianREPO({
-      studentId: student.id,
-      relationship,
-      individualId: individual.id,
-      authentication_pin: hashedPin,
-    });
+    const studentGuardian = await saveStudentGuardianREPO(
+      {
+        studentId: student.id,
+        relationship,
+        individualId: individual.id,
+        authentication_pin: hashedPin,
+      },
+      t && t,
+    );
 
     const { first_name, last_name } = student.User;
     const avatar = Utils.getAvatar();
-    if (email)
-      Promise.all([
-        sendEmail({
-          recipientEmail: email,
-          purpose: 'guardian_login',
-          templateInfo: {
-            supportEmail: 'support@joinsteward.com',
-            schoolName: school.name,
-            schoolLogo: school.Logo ? school.Logo.url : avatar.school,
-            schoolPageUrl: `${Utils.getDashboardURL()}/guardian/${school.slug}/login`,
-            pin,
-            username,
-            studentCode: student.uniqueStudentId,
-            studentName: `${first_name} ${last_name}`,
-            guardianName: `${firstName} ${lastName}`,
-          },
-        }),
-        sendEmail({
-          recipientEmail: email,
-          purpose: 'student_payment_details',
-          templateInfo: {
-            supportEmail: 'support@joinsteward.com',
-            schoolName: school.name,
-            schoolLogo: school.Logo ? school.Logo.url : avatar.school,
-            accountNumber: student.uniqueStudentId,
-            bankName: 'WEMA Bank',
-            accountName: `${first_name} ${last_name}/${school.name}`,
-            studentCode: student.uniqueStudentId,
-            studentName: `${first_name} ${last_name}`,
-            guardianName: `${firstName} ${lastName}`,
-          },
-        }),
-      ]);
+    if (email) {
+      publishMessage('email:notification', {
+        recipientEmail: email,
+        purpose: 'guardian_login',
+        templateInfo: {
+          supportEmail: 'support@joinsteward.com',
+          schoolName: school.name,
+          schoolLogo: school.Logo ? school.Logo.url : avatar.school,
+          schoolPageUrl: `${Utils.getDashboardURL()}/guardian/${school.slug}/login`,
+          pin,
+          username,
+          studentCode: student.uniqueStudentId,
+          studentName: `${first_name} ${last_name}`,
+          guardianName: `${firstName} ${lastName}`,
+        },
+      });
+      publishMessage('email:notification', {
+        recipientEmail: email,
+        purpose: 'student_payment_details',
+        templateInfo: {
+          supportEmail: 'support@joinsteward.com',
+          schoolName: school.name,
+          schoolLogo: school.Logo ? school.Logo.url : avatar.school,
+          accountNumber: student.uniqueStudentId,
+          bankName: 'WEMA Bank',
+          accountName: `${first_name} ${last_name}/${school.name}`,
+          studentCode: student.uniqueStudentId,
+          studentName: `${first_name} ${last_name}`,
+          guardianName: `${firstName} ${lastName}`,
+        },
+      });
+    }
 
-    sendSlackMessage({
+    await publishMessage('slack:notification', {
       body: {
         first_name,
         last_name,

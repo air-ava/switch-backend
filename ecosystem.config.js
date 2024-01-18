@@ -49,5 +49,13 @@ module.exports = {
       script: 'build/consumer/assignAccountNumber.consumer.js',
       name: 'assign-account-number-consumer',
     },
+    {
+      script: 'build/consumer/createStudentFees.consumer.js',
+      name: 'create-student-fees-consumer',
+    },
+    {
+      script: 'build/consumer/addStudentGuardian.consumer.js',
+      name: 'create-student-guardian-consumer',
+    },
   ],
 };

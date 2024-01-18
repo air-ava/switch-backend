@@ -4,11 +4,6 @@ import { Consumer } from './Consumer';
 import logger from '../utils/logger';
 import { consumerDbTransaction } from '../database/helpers/db';
 import StudentService from '../services/student.service';
-import { publishMessage } from '../utils/amqpProducer';
-import Utils from '../utils/utils';
-import ValidationError from '../utils/validationError';
-import { listBeneficiaryProductPayments } from '../database/repositories/beneficiaryProductPayment.repo';
-import { Sanitizer } from '../utils/sanitizer';
 
 interface IAddStudentGuardian {
   student: any;
