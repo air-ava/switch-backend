@@ -137,7 +137,6 @@ export const catchErrorsProto = async (fn: any, ...args: any[]) => {
   }
 };
 
-
 export const catchIntegrationWithThirdPartyLogs = async (fn: any, errorPayload: any, ...args: any[]) => {
   try {
     const result = await fn(...args);

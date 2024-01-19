@@ -1,5 +1,6 @@
 import randomstring from 'randomstring';
 import { FindOperator, Not, Raw } from 'typeorm';
+import { Sanitizer } from '../utils/sanitizer';
 import { STATUSES } from '../database/models/status.model';
 import { listDirectors, findIndividual, saveIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { addOrganisationOfficerDTO, updateOrganisationOfficerDTO } from '../dto/school.dto';
@@ -15,7 +16,6 @@ import { sendEmail } from '../utils/mailtrap';
 import { getOneOrganisationREPO, updateOrganisationREPO } from '../database/repositories/organisation.repo';
 import { sendSlackMessage } from '../integration/extra/slack.integration';
 import Utils from '../utils/utils';
-import { Sanitizer } from '../utils/sanitizer';
 import { Repo as DocumentRequirementREPO } from '../database/repositories/documentRequirement.repo';
 
 const Service = {

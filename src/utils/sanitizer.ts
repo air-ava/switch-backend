@@ -1,3 +1,4 @@
+import { Organisation } from './../database/models/organisation.model';
 import {
   IBusiness,
   ICurrency,
@@ -21,6 +22,7 @@ import {
 import { STATUSES } from '../database/models/status.model';
 import { countryMapping } from '../database/models/users.model';
 import { getStudent } from '../database/repositories/student.repo';
+import Utils from './utils';
 
 export const Sanitizer = {
   jsonify(payload: any) {
@@ -652,19 +654,39 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  sanitizeIndividual(payload: IIndividual): any {
+  sanitizeIndividual(payload: IIndividual, extra?: any): any {
     if (!payload) return null;
-    const { id, status, avatar, email, job_title, verification_status, school_id, phoneNumber, phone_number, Avatar, JobTitle, ...rest } =
-      Sanitizer.jsonify(payload);
+    const {
+      id,
+      status,
+      avatar,
+      email,
+      type,
+      username,
+      job_title,
+      verification_status,
+      school_id,
+      phoneNumber,
+      phone_number,
+      Avatar,
+      JobTitle,
+      School,
+      ...rest
+    } = Sanitizer.jsonify(payload);
+    const isDirector = ['Director', 'Shareholder', 'director', 'shareholder'].includes(type);
+
     const sanitized = {
       id,
       ...rest,
       email: Sanitizer.sanitizeEmail(email),
+      type,
+      username,
+      url: isDirector && `${Utils.getWebsiteURL()}/director/${extra}/${username}`,
       phoneNumber: phoneNumber && Sanitizer.sanitizePhoneNumber(phoneNumber),
       avatar: Avatar && Sanitizer.sanitizeAsset(Avatar),
       job_title: JobTitle && Sanitizer.sanitizeAsset(JobTitle),
-      status: status && Sanitizer.getStatusById(STATUSES, status).toLowerCase(),
-      verification_status: verification_status && Sanitizer.getStatusById(STATUSES, verification_status).toLowerCase(),
+      status: status && Sanitizer.getStatusById(STATUSES, status),
+      verification_status: verification_status && Sanitizer.getStatusById(STATUSES, verification_status),
     };
     return sanitized;
   },

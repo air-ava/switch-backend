@@ -20,8 +20,11 @@ const connectAMQP = async () => {
     const connection = await amqplib.connect(AMQP_CLIENT, { servername: hostname });
     conn = connection;
     channel = await conn.createChannel();
-  } catch (error) {
+    console.log('Connected to RabbitMQ');
+  } catch (error: any) {
     console.log({ error });
+    console.error('Error connecting to RabbitMQ:', error.message);
+
   }
 };
 
@@ -40,6 +43,7 @@ export const publishMessage = async (
 ): Promise<void> => {
   if (!conn) await connectAMQP();
 
+  console.log({ queue });
   await channel.assertQueue(queue, { ...queueOptions, durable: true });
   channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { ...messageOptions, persistent: true });
   logger.info(` [x] Sent message to ${queue}`);

@@ -31,6 +31,7 @@ import {
 import ValidationError from '../utils/validationError';
 import { createBusinessValidator } from '../validators/business.validator';
 import { STATUSES } from '../database/models/status.model';
+import Settings from '../services/settings.service';
 
 const errorMessages = {
   schoolInfo: 'Could not add school Info',
@@ -258,9 +259,10 @@ export const listEducationLevelCONTROLLER: RequestHandler = async (req, res) => 
 
 export const listDirectorsCONTROLLER: RequestHandler = async (req, res) => {
   const payload = { school: req.school, ...req.query };
+  const organisation = Settings.get('ORGANISATION');
   const response = await DirectorService.listSchoolDirectors(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
+  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual, organisation.slug));
 };
 
 export const addOfficerCONTROLLER: RequestHandler = async (req, res) => {
@@ -282,7 +284,7 @@ export const inviteOfficerCONTROLLER: RequestHandler = async (req, res) => {
 
   const response = await DirectorService.sendInviteToOfficer(payload);
   const { data, message, error } = response;
-  return ResponseService.success(res, message || error, Sanitizer.sanitizeAllArray(data, Sanitizer.sanitizeIndividual));
+  return ResponseService.success(res, message || error, data);
 };
 
 export const updateOfficerCONTROLLER: RequestHandler = async (req, res) => {
