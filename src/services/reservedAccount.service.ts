@@ -133,7 +133,16 @@ const Service = {
       ...(wallet.business_account_number_prefix && { inflow_account: reserved_account_number }),
     };
 
-    const completedDeposit = await dbTransaction(Service.completeWalletDeposit, { ...data, purpose, metadata, wallet, amount, reference, school });
+    const completedDeposit = await dbTransaction(Service.completeWalletDeposit, {
+      ...data,
+      purpose,
+      metadata,
+      wallet,
+      amount,
+      reference,
+      school,
+      channel: 'bank-transfer',
+    });
     const paymentContact = await createPaymentContacts({
       school: school?.id,
       name: originator_account_name,
@@ -151,7 +160,7 @@ const Service = {
   },
 
   async completeWalletDeposit(queryRunner: QueryRunner, data: any): Promise<theResponse> {
-    const { school, purpose, wallet, amount, narration, external_reference, reference, metadata } = data;
+    const { school, purpose, wallet, amount, narration, external_reference, reference, metadata, channel } = data;
 
     const transaction = await getTransactionsByExternalReference(external_reference, queryRunner);
     if (transaction.length) throw new ValidationError(`Duplicate transaction`);
@@ -161,6 +170,7 @@ const Service = {
       user: wallet.User,
       wallet_id: wallet.id,
       purpose,
+      ...(channel && { channel }),
       reference,
       description: narration,
       t: queryRunner,
