@@ -465,7 +465,7 @@ const Service = {
       name: 'Tuition Fee',
       paymentType: 'install-mental',
       feeType: feesTypes.tuition,
-      currency: currencies[school.country.toUpperCase()] || 'UGX',
+      currency: currencies[Settings.get('COUNTRY')] || 'UGX',
       amount: 0,
       description: 'Class Default Tuition Fee',
     });
@@ -474,10 +474,14 @@ const Service = {
 
   async listClassLevelByEducationLevel(data: any): Promise<theResponse> {
     const { code: educationalCode } = data;
+
     const educationLevel = await getEducationLevel({ code: educationalCode }, []);
     if (!educationLevel) throw new NotFoundError('Educational Level');
 
-    const foundClassLevel = await listClassLevel({ education_level: educationLevel.name === 'Secondary' ? 'Senior' : educationLevel.name }, []);
+    const foundClassLevel = await listClassLevel(
+      { education_level: educationLevel.name === 'Secondary' ? 'Senior' : educationLevel.name, country: Settings.get('COUNTRY') },
+      [],
+    );
     if (!foundClassLevel) throw new NotFoundError('Class Level');
 
     return sendObjectResponse('Added Class to School Successfully', foundClassLevel);

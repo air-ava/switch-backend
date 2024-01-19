@@ -46,6 +46,7 @@ import Utils from '../utils/utils';
 import { listStudentClass } from '../database/repositories/studentClass.repo';
 import AuditLogsService from './auditLogs.service';
 import { CURRENCIES } from '../database/models/currencies.model';
+import { publishMessage } from '../utils/amqpProducer';
 
 const Service: any = {
   async getSchoolProduct(data: any): Promise<theResponse> {
@@ -147,6 +148,15 @@ const Service: any = {
       [],
     );
     return sendObjectResponse('All Fee types retrieved successfully', response);
+  },
+
+  async queueFeeForStudent(data: any) {
+    const { student, classFee, ...item } = data;
+    let incomingStudent = student;
+    if (!student) incomingStudent = item;
+
+    incomingStudent.id = incomingStudent.studentId ? incomingStudent.studentId : incomingStudent.id;
+    publishMessage('create:student:fees', { student: incomingStudent, classFee });
   },
 
   async createAFeeType(data: any): Promise<theResponse> {
@@ -355,18 +365,8 @@ const Service: any = {
           )
         ).students
       : (await listStudent({ schoolId: school.id, status: STATUSES.ACTIVE }, [])).students;
-    await Promise.all(
-      students.map((student: any) =>
-        saveBeneficiaryProductPayment({
-          beneficiary_type,
-          beneficiary_id: student.studentId ? student.studentId : student.id,
-          product_id: (schoolProduct as SchoolProduct).id,
-          amount_paid: 0,
-          amount_outstanding: (schoolProduct as SchoolProduct).amount,
-          product_currency: (schoolProduct as SchoolProduct).currency,
-        }),
-      ),
-    );
+
+    if (students.length) await Service.callService('queueFeeForStudent', students, { classFee: schoolProduct });
 
     return sendObjectResponse('Fee created successfully', schoolProduct);
   },

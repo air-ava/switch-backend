@@ -14,6 +14,9 @@ export class Currency {
 
   @Column()
   short_code: string;
+ 
+  @Column()
+  country: string;
 
   @Column()
   currency_name: string;

@@ -262,29 +262,7 @@ const Service: any = {
       undefined,
       t && t,
     );
-    // todo: Make fees per student a queue
     if (classFees.length) await Service.callService('queueFeeForStudent', classFees, { student });
-    // await Promise.all(
-    //   classFees.map(async (classFee: ISchoolProduct) => {
-    //     // Check if BeneficiaryProductPayment already exists
-    //     const existingBeneficiaryProductPayment = await getBeneficiaryProductPayment(
-    //       { beneficiary_type: 'student', beneficiary_id: student.id, product_id: classFee.id },
-    //       [],
-    //       [],
-    //     );
-    //     if (!existingBeneficiaryProductPayment) {
-    //       // If not, create a new one
-    //       await saveBeneficiaryProductPayment({
-    //         beneficiary_type: 'student',
-    //         beneficiary_id: student.id,
-    //         product_id: classFee.id,
-    //         amount_paid: 0,
-    //         amount_outstanding: classFee.amount,
-    //         product_currency: classFee.currency,
-    //       });
-    //     }
-    //   }),
-    // );
   },
 
   async addFeeForStudent(data: { student: any; classFee: ISchoolProduct; t?: QueryRunner }) {
@@ -312,13 +290,13 @@ const Service: any = {
     }
   },
 
-  // async queueFeeForStudent(data: { student: any; classFee: ISchoolProduct; item: any }) {
   async queueFeeForStudent(data: any) {
     const { student, classFee, ...item } = data;
     let fee = classFee;
     if (!classFee) fee = item;
     publishMessage('create:student:fees', { student, classFee: fee });
   },
+  
   async queueGuardianForStudent(data: any) {
     const { student, school, incomingGuardians, ...guardian } = data;
     publishMessage('add:student:guardian', { student, school, incomingGuardians, guardian });
@@ -1000,6 +978,7 @@ const Service: any = {
     const [classDetail] = classDetails.filter((value: any) => value.currency === CURRENCIES[school.country.toUpperCase()]);
 
     const { code, ...rest } = foundClassLevel;
+    console.log({ code: foundSchoolClass.code, ...rest, ...classDetail })
     return sendObjectResponse('Added Class to School Successfully', { code: foundSchoolClass.code, ...rest, ...classDetail });
   },
 
