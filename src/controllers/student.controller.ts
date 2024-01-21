@@ -1,13 +1,10 @@
 import { RequestHandler } from 'express';
 import StudentService from '../services/student.service';
 import ResponseService from '../utils/response';
-import { NotFoundError, ValidationError, oldSendObjectResponse } from '../utils/errors';
+import { ValidationError } from '../utils/errors';
 import { Sanitizer } from '../utils/sanitizer';
 import { getStudentsValidator, editStudentsValidator, editStudentFeeValidator } from '../validators/student.validator';
-import { STATUSES } from '../database/models/status.model';
-import { getSchoolSession } from '../database/repositories/schoolSession.repo';
-import Utils from '../utils/utils';
-import Settings from '../services/settings.service';
+import Helper from '../services/helper.service';
 
 const errorMessages = {
   listClasses: 'Could not list classes',
@@ -18,11 +15,7 @@ const errorMessages = {
 };
 
 const getActiveStudentId = async (code: string) => {
-  const country = Settings.get('COUNTRY');
-  let providers = Settings.get('PROVIDERS');
-  providers = Utils.groupObjectsInObjectsByKeyValue(providers, 'type');
-  providers = providers['payment-provider'];
-  const provider = Utils.searchInArray(providers, { country, status: STATUSES.ACTIVE });
+  const { country, provider } = await Helper.getCountryProvider('payment-provider');
   const studentId = await StudentService.getStudentIdFromAccountNumber(code, provider.name);
   return studentId;
 };
@@ -77,7 +70,7 @@ export const getStudentCONTROLLER: RequestHandler = async (req, res) => {
 };
 
 export const getStudent_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
-  const { school, organisation, student } = req;
+  const { student } = req;
   const { uniqueStudentId: studentId } = student as any;
   const response = await StudentService.getStudent({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
@@ -103,7 +96,7 @@ export const getStudentFeesCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, data);
 };
 export const getStudentFees_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
-  const { school, organisation, student } = req;
+  const { student } = req;
   const { uniqueStudentId: studentId } = student as any;
   const response = await StudentService.getStudentFeesLight({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
@@ -111,7 +104,7 @@ export const getStudentFees_GUARDIAN_CONTROLLER: RequestHandler = async (req, re
 };
 
 export const getStudentPaymentHistory_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
-  const { school, organisation, student } = req;
+  const { student } = req;
   const { uniqueStudentId: studentId } = student as any;
   const response = await StudentService.getStudentHistory({ studentId });
   const { data, message, error = errorMessages.addStudent } = response;
@@ -119,7 +112,7 @@ export const getStudentPaymentHistory_GUARDIAN_CONTROLLER: RequestHandler = asyn
 };
 
 export const getStudentDetail_GUARDIAN_CONTROLLER: RequestHandler = async (req, res) => {
-  const { school, organisation, student } = req;
+  const { school, student } = req;
   const { uniqueStudentId } = student as any;
 
   const studentId = await getActiveStudentId(uniqueStudentId);

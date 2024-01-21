@@ -119,6 +119,7 @@ export const validateSession: RequestHandler = async (req, res, next) => {
       req.student = student;
 
       Settings.set('SCHOOL', school);
+      Settings.set('COUNTRY', school.country.toUpperCase());
       Settings.set('GUARDIAN', individual);
       Settings.set('ORGANISATION', organisation);
       Settings.set('STUDENT', student);

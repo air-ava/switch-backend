@@ -25,7 +25,7 @@ import { getStudentClass, saveStudentClassREPO, updateStudentClass } from '../da
 import Settings from './settings.service';
 import { findOrCreateIndividual, updateIndividual } from '../database/repositories/individual.repo';
 import { listStudentGuardian, saveStudentGuardianREPO, updateStudentGuardian } from '../database/repositories/studentGuardian.repo';
-import { findOrCreatePhoneNumber } from './helper.service';
+import Helper, { findOrCreatePhoneNumber } from './helper.service';
 import FeesService from './fees.service';
 import {
   getClassAnalytics,
@@ -296,7 +296,7 @@ const Service: any = {
     if (!classFee) fee = item;
     publishMessage('create:student:fees', { student, classFee: fee });
   },
-  
+
   async queueGuardianForStudent(data: any) {
     const { student, school, incomingGuardians, ...guardian } = data;
     publishMessage('add:student:guardian', { student, school, incomingGuardians, guardian });
@@ -308,10 +308,6 @@ const Service: any = {
       const { data: incomingGuardians } = await Service.findExistingGuardians(student);
       await Service.callService('queueGuardianForStudent', guardians, { student, school, incomingGuardians });
     }
-    // if (guardians) {
-    //   const { data: incomingGuardians } = await Service.findExistingGuardians(student);
-    //   await Promise.all(guardians.map((guardian: any) => Service.addGuardian({ student, school, incomingGuardians, guardian })));
-    // }
   },
 
   async runService(service: string, item: any, supportData: any) {
@@ -384,6 +380,17 @@ const Service: any = {
       t && t,
     );
 
+    let accountDetails;
+    if (school.country === 'NIGERIA') {
+      accountDetails = await ReservedAccountREPO.getReservedAccount(
+        { entit_id: student.id, entity: 'student', type: 'permanent' },
+        ['reserved_account_name', 'reserved_account_number', 'reserved_bank_name', 'entity', 'entity_id'],
+        ['Student'],
+        t && t,
+      );
+      if (!accountDetails) throw new ValidationError('Does not belong to a student');
+    }
+
     const { first_name, last_name } = student.User;
     const avatar = Utils.getAvatar();
     if (email) {
@@ -397,7 +404,7 @@ const Service: any = {
           schoolPageUrl: `${Utils.getDashboardURL()}/guardian/${school.slug}/login`,
           pin,
           username,
-          studentCode: student.uniqueStudentId,
+          studentCode: accountDetails ? accountDetails.reserved_account_number : student.uniqueStudentId,
           studentName: `${first_name} ${last_name}`,
           guardianName: `${firstName} ${lastName}`,
         },
@@ -409,10 +416,10 @@ const Service: any = {
           supportEmail: 'support@joinsteward.com',
           schoolName: school.name,
           schoolLogo: school.Logo ? school.Logo.url : avatar.school,
-          accountNumber: student.uniqueStudentId,
-          bankName: 'WEMA Bank',
-          accountName: `${first_name} ${last_name}/${school.name}`,
-          studentCode: student.uniqueStudentId,
+          accountNumber: accountDetails ? accountDetails.reserved_account_number : student.uniqueStudentId,
+          bankName: accountDetails ? accountDetails.reserved_bank_name : 'WEMA Bank',
+          accountName: accountDetails ? accountDetails.reserved_account_name : `${first_name} ${last_name}/${school.name}`,
+          studentCode: accountDetails ? accountDetails.reserved_account_number : student.uniqueStudentId,
           studentName: `${first_name} ${last_name}`,
           guardianName: `${firstName} ${lastName}`,
         },
@@ -427,7 +434,7 @@ const Service: any = {
         lastName,
         email,
         ...(phone && { internationalFormat: phone.internationalFormat }),
-        uniqueStudentId: student.uniqueStudentId,
+        uniqueStudentId: accountDetails ? accountDetails.reserved_account_number : student.uniqueStudentId,
         pin,
         code: studentGuardian.code,
         guardianCode: individual.code,
@@ -522,8 +529,9 @@ const Service: any = {
     const paymentTransactions = await listBeneficiaryProductPayments(
       { beneficiary_id: student.id, beneficiary_type: 'student' },
       [],
-      ['Fee', 'Student', 'Student.Classes', 'Student.Classes.Session', 'Student.Classes.ClassLevel'],
+      ['Fee', 'Student', 'Student.Classes', 'Student.Classes.Session', 'Student.Classes.ClassLevel', 'Student.ReservedAccounts'],
     );
+    console.log({ paymentTransactions });
     return sendObjectResponse(
       'Student Fees retrieved successfully',
       Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizeBeneficiaryFee),
@@ -532,21 +540,27 @@ const Service: any = {
 
   async getStudentPaymentSummary(criteria: any): Promise<theResponse> {
     const { studentId, school, currency = 'NGN' } = criteria;
-    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees', 'User']);
+    const student = await getStudent({ uniqueStudentId: studentId }, [], ['Fees', 'User', 'ReservedAccounts']);
     if (!student) throw new NotFoundError('Student');
 
     const paymentTransactions = await sumPaymentsAndOutstandings({ beneficiary_id: student.id, beneficiary_type: 'student', currency });
     const totalFees = await calculateTotalFee({ beneficiary_id: student.id, beneficiary_type: 'student', currency });
     (paymentTransactions as any).total_fees = totalFees.total_fee;
     (paymentTransactions as any).currency = currency;
+
+    const { country, provider } = await Helper.getCountryProvider('payment-provider');
+    const reservedAccount = Utils.searchInArray(student.ReservedAccounts, { processor: provider.name, country, status: STATUSES.ACTIVE });
+
     return sendObjectResponse(
       'Student payment summary retrieved successfully',
       {
         paymentTransactions,
         paymentDetails: {
-          account_name: `${student.User.first_name} ${student.User.last_name}/${school.name}`,
-          account_number: `${student.uniqueStudentId}`,
-          bank: `Wema Bank`,
+          account_name: reservedAccount
+            ? reservedAccount.reserved_account_name
+            : `${student.User.first_name} ${student.User.last_name}/${school.name}`,
+          account_number: reservedAccount ? reservedAccount.reserved_account_number : `${student.uniqueStudentId}`,
+          bank: reservedAccount ? reservedAccount.reserved_bank_name : `Wema Bank`,
         },
       },
       // Sanitizer.sanitizeAllArray(paymentTransactions, Sanitizer.sanitizeBeneficiaryFee),
@@ -978,7 +992,7 @@ const Service: any = {
     const [classDetail] = classDetails.filter((value: any) => value.currency === CURRENCIES[school.country.toUpperCase()]);
 
     const { code, ...rest } = foundClassLevel;
-    console.log({ code: foundSchoolClass.code, ...rest, ...classDetail })
+    console.log({ code: foundSchoolClass.code, ...rest, ...classDetail });
     return sendObjectResponse('Added Class to School Successfully', { code: foundSchoolClass.code, ...rest, ...classDetail });
   },
 

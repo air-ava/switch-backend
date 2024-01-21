@@ -610,7 +610,7 @@ export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse>
 export const guardianAuth = async (data: any): Promise<theResponse> => {
   const { uniqueStudentId, pin, parent_username } = data;
 
-  const student: any = await getStudent({ uniqueStudentId }, [], ['School', 'School.Organisation']);
+  const student: any = await getStudent({ uniqueStudentId }, [], ['School', 'School.Organisation', 'ReservedAccounts']);
   if (!student) throw new NotFoundError(`Student`);
 
   const guardian: any = await findIndividual({ username: parent_username, status: STATUSES.ACTIVE }, []);

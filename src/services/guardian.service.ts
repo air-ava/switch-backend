@@ -24,7 +24,11 @@ const Service = {
     );
     if (!guardianDetail) throw new NotFoundError('Guardian');
 
-    const studentGuardians = await listStudentGuardian({ individualId: guardianDetail.id }, [], ['Student', 'Student.User', 'Student.User.Avatar']);
+    const studentGuardians = await listStudentGuardian(
+      { individualId: guardianDetail.id },
+      [],
+      ['Student', 'Student.User', 'Student.ReservedAccounts', 'Student.User.Avatar'],
+    );
 
     const guardiansWards = mapAnArray(studentGuardians, 'Student');
     return sendObjectResponse('Guardians wards retrieved successfully', {

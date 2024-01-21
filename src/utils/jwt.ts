@@ -68,8 +68,9 @@ export function generateGuardianToken(data: any) {
 
 export function generateWemaToken() {
   const payload = {
-    merchant_prefix: WEMA_ACCOUNT_PREFIX,
+    merchant_prefix: '960' || WEMA_ACCOUNT_PREFIX,
     type: 'wema',
+    environment: 'PRODUCTION',
   };
   // generate JWT
   return sign(payload, JWT_KEY);

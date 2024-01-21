@@ -15,7 +15,7 @@ import {
   findAndCreateOrganisationDTO,
   findAndCreatePhoneNumberDTO,
 } from '../dto/helper.dto';
-import { formatPhoneNumber, randomstringGeenerator } from '../utils/utils';
+import Utils, { formatPhoneNumber, randomstringGeenerator } from '../utils/utils';
 import { createImageREPO, getOneImageREPO } from '../database/repositories/image.repo';
 import { getOneBuinessREPO } from '../database/repositories/business.repo';
 import {
@@ -32,6 +32,7 @@ import { getSchool } from '../database/repositories/schools.repo';
 import { listJobTitleREPO } from '../database/repositories/jobTitle.repo';
 import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo';
 import { sendSlackMessage } from '../integration/extra/slack.integration';
+import Settings from './settings.service';
 
 export const findOrCreatePhoneNumber = async (phone: findAndCreatePhoneNumberDTO, remember_token?: string): Promise<theResponse> => {
   const { error } = phoneNumberValidator.validate(phone);
@@ -410,3 +411,29 @@ export const imageUrlToResizedBlob = async (imageUrl: string, size?: { width: nu
     throw new CustomError('Error processing the image', HTTP.BAD_REQUEST, error);
   }
 };
+
+const Services: any = {
+  findOrCreatePhoneNumber,
+  findOrCreateImage,
+  findOrCreateAssets,
+  updateAddressDefault,
+  findOrCreateAddress,
+  businessChecker,
+  findOrCreateOrganizaton,
+  findSchoolWithOrganization,
+  listJobTitles,
+  streamToBuffer,
+  imageUrlToResizedBlob,
+
+  async getCountryProvider(providerType: string) {
+    const country = Settings.get('COUNTRY');
+    let providers = Settings.get('PROVIDERS');
+    providers = Utils.groupObjectsInObjectsByKeyValue(providers, 'type');
+    providers = providers[providerType];
+    const provider = Utils.searchInArray(providers, { country: (item: any) => item.includes(country), status: STATUSES.ACTIVE });
+
+    return { country, provider };
+  },
+};
+
+export default Services;
