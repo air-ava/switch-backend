@@ -1,6 +1,5 @@
 import { getRepository } from 'typeorm';
-import { PAYMENT_TYPE, PaymentType } from '../database/models/paymentType.model';
-import { Product } from '../database/models/product.model';
+import { PaymentType } from '../database/models/paymentType.model';
 import { ISettings } from '../database/modelInterfaces';
 import { JobTitle } from '../database/models/jobTitle.model';
 import { findSettingsREPO } from '../database/repositories/settings.repo';
@@ -211,6 +210,7 @@ const Service = {
     return settings[key];
   },
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   set(key: string, payload: any): void {
     settings[key.toUpperCase()] = payload;
   },

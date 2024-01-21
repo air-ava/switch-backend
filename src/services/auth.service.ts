@@ -10,7 +10,6 @@ import {
   forgotPasswordValidator,
   newPasswordValidator,
   registerValidator,
-  resendToken,
   resetPasswordValidator,
   shopperLoginValidator,
   userAuthValidator,
@@ -24,13 +23,12 @@ import {
   newPasswordDTO,
   resetPasswordDTO,
   shopperLoginDTO,
-  userAuthDTO,
   verifyUserDTO,
 } from '../dto/auth.dto';
 import { findUser, createAUser, updateUser, verifyUser, listUser } from '../database/repositories/user.repo';
-import { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
+import Helper, { findOrCreateOrganizaton, findOrCreatePhoneNumber } from './helper.service';
 import { sanitizeBusinesses, Sanitizer, sanitizeUser } from '../utils/sanitizer';
-import { generateBackOfficeToken, generateGuardianToken, generateToken, generateWemaToken } from '../utils/jwt';
+import { generateGuardianToken, generateToken } from '../utils/jwt';
 import { getBusinessesREPO } from '../database/repositories/business.repo';
 import { sendEmail } from '../utils/mailtrap';
 import { createPassword, findPasswords, updatePassword } from '../database/repositories/password.repo';
@@ -41,20 +39,18 @@ import { findIndividual, saveIndividual } from '../database/repositories/individ
 import { Service as WalletService } from './wallet.service';
 import { countryMapping } from '../database/models/users.model';
 import { sendSms } from '../integration/africasTalking/sms.integration';
-import Settings from './settings.service';
 import Utils, { formatPhoneNumber } from '../utils/utils';
 import { getOnePhoneNumber, updatePhoneNumber } from '../database/repositories/phoneNumber.repo';
-import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
 import { PhoneNumbers } from '../database/models/phoneNumber.model';
 import DocumentService from './document.service';
-import { IBackOfficeUsers } from '../database/modelInterfaces';
 import { businessType } from '../database/models/organisation.model';
-import { getStudentGuardian, listStudentGuardian } from '../database/repositories/studentGuardian.repo';
+import { getStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import { getStudent } from '../database/repositories/student.repo';
 import { CURRENCIES } from '../database/models/currencies.model';
 import { sendSlackMessage } from '../integration/extra/slack.integration';
-import ReservedAccountService from './reservedAccount.service';
 import { publishMessage } from '../utils/amqpProducer';
+import StudentService from './student.service';
+import Settings from './settings.service';
 
 export const generatePlaceHolderEmail = async (data: any): Promise<string> => {
   const { first_name, last_name, emailType = 'user' } = data;
@@ -610,11 +606,16 @@ export const backOfficeVerifiesAccount = async (data: any): Promise<theResponse>
 export const guardianAuth = async (data: any): Promise<theResponse> => {
   const { uniqueStudentId, pin, parent_username } = data;
 
-  const student: any = await getStudent({ uniqueStudentId }, [], ['School', 'School.Organisation', 'ReservedAccounts']);
+  const guardian: any = await findIndividual({ username: parent_username, status: STATUSES.ACTIVE }, [], ['School']);
+  if (!guardian) throw new NotFoundError('Guardian');
+  Settings.set('COUNTRY', guardian.School.country.toUpperCase());
+
+  const { country, provider } = await Helper.getCountryProvider('payment-provider');
+  const studentId = await StudentService.getStudentIdFromAccountNumber(uniqueStudentId, provider.name);
+
+  const student: any = await getStudent({ uniqueStudentId: studentId }, [], ['School', 'School.Organisation', 'ReservedAccounts']);
   if (!student) throw new NotFoundError(`Student`);
 
-  const guardian: any = await findIndividual({ username: parent_username, status: STATUSES.ACTIVE }, []);
-  if (!guardian) throw new NotFoundError('Guardian');
 
   const studentGuardian: any = await getStudentGuardian(
     { studentId: student.id, individualId: guardian.id, status: STATUSES.ACTIVE },
