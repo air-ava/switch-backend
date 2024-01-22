@@ -38,6 +38,12 @@ export class ReservedAccount {
   @Column({ type: 'varchar', default: 'permanent' })
   type: string;
 
+  @Column()
+  reason: string;
+
+  @Column()
+  blocked_by: string;
+
   @Column({ type: 'varchar', default: 'NIGERIA' })
   country: string;
 

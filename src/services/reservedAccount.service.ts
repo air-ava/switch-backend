@@ -32,6 +32,8 @@ import { saveThirdPartyLogsREPO } from '../database/repositories/thirdParty.repo
 import { sendSlackMessage } from '../integration/extra/slack.integration';
 import { createPaymentContacts, findOrCreatePaymentContacts } from '../database/repositories/paymentContact.repo';
 import { STATUSES } from '../database/models/status.model';
+import { Sanitizer } from '../utils/sanitizer';
+import { Repo as DocumentREPO } from '../database/repositories/documents.repo';
 
 const Service = {
   generateRandomAccountNumber(): string {
@@ -108,8 +110,8 @@ const Service = {
     if (validation.error) throw new ValidationError(validation.error.message);
 
     const accountDetails = await ReservedAccountREPO.getReservedAccount(
-      { reserved_account_number },
-      ['reserved_account_name', 'entity', 'entity_id'],
+      { reserved_account_number, status: Not(In([STATUSES.DELETED, STATUSES.BLOCKED])) },
+      ['reserved_bank_name', 'reserved_account_number', 'reserved_account_name', 'entity', 'entity_id'],
       ['Wallet'],
     );
     if (!accountDetails) throw new ValidationError(`Invalid Account`);
@@ -130,6 +132,13 @@ const Service = {
     const metadata = {
       sender_name: originator_account_name,
       external_reference,
+      reference: external_reference || '',
+      sessionId: data.session_id,
+      sender_bank: data.bank_name,
+      sender_number: data.originator_account_number,
+      recipient_number: accountDetails.reserved_account_number,
+      recipient_name: accountDetails.reserved_account_name,
+      recipient_bank: accountDetails.reserved_bank_name,
       ...(wallet.business_account_number_prefix && { inflow_account: reserved_account_number }),
     };
 
@@ -279,8 +288,7 @@ const Service = {
     const transaction = await getOneTransactionREPO({ reference, purpose }, [], ['User', 'Wallet', 'Reciepts'], t);
     if (!transaction) {
       logger.error(data);
-      // ?consumerException(`No transaction with reference ${reference}`);
-      sendSlackMessage({
+      publishMessage('slack:notification', {
         body: {
           amount: Number(amount) || 0,
           reference: reference || '',
@@ -342,6 +350,76 @@ const Service = {
 
     // todo: send email
     // todo: send sms
+  },
+
+  async fetchMiniStatement(data: any, gRPCConnection = false): Promise<any> {
+    const { accountnumber } = data;
+    const accountDetails = await ReservedAccountREPO.getReservedAccount(
+      { reserved_account_number: accountnumber, status: Not(In([STATUSES.DELETED, STATUSES.BLOCKED])) },
+      ['reserved_bank_name', 'reserved_account_number', 'wallet_id'],
+      ['Wallet', 'Wallet.School'],
+    );
+    if (!accountDetails) throw new NotFoundError(`Account Number`);
+
+    const { transactions: existingTransactions, meta } = await getTransactionsREPO(
+      {
+        walletId: accountDetails.wallet_id,
+        channel: 'bank-transfer',
+        status: Not(STATUSES.FAILED),
+        // eslint-disable-next-line import/no-named-as-default-member
+        to: Utils.getCurrentDate(),
+        from: Utils.addDays(new Date(), -10),
+      },
+      ['amount', 'txn_type', 'metadata', 'created_at'],
+      [],
+    );
+
+    const response = Sanitizer.sanitizeAllArray(existingTransactions, Sanitizer.sanitizeWemaStatment, accountDetails);
+    return sendObjectResponse(
+      'Mini-Statement fetched successfully',
+      !gRPCConnection ? response : { response, school: (accountDetails.Wallet as any).School },
+    );
+  },
+
+  async fetchAccountKYC(data: any, gRPCConnection = false): Promise<any> {
+    const { accountnumber } = data;
+    const accountDetails = await ReservedAccountREPO.getReservedAccount(
+      { reserved_account_number: accountnumber, status: Not(In([STATUSES.DELETED, STATUSES.BLOCKED])) },
+      ['reserved_bank_name', 'reserved_account_number', 'reserved_account_name', 'wallet_id', 'status'],
+      ['Wallet', 'Wallet.User', 'Wallet.User.phoneNumber', 'Wallet.School'],
+    );
+    if (!accountDetails) throw new NotFoundError(`Account Number`);
+    const { Wallet, reserved_account_name, status } = accountDetails;
+    const { User, School, balance, entity_id } = Wallet as any;
+    const { phoneNumber } = User;
+
+    const bvnDocument = await DocumentREPO.findDocument({ type: 'BN-NUMBER', school_id: entity_id }, []);
+
+    const response = {
+      accountname: reserved_account_name,
+      BVN: bvnDocument.number,
+      walletbalance: balance,
+      mobilenumber: Utils.removeStringWhiteSpace(phoneNumber.localFormat),
+      status_desc: Sanitizer.getStatusById(STATUSES, status),
+    };
+
+    console.log({ response });
+    return sendObjectResponse('Account KYC fetched successfully', !gRPCConnection ? response : { response, school: School });
+  },
+
+  async blockAccount(data: any, gRPCConnection = false): Promise<any> {
+    const { accountnumber, blockreason } = data;
+    const accountDetails = await ReservedAccountREPO.getReservedAccount(
+      { reserved_account_number: accountnumber, status: Not(In([STATUSES.DELETED, STATUSES.BLOCKED])) },
+      ['reserved_bank_name', 'reserved_account_number', 'reserved_account_name', 'wallet_id', 'status'],
+      ['Wallet', 'Wallet.School'],
+    );
+    if (!accountDetails) throw new NotFoundError(`Account Number`);
+    const { Wallet } = accountDetails;
+
+    await ReservedAccountREPO.updateReservedAccount({ id: accountDetails.id }, { status: STATUSES.BLOCKED, reason: blockreason, blocked_by: 'WEMA' });
+
+    return sendObjectResponse('Account Restricted Successfully', gRPCConnection && (Wallet as any).School);
   },
 };
 

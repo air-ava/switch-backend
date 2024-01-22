@@ -7,61 +7,6 @@ import { Assets } from '../models/assets.model';
 import { IDocuments } from '../modelInterfaces';
 
 export const Repo = {
-  // async listDocuments(
-  //   queryParam: Partial<IDocuments> | any,
-  //   selectOptions: Array<keyof Documents>,
-  //   relationOptions?: any[],
-  //   t?: QueryRunner,
-  // ): Promise<Documents[] | any[] | any> {
-  //   const repository = t ? t.manager.getRepository(Documents) : getRepository(Documents);
-  //   const { addTargetEntity = false, ...rest } = queryParam;
-  //   const documents = await repository.find({
-  //     where: rest,
-  //     ...(selectOptions.length && { select: selectOptions.concat(['id']) }),
-  //     ...(relationOptions && { relations: relationOptions }),
-  //     order: { created_at: 'DESC' },
-  //   });
-
-  //   if (addTargetEntity) {
-  //     const enhancedDocuments = [];
-  //     for (const doc of documents) {
-  //       const query = repository.createQueryBuilder('documents');
-
-  //       // Add conditions for each referenced_entity
-  //       switch (doc.referenced_entity) {
-  //         case 'school':
-  //           query.innerJoinAndSelect('documents.School', 'school');
-  //           break;
-  //         case 'organisations':
-  //           query.innerJoinAndSelect('documents.Organisation', 'organisations');
-  //           break;
-  //         case 'transactions':
-  //           query.innerJoinAndSelect('documents.Transactions', 'transactions');
-  //           break;
-  //         case 'individual':
-  //           query.innerJoinAndSelect('documents.Individual', 'individual');
-  //           break;
-  //         case 'bankTransfer':
-  //           query.innerJoinAndSelect('documents.BankTransfer', 'bankTransfer');
-  //           break;
-  //       }
-
-  //       if (relationOptions && relationOptions.length)
-  //         relationOptions.forEach((relation) => {
-  //           query.leftJoinAndSelect(`documents.${relation}`, relation);
-  //         });
-
-  //       // Fetch the enhanced document with the correct join
-  //       // eslint-disable-next-line no-await-in-loop
-  //       const enhancedDoc = await query.where({ id: doc.id }).getOne();
-  //       if (enhancedDoc) enhancedDocuments.push(enhancedDoc);
-  //     }
-  //     return enhancedDocuments;
-  //   }
-
-  //   return documents;
-  // },
-
   async listDocuments(
     queryParam: Partial<IDocuments> | any,
     selectOptions: Array<keyof Documents>,

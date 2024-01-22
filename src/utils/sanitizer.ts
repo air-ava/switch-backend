@@ -93,6 +93,20 @@ export const Sanitizer = {
     return sanitized;
   },
 
+  sanitizeWemaStatment(payload: IScholarshipRequirement, extra?: any) {
+    if (!payload) return null;
+    const { id, code, txn_type, created_at, metadata, ...rest } = Sanitizer.jsonify(payload);
+
+    const sanitized = {
+      ...rest,
+      accountNo: txn_type === 'credit' ? extra.reserved_account_number : metadata.accountNumber || extra.reserved_account_number,
+      bankName: txn_type === 'credit' ? extra.reserved_bank_name : metadata.bankName || extra.reserved_bank_name,
+      direction: txn_type,
+      transactiondate: created_at,
+    };
+    return sanitized;
+  },
+
   sanitizeApplicationLink(payload: ILink, extra?: string) {
     if (!payload) return null;
     const { id, status, Status, ...rest } = Sanitizer.jsonify(payload);
@@ -103,7 +117,7 @@ export const Sanitizer = {
     return sanitized;
   },
 
-  getStatusById(object: any, value: string): any {
+  getStatusById(object: any, value: string | number): any {
     const response = Object.keys(object).find((key) => object[key] === value);
     return response?.toLowerCase();
   },
@@ -144,7 +158,7 @@ export const Sanitizer = {
     return sanitizedObject;
   },
 
-  sanitizeAllArray(payload: any, object: any, extra?: string): any[] {
+  sanitizeAllArray(payload: any, object: any, extra?: any): any[] {
     if (!Array.isArray(payload)) return [];
     return payload.map((item) => object(item, extra && extra));
   },

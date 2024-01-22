@@ -6,7 +6,9 @@ import {
   getReservedAccounRES,
   creditWalletOnReservedAccountDTO,
   creditWalletOnReservedAccountRES,
+  fetchKYCRES,
 } from '../dto/reservedAccount.dto';
+import { ControllerResponse } from '../utils/interface';
 
 interface ICreditRes {
   success: boolean;
@@ -71,6 +73,45 @@ export const creditWalletOnReservedAccountFunding: handleUnaryCall<creditWalletO
     );
 
     console.log({ response });
+    return callback(null, response);
+  } catch (error: any) {
+    console.log({ error });
+    return callback(error);
+  }
+};
+
+export const blockReservedAccount: handleUnaryCall<{ accountnumber: string; blockreason: string }, ControllerResponse> = async (call, callback) => {
+  try {
+    const { accountnumber, blockreason } = call.request;
+
+    const response = await catchErrorsProto(WemaWebhook.blockAccount, { accountnumber, blockreason });
+
+    console.log({ response });
+    return callback(null, response);
+  } catch (error: any) {
+    console.log({ error });
+    return callback(error);
+  }
+};
+
+export const fetchAccountKYC: handleUnaryCall<{ accountnumber: string; blockreason: string }, fetchKYCRES> = async (call, callback) => {
+  try {
+    const { accountnumber } = call.request;
+    const response = await catchErrorsProto(WemaWebhook.fetchAccountKYC, { accountnumber });
+
+    console.log({ response });
+    return callback(null, response);
+  } catch (error: any) {
+    console.log({ error });
+    return callback(error);
+  }
+};
+
+export const fetchMiniStatement: handleUnaryCall<{ accountnumber: string; blockreason: string }, fetchKYCRES> = async (call, callback) => {
+  try {
+    const { accountnumber } = call.request;
+    const response = await catchErrorsProto(WemaWebhook.fetchMiniStatement, { accountnumber });
+
     return callback(null, response);
   } catch (error: any) {
     console.log({ error });

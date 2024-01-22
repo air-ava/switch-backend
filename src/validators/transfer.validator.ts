@@ -33,6 +33,15 @@ const Validator = {
       'number.greater': '"amount" should be greater than 100.',
     }),
   }),
+
+  wemaStatement: joi.object({
+    accountnumber: senderAccountNumber.required(),
+  }),
+  
+  blockAccount: joi.object({
+    accountnumber: senderAccountNumber.required(),
+    blockreason: joi.string().required(),
+  }),
 };
 
 export default Validator;

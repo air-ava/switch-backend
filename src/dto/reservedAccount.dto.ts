@@ -61,3 +61,22 @@ export type creditWalletOnReservedAccountRES = ControllerResponse & {
   };
   reference?: string;
 };
+
+export type fetchKYCRES = ControllerResponse & {
+  data?: {
+    accountname: string;
+    BVN: string;
+    walletbalance: string;
+    mobilenumber: string;
+    status_desc: string;
+  };
+};
+export type fetchMiniStatementRES = ControllerResponse & {
+  data?: {
+    amount: string;
+    accountNo: string;
+    bankName: string;
+    direction: string;
+    transactiondate: string;
+  }[];
+};

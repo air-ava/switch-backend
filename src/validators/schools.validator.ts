@@ -36,6 +36,7 @@ const document = joi.object({
       'CAC-7A',
       'PASSPORT',
       'DRIVERS_LICENSE',
+      'BVN',
       'IDENTITY_CARD',
       'VOTER_ID',
     )

@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import ValidationError from '../utils/validationError';
 import TransferValidator from '../validators/transfer.validator';
 import TransferService from '../services/transfer.service';
+import ReservedAccountService from '../services/reservedAccount.service';
 import ResponseService from '../utils/response';
 import { Sanitizer } from '../utils/sanitizer';
 import { getBankList } from '../integration/wema/banks';
@@ -29,9 +30,37 @@ export const bankTransferCONTROLLER: RequestHandler = async (req, res) => {
   return ResponseService.success(res, message || error, Sanitizer.sanitizeCashDeposit(data));
 };
 
+export const wemaStatementCONTROLLER: RequestHandler = async (req, res) => {
+  const validation = TransferValidator.wemaStatement.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await ReservedAccountService.fetchMiniStatement(req.body);
+
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
+export const fetchAccountKYCCONTROLLER: RequestHandler = async (req, res) => {
+  const validation = TransferValidator.wemaStatement.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await ReservedAccountService.fetchAccountKYC(req.body);
+
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+export const blockAccountCONTROLLER: RequestHandler = async (req, res) => {
+  const validation = TransferValidator.blockAccount.validate(req.body);
+  if (validation.error) throw new ValidationError(validation.error.message);
+
+  const response = await ReservedAccountService.blockAccount(req.body);
+
+  const { data, message, error } = response;
+  return ResponseService.success(res, message || error, data);
+};
+
 export const getBankListCONTROLLER: RequestHandler = async (req, res) => {
   const response = await getBankList();
-  console.log({ response });
 
   // const { data, message, error } = response;
   return ResponseService.success(res, 'Successful', response);

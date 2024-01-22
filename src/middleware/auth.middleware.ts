@@ -1,21 +1,19 @@
 // eslint-disable-next-line prettier/prettier
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
-import { IOrganisation, IUser } from '../database/modelInterfaces';
+import { IUser } from '../database/modelInterfaces';
 import { STATUSES } from '../database/models/status.model';
 import { getOneOrganisationREPO } from '../database/repositories/organisation.repo';
 import { getSchool } from '../database/repositories/schools.repo';
 import { findUser } from '../database/repositories/user.repo';
 import BackOfficeUserRepo from '../database/repositories/backOfficeUser.repo';
 import { Repo as WalletREPO } from '../database/repositories/wallet.repo';
-import { BadRequestException } from '../utils/errors';
 // eslint-disable-next-line prettier/prettier
 import { ControllerResponse } from '../utils/interface'
 // eslint-disable-next-line prettier/prettier
 import { JWT_KEY } from '../utils/secrets';
 import { jwtDecodedDTO, jwtDTO } from '../dto/helper.dto';
 import { getSchoolSession } from '../database/repositories/schoolSession.repo';
-import { findIndividual } from '../database/repositories/individual.repo';
 import { getStudentGuardian } from '../database/repositories/studentGuardian.repo';
 import Settings from '../services/settings.service';
 

@@ -616,7 +616,6 @@ export const guardianAuth = async (data: any): Promise<theResponse> => {
   const student: any = await getStudent({ uniqueStudentId: studentId }, [], ['School', 'School.Organisation', 'ReservedAccounts']);
   if (!student) throw new NotFoundError(`Student`);
 
-
   const studentGuardian: any = await getStudentGuardian(
     { studentId: student.id, individualId: guardian.id, status: STATUSES.ACTIVE },
     [],

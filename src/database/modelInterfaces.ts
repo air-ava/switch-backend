@@ -133,6 +133,8 @@ export interface IReservedAccount {
   entity_id: number;
   wallet_id: number;
   type: string;
+  reason: string;
+  blocked_by: string;
   country: string;
   expired_at: Date | null;
   deleted_at: Date | null;

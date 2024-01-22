@@ -1,6 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Unique, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToOne } from 'typeorm';
-import { IReservedAccount, ITransaction, IUser } from '../modelInterfaces';
-import { ReservedAccount } from './reservedAccounts.model';
+import { ISchools, ITransaction, IUser } from '../modelInterfaces';
 
 @Entity('wallets')
 @Unique(['id', 'userId', 'currency', 'type', 'entity', 'entity_id'])
@@ -63,4 +62,8 @@ export class Wallets {
   @OneToOne('Users', 'wallets')
   @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
   User: IUser;
+
+  @OneToOne('Schools', 'wallets')
+  @JoinColumn({ name: 'entity_id', referencedColumnName: 'id' })
+  School: ISchools;
 }
